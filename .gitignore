@@ -1,0 +1,12 @@
+# Sensitive Files & Environment
+.env
+.env.*
+!.env.example
+deploy.sh
+create_admin.php
+
+# IDEs & System
+.idea
+.vscode
+.DS_Store
+Thumbs.db
