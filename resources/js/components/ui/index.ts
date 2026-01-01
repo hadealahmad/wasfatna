@@ -1,3 +1,7 @@
+
+export { default as Alert } from './Alert.vue'
+export { default as AlertTitle } from './AlertTitle.vue'
+export { default as AlertDescription } from './AlertDescription.vue'
 export { default as Button } from './Button.vue';
 export { default as Card } from './Card.vue';
 export { default as CardHeader } from './CardHeader.vue';
@@ -62,3 +66,4 @@ export { default as SheetTitle } from './SheetTitle.vue';
 export { default as SheetTrigger } from './SheetTrigger.vue';
 export { default as SearchInput } from './SearchInput.vue';
 export { default as MultiSelect } from './MultiSelect.vue';
+export { default as Progress } from './Progress.vue';
