@@ -10,7 +10,8 @@ import {
     Settings, 
     Flag, 
     Tag,
-    LogOut
+    LogOut,
+    Upload
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
@@ -46,6 +47,11 @@ const navItems = computed(() => [
             name: 'dashboard.cities',
             label: 'المدن',
             icon: MapPin
+        },
+        {
+            name: 'dashboard.import',
+            label: 'استيراد وصفات',
+            icon: Upload
         },
         {
             name: 'dashboard.settings',
