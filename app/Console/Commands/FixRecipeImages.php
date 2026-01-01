@@ -98,7 +98,19 @@ class FixRecipeImages extends Command
             ->get();
 
             if ($recipes->isEmpty()) {
-                 $this->warn("  [SKIPPED] No matching recipe found for {$filename}. (File: {$fileDate}, Search: {$searchDate})");
+                 $this->warn("  [SKIPPED] No matching recipe found for {$filename}. (Search: {$searchDate})");
+                 
+                 // Debug Aid: Find the absolute closest recipe in the whole DB
+                 $closestGlobal = Recipe::select('*')
+                    ->selectRaw('ABS(TIMESTAMPDIFF(SECOND, created_at, ?)) as diff', [$searchDate])
+                    ->orderBy('diff')
+                    ->first();
+                 
+                 if ($closestGlobal) {
+                     $diffMinutes = round($closestGlobal->diff / 60);
+                     $this->warn("    -> Hint: Closest recipe in DB is '{$closestGlobal->name}' ({$closestGlobal->created_at}). Diff: {$diffMinutes} mins.");
+                 }
+                 
                  $skipped++;
                  continue;
             }
