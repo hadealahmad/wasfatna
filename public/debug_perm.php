@@ -46,4 +46,32 @@ if (file_exists($storageAppPublic)) {
 }
 
 // OS Check (SELinux?)
-echo "SELinux status: " . exec('sestatus') . "\n";
+// List files in storage/recipes (symlink target)
+echo "\nListing files in public/storage/recipes:\n";
+$recipeDir = 'storage/recipes';
+if (is_dir($recipeDir)) {
+    $files = scandir($recipeDir);
+    foreach ($files as $file) {
+        if ($file != '.' && $file != '..') {
+            echo " - $file\n";
+        }
+    }
+} else {
+    echo "Directory public/storage/recipes NOT found.\n";
+}
+
+// Check if they put them in root storage/recipes (wrong place)
+$wrongDir = '../storage/recipes';
+echo "\nChecking wrong location (../storage/recipes):\n";
+if (is_dir($wrongDir)) {
+    $files = scandir($wrongDir);
+    echo "Found directory! Files:\n";
+    foreach ($files as $file) {
+        if ($file != '.' && $file != '..') {
+            echo " - $file\n";
+        }
+    }
+} else {
+    echo "Directory ../storage/recipes NOT found.\n";
+}
+
