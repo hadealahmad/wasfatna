@@ -54,14 +54,32 @@ class FixRecipeImages extends Command
             }
 
             $filename = $file->getFilename();
-            // Ignore already correct UUID-like webp files if we were scanning them (but we filter extensions above)
+            // Ignore already correct UUID-like webp files
             if ($extension === 'webp') continue;
 
-            $mtime = $file->getMTime();
-            $fileDate = Carbon::createFromTimestamp($mtime);
-            
-            $this->line("Processing $filename (Modified: {$fileDate->toDateTimeString()})");
+            $nameOnly = pathinfo($filename, PATHINFO_FILENAME);
+            $timestamp = null;
 
+            // Try to extract timestamp from uniqid (first 8 chars are hex timestamp)
+            // format: 8 chars hex (seconds) + 5 chars hex (microseconds)
+            if (preg_match('/^[0-9a-f]{13,}$/i', $nameOnly)) {
+                 $hex = substr($nameOnly, 0, 8);
+                 $timestamp = hexdec($hex);
+                 // Sanity check: is year reasonable? (e.g. > 2020)
+                 if ($timestamp < 1577836800) { // Jan 1 2020
+                     $timestamp = null; 
+                 }
+            }
+
+            if ($timestamp) {
+                 $fileDate = Carbon::createFromTimestamp($timestamp);
+                 $this->line("Processing $filename (Extracted Date: {$fileDate->toDateTimeString()})");
+            } else {
+                 $mtime = $file->getMTime();
+                 $fileDate = Carbon::createFromTimestamp($mtime);
+                 $this->line("Processing $filename (File Modified: {$fileDate->toDateTimeString()})");
+            }
+            
             // Look for recipes created within +/- 2 minutes of this timestamp
             // adjusting for timezone if necessary? Usually created_at is UTC. 
             // filemtime is unix timestamp (UTC-ish). 
