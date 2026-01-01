@@ -37,7 +37,6 @@ jobs:
             --exclude='storage/framework/cache/*' \
             --exclude='storage/framework/sessions/*' \
             --exclude='storage/framework/views/*' \
-            --exclude='node_modules' \
             ./ /home/syrian/domains/food.syrian.zone/public_html/
 
       - name: Execute Post-Deployment Commands
