@@ -1,0 +1,70 @@
+name: Deploy Application
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, cooking-runner]
+    
+
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Setup Node dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build Frontend Assets
+        run: bun run build
+
+      - name: Deploy to Production Directory
+        # Using rsync to copy from the runner's workspace (./backend) to the public_html directory.
+        # Since we are running AS the user 'syrian' (per instructions), we can rsync locally.
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.env' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='node_modules' \
+            ./ /home/syrian/domains/food.syrian.zone/public_html/
+
+      - name: Execute Post-Deployment Commands
+        working-directory: /home/syrian/domains/food.syrian.zone/public_html
+        run: |
+          # Ensure .env exists (assuming it's already there on the server, but good safety)
+          if [ ! -f .env ]; then
+              echo "::error::No .env file found in production directory!"
+              exit 1
+          fi
+
+          # Run Migrations
+          php artisan migrate --force
+
+          # Optimize
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan event:cache
+
+          # Storage Link (Idempotent)
+          php artisan storage:link --force
+
+          # Fix Permissions (Optional, but good practice if runner permissions differ slightly)
+          # Note: If running as owner 'syrian', standard umask should handle this, 
+          # but 775/storage ensures the web server group can write if needed.
+          chmod -R 775 storage bootstrap/cache
+
+          # Restart Queue Workers (if any)
+          # php artisan queue:restart
