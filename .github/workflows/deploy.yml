@@ -65,7 +65,16 @@ jobs:
           # Fix Permissions (Optional, but good practice if runner permissions differ slightly)
           # Note: If running as owner 'syrian', standard umask should handle this, 
           # but 775/storage ensures the web server group can write if needed.
+          # Fix Permissions
+          # Ensure backend storage is writable
           chmod -R 775 storage bootstrap/cache
+
+          # Ensure parent directories are traversable by web server (o+x)
+          # This fixes 403 errors if the web server runs as a different user
+          chmod 711 /home/syrian
+          chmod 711 /home/syrian/domains
+          chmod 711 /home/syrian/domains/food.syrian.zone
+          chmod 711 /home/syrian/domains/food.syrian.zone/public_html
 
           # Restart Queue Workers (if any)
           # php artisan queue:restart
