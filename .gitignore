@@ -26,3 +26,4 @@ Thumbs.db
 # Sensitive & Scratch files
 production.env
 test_ingredients.php
+*.sql
