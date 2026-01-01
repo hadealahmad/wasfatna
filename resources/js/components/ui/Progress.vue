@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type HTMLAttributes, computed } from 'vue'
-import { Progress as ProgressPrimitive, type ProgressRootProps } from 'radix-vue'
+import { ProgressRoot, ProgressIndicator, type ProgressRootProps } from 'radix-vue'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<ProgressRootProps & { class?: HTMLAttributes['class'] }>(), {
@@ -15,13 +15,13 @@ const delegatedProps = computed(() => {
 </script>
 
 <template>
-  <ProgressPrimitive
+  <ProgressRoot
     v-bind="delegatedProps"
     :class="cn('relative h-4 w-full overflow-hidden rounded-full bg-secondary', props.class)"
   >
-    <div
+    <ProgressIndicator
       class="h-full w-full flex-1 bg-primary transition-all"
       :style="`transform: translateX(-${100 - (props.modelValue ?? 0)}%);`"
     />
-  </ProgressPrimitive>
+  </ProgressRoot>
 </template>

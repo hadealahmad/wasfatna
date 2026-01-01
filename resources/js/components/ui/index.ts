@@ -67,3 +67,4 @@ export { default as SheetTrigger } from './SheetTrigger.vue';
 export { default as SearchInput } from './SearchInput.vue';
 export { default as MultiSelect } from './MultiSelect.vue';
 export { default as Progress } from './Progress.vue';
+export { default as Switch } from './Switch.vue';
