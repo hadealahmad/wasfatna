@@ -1,59 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Wasfatna 🍲
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Wasfatna is a modern recipe management platform built with Laravel, Vue 3, and Inertia.js. It allows users to browse, create, and manage recipes with ease, featuring AI-powered recipe processing and a beautiful, responsive UI.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+-   📖 **Recipe Management**: Create, edit, and organize your favorite recipes.
+-   🤖 **AI Integration**: Automatically process and format recipes using AI.
+-   📱 **Responsive Design**: Optimized for all devices using Tailwind CSS.
+-   🌗 **Modern UI**: Built with Vue 3, Radix Vue, and Lucide icons for a premium experience.
+-   ⚡ **High Performance**: Powered by Bun and Vite for lightning-fast frontend builds.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tech Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Backend**: [Laravel 12+](https://laravel.com)
+-   **Frontend**: [Vue 3](https://vuejs.org) with [Inertia.js](https://inertiajs.com)
+-   **Styling**: [Tailwind CSS 4](https://tailwindcss.com)
+-   **Package Manager**: [Bun](https://bun.sh) and [Composer](https://getcomposer.org)
+-   **Icons**: [Lucide Vue Next](https://lucide.dev)
+-   **Image Processing**: [Intervention Image](https://image.intervention.io)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Local Development Setup
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+To get Wasfatna running locally on your machine, follow these steps:
 
-## Laravel Sponsors
+### Prerequisites
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+-   **PHP 8.2+**
+-   **Composer**
+-   **Bun** (recommended) or Node.js
+-   **SQLite** (default) or MySQL/PostgreSQL
 
-### Premium Partners
+### Setup Steps
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/hadealahmad/wasfatna.git
+    cd wasfatna
+    ```
+
+2.  **Run the automated setup command**:
+    The project includes a custom setup script that handles dependencies, environment setup, and migrations.
+    ```bash
+    composer run setup
+    ```
+
+    *Alternatively, you can run the steps manually:*
+    ```bash
+    composer install
+    cp .env.example .env
+    php artisan key:generate
+    php artisan migrate --force
+    bun install
+    bun run build
+    ```
+
+3.  **Configure Environment**:
+    Edit the `.env` file to configure your database and third-party services (like Google OAuth if needed).
+
+4.  **Start the Development Servers**:
+    The project uses a custom command to run the backend server, Vite dev server, and queue worker concurrently:
+    ```bash
+    composer run dev
+    ```
+    This will start:
+    -   Laravel Development Server (`php artisan serve`)
+    -   Vite HMR Server (`npm run dev`)
+    -   Queue Listener (`php artisan queue:listen`)
+    -   Log Tailer (`php artisan pail`)
+
+---
+
+## Dev Deployment
+
+For deploying to a development or staging server, Wasfatna uses GitHub Actions for automation.
+
+### Automated Deployment (GitHub Actions)
+
+The project is configured with a self-hosted runner workflow. To deploy:
+
+1.  Push your changes to the `main` branch.
+2.  The `Deploy Application` workflow in `.github/workflows/deploy.yml` will trigger automatically.
+3.  It performs the following:
+    -   Sets up PHP and Node environments.
+    -   Installs dependencies.
+    -   Builds frontend assets.
+    -   Deploys files to the target directory on the server.
+    -   Runs migrations and clears caches.
+
+### Manual Dev Deployment
+
+If you need to deploy manually to a dev server:
+
+1.  **Pull the latest changes**:
+    ```bash
+    git pull origin main
+    ```
+
+2.  **Update dependencies**:
+    ```bash
+    composer install --no-dev --optimize-autoloader
+    bun install --frozen-lockfile
+    ```
+
+3.  **Build assets**:
+    ```bash
+    bun run build
+    ```
+
+4.  **Finalize deployment**:
+    ```bash
+    php artisan migrate --force
+    php artisan config:cache
+    php artisan route:cache
+    php artisan view:cache
+    php artisan storage:link --force
+    ```
+
+---
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+We welcome contributions! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Wasfatna is open-sourced software licensed under the [MIT license](LICENSE).
