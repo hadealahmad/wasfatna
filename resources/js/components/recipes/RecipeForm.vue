@@ -171,22 +171,24 @@ const getInitialIngredients = (): IngredientGroup[] => {
             }));
         }
 
-        // Flattened objects format
+        // Flattened objects format (including Eloquent belongsToMany with pivot)
         if (typeof firstItem === 'object' && firstItem !== null && 'name' in firstItem) {
             const grouped: Record<string, IngredientItem[]> = {};
             const groupsOrder: string[] = [];
 
             props.initialData.ingredients.forEach((item: any) => {
-                const groupName = item.group || '';
+                // Read group from pivot (Eloquent) or direct property (fallback)
+                const groupName = item.pivot?.group ?? item.group ?? '';
                 if (!grouped[groupName]) {
                     grouped[groupName] = [];
                     groupsOrder.push(groupName);
                 }
+                // Read amount/unit/descriptor from pivot (Eloquent) or direct property (fallback)
                 grouped[groupName].push({
-                    amount: item.amount || '',
-                    unit: item.unit || '',
+                    amount: item.pivot?.amount ?? item.amount ?? '',
+                    unit: item.pivot?.unit ?? item.unit ?? '',
                     name: item.name || '',
-                    descriptor: item.descriptor || ''
+                    descriptor: item.pivot?.ingredient_descriptor ?? item.pivot?.descriptor ?? item.descriptor ?? ''
                 });
             });
 
