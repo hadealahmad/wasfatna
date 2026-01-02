@@ -108,8 +108,8 @@ class Recipe extends Model
     public function ingredients(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class, 'recipe_ingredients')
-            ->withPivot(['amount', 'unit', 'ingredient_descriptor', 'group']);
-            // ->withTimestamps(); // Pivot table does not have timestamps
+            ->withPivot(['amount', 'unit', 'ingredient_descriptor', 'group', 'sort_order'])
+            ->orderByPivot('sort_order');
     }
 
     /**

@@ -174,6 +174,7 @@ class RecipeController extends Controller
         // Handle ingredients sync with proper structure
         if (!empty($validated['ingredients'])) {
             $ingredientsData = [];
+            $sortOrder = 0;
             
             // Check if it's grouped format
             if (isset($validated['ingredients'][0]['items'])) {
@@ -187,6 +188,7 @@ class RecipeController extends Controller
                             'unit' => $item['unit'] ?? '',
                             'group' => $groupName,
                             'ingredient_descriptor' => $item['descriptor'] ?? '',
+                            'sort_order' => $sortOrder++,
                         ];
                     }
                 }
@@ -200,6 +202,7 @@ class RecipeController extends Controller
                         'unit' => $item['unit'] ?? '',
                         'group' => $item['group'] ?? 'المكونات',
                         'ingredient_descriptor' => $item['descriptor'] ?? '',
+                        'sort_order' => $sortOrder++,
                     ];
                 }
             }
