@@ -4,7 +4,38 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <!-- SEO Meta Tags -->
+        <meta name="description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta name="keywords" content="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية">
+        <meta name="author" content="وصفاتنا">
+        <meta name="robots" content="index, follow">
+        <link rel="canonical" href="{{ url()->current() }}">
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="وصفاتنا">
+        <meta property="og:locale" content="ar_SY">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:title" content="{{ config('app.name', 'وصفاتنا') }}">
+        <meta property="og:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta property="og:image" content="{{ asset('og-image.png') }}">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ config('app.name', 'وصفاتنا') }}">
+        <meta name="twitter:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta name="twitter:image" content="{{ asset('og-image.png') }}">
+
         <title>{{ config('app.name', 'Laravel') }}</title>
+
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKT27FY67J"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-JKT27FY67J');
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
