@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import { Button } from '@/components/ui';
+import PaginationControls from '@/components/ui/PaginationControls.vue';
 import { PlusCircle, ArrowRight, MapPin } from 'lucide-vue-next';
 
 interface Recipe {
@@ -40,12 +41,23 @@ const props = defineProps<{
     meta: any;
     current_page: number;
     last_page: number;
+    per_page: number;
+    total: number;
   };
   cities: City[];
   allCities: City[];
   allTags: Tag[];
   filters: any;
 }>();
+
+// Handle page navigation
+function handlePageChange(page: number) {
+  router.get('/', { ...props.filters, page }, { preserveState: true, preserveScroll: false });
+}
+
+function handlePerPageChange(perPage: number) {
+  router.get('/', { ...props.filters, per_page: perPage, page: 1 }, { preserveState: true, preserveScroll: false });
+}
 </script>
 
 <template>
@@ -108,11 +120,17 @@ const props = defineProps<{
 
         <RecipeGrid :recipes="recipes.data" empty-message="لم يتم إضافة وصفات بعد. كن أول من يضيف!" />
 
-        <!-- Pagination (Simplified for now) -->
-        <div v-if="recipes.last_page > 1" class="mt-16 flex justify-center gap-2">
-           <!-- We can add PaginationControls here later -->
-           <p class="text-muted-foreground">الصفحة {{ recipes.current_page }} من {{ recipes.last_page }}</p>
-        </div>
+        <!-- Pagination -->
+        <PaginationControls
+          v-if="recipes.last_page > 1"
+          :current-page="recipes.current_page"
+          :total-pages="recipes.last_page"
+          :per-page="recipes.per_page"
+          :total-items="recipes.total"
+          class-name="mt-12"
+          @page-change="handlePageChange"
+          @per-page-change="handlePerPageChange"
+        />
       </div>
     </section>
 

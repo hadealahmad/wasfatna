@@ -41,7 +41,10 @@ class HomeController extends Controller
             });
         }
 
-        $recipes = $recipesQuery->latest()->paginate(12)->withQueryString();
+        // Get per_page from request, with sensible limits
+        $perPage = min(max((int) $request->input('per_page', 12), 10), 100);
+        
+        $recipes = $recipesQuery->latest()->paginate($perPage)->withQueryString();
 
         $cities = City::withCount('recipes')
             ->orderBy('recipes_count', 'desc')
