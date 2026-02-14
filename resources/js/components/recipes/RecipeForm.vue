@@ -102,6 +102,7 @@ const isAiProcessing = ref(false);
 
 // Form fields
 const name = ref(props.initialData?.name || '');
+const description = ref(props.initialData?.description || '');
 const servings = ref(props.initialData?.servings?.toString() || '');
 const cityId = ref(props.initialData?.city_id?.toString() || '');
 const difficulty = ref(props.initialData?.difficulty || 'متوسطة');
@@ -518,6 +519,7 @@ const submit = async () => {
     try {
         const formData = new FormData();
         formData.append('name', name.value);
+        if (description.value) formData.append('description', description.value);
         formData.append('difficulty', difficulty.value);
         formData.append('ingredients', JSON.stringify(ingredients));
         formData.append('steps', JSON.stringify(steps));
@@ -649,6 +651,20 @@ const submit = async () => {
                         required
                         class="h-12 text-base bg-background"
                     />
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <Label for="description" class="text-base mb-2 block">وصف الوصفة</Label>
+                    <Textarea
+                        id="description"
+                        v-model="description"
+                        :maxlength="280"
+                        placeholder="وصف قصير للوصفة (اختياري)"
+                        class="text-base bg-background resize-none"
+                        rows="3"
+                    />
+                    <p class="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{{ description.length }}/280</p>
                 </div>
 
                 <!-- City & Difficulty -->

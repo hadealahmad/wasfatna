@@ -125,6 +125,7 @@ class RecipeController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:280',
             'city_id' => 'nullable|exists:cities,id',
             'servings' => 'nullable|string',
             'time_needed' => 'nullable',
@@ -139,6 +140,7 @@ class RecipeController extends Controller
 
         $recipe = new Recipe();
         $recipe->name = $validated['name'];
+        $recipe->description = $validated['description'] ?? null;
         $recipe->difficulty = $validated['difficulty'];
         $recipe->servings = $validated['servings'] ?? null;
         $recipe->city_id = $validated['city_id'] ?? null;
