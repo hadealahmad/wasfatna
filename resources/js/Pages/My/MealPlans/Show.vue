@@ -6,9 +6,9 @@ import Button from '@/components/ui/Button.vue';
 import Badge from '@/components/ui/Badge.vue';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-    Input, Label, Textarea,
+    Input, Label, Textarea, Switch,
 } from '@/components/ui';
-import { CalendarDays, Pencil, Trash2, ChevronRight } from 'lucide-vue-next';
+import { CalendarDays, Pencil, Trash2, ChevronRight, Globe, Lock } from 'lucide-vue-next';
 import MealPlanCalendar from '@/components/features/meal-plans/MealPlanCalendar.vue';
 import RandomFillDialog from '@/components/features/meal-plans/RandomFillDialog.vue';
 import ShareMealPlan from '@/components/features/meal-plans/ShareMealPlan.vue';
@@ -46,6 +46,34 @@ const handleDelete = () => {
 
 const handleRandomFilled = () => {
     router.reload();
+};
+
+const isPublic = ref(props.plan.is_public ?? false);
+const togglingPublic = ref(false);
+
+const handleTogglePublic = async (value: boolean) => {
+    togglingPublic.value = true;
+    try {
+        const res = await fetch(route('web-api.meal-plans.toggle-public', { mealPlan: props.plan.id }), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json',
+            },
+        });
+        const data = await res.json();
+        if (res.ok) {
+            isPublic.value = data.is_public;
+            toast.success(data.is_public ? 'الخطة أصبحت عامة' : 'الخطة أصبحت خاصة');
+        } else {
+            toast.error(data.message || 'حدث خطأ');
+        }
+    } catch {
+        toast.error('حدث خطأ');
+    } finally {
+        togglingPublic.value = false;
+    }
 };
 </script>
 
@@ -94,8 +122,16 @@ const handleRandomFilled = () => {
                 </div>
             </div>
 
-            <!-- Share -->
-            <div class="mb-6">
+            <!-- Visibility & Share -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 rounded-lg border bg-muted/30">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <component :is="isPublic ? Globe : Lock" class="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium">{{ isPublic ? 'خطة عامة' : 'خطة خاصة' }}</p>
+                        <p class="text-xs text-muted-foreground">{{ isPublic ? 'يمكن للآخرين رؤية خطتك في صفحة التصفح' : 'لا يمكن لأحد رؤية خطتك إلا عبر رابط المشاركة' }}</p>
+                    </div>
+                    <Switch :checked="isPublic" :disabled="togglingPublic" @update:checked="handleTogglePublic" class="shrink-0" />
+                </div>
                 <ShareMealPlan :share-token="plan.share_token" />
             </div>
 

@@ -64,7 +64,7 @@ Route::get('/terms', function () { return Inertia::render('Terms'); })->name('te
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 
 Route::get('/meal-plans/shared/{token}', [MealPlanController::class, 'shared'])->name('meal-plans.shared');
-
+Route::get('/meal-plans/browse', [MealPlanController::class, 'browse'])->name('meal-plans.browse');
 
 // Public User Profile
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -101,6 +101,7 @@ Route::middleware(['auth', 'not-banned'])->group(function () {
     Route::post('/web-api/meal-plans/{mealPlan}/entries/{entry}/done', [\App\Http\Controllers\Api\MealPlanController::class, 'toggleDone'])->name('web-api.meal-plans.entries.done');
     Route::put('/web-api/meal-plans/{mealPlan}/entries/{entry}', [\App\Http\Controllers\Api\MealPlanController::class, 'updateEntry'])->name('web-api.meal-plans.entries.update');
     Route::post('/web-api/meal-plans/{mealPlan}/random-fill', [\App\Http\Controllers\Api\MealPlanController::class, 'randomFill'])->name('web-api.meal-plans.random-fill');
+    Route::post('/web-api/meal-plans/{mealPlan}/toggle-public', [\App\Http\Controllers\Api\MealPlanController::class, 'togglePublic'])->name('web-api.meal-plans.toggle-public');
     Route::get('/web-api/recipes/search', [\App\Http\Controllers\Api\MealPlanController::class, 'searchRecipes'])->name('web-api.recipes.search');
 });
 

@@ -118,6 +118,7 @@ class MealPlanController extends Controller
                 'start_date' => $meal_plan->start_date->format('Y-m-d'),
                 'end_date' => $meal_plan->end_date->format('Y-m-d'),
                 'share_token' => $meal_plan->share_token,
+                'is_public' => $meal_plan->is_public,
                 'days_count' => $meal_plan->days_count,
                 'preset' => $meal_plan->preset ? [
                     'id' => $meal_plan->preset->id,
@@ -157,6 +158,33 @@ class MealPlanController extends Controller
         $meal_plan->delete();
 
         return redirect()->route('my.meal-plans.index')->with('success', 'تم حذف خطة الوجبات');
+    }
+
+    public function browse(Request $request)
+    {
+        $plans = MealPlan::where('is_public', true)
+            ->with('user:id,name,avatar')
+            ->withCount('entries')
+            ->latest()
+            ->paginate(12);
+
+        return Inertia::render('MealPlans/Browse', [
+            'plans' => $plans->through(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'description' => $p->description,
+                'start_date' => $p->start_date->format('Y-m-d'),
+                'end_date' => $p->end_date->format('Y-m-d'),
+                'share_token' => $p->share_token,
+                'days_count' => $p->days_count,
+                'entries_count' => $p->entries_count,
+                'user' => $p->user ? [
+                    'id' => $p->user->id,
+                    'name' => $p->user->display_name,
+                    'avatar_url' => $p->user->avatar_url,
+                ] : null,
+            ]),
+        ]);
     }
 
     public function shared(string $token)

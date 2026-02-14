@@ -13,7 +13,8 @@ import {
   Dices,
   BookHeart,
   Flag,
-  CalendarDays
+  CalendarDays,
+  Globe
 } from 'lucide-vue-next';
 import { useDark, useToggle } from '@vueuse/core';
 import Avatar from '@/components/ui/Avatar.vue';
@@ -68,8 +69,8 @@ const toggleDark = useToggle(isDark);
           <nav class="hidden md:flex items-center gap-6">
             <Link href="/cities" class="text-sm font-medium hover:text-primary transition-colors">المدن</Link>
             <Link href="/lists" class="text-sm font-medium hover:text-primary transition-colors">القوائم</Link>
-            <Link v-if="isAuthenticated" href="/my/meal-plans" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-              <CalendarDays class="h-4 w-4" />
+            <Link href="/meal-plans/browse" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <Globe class="h-4 w-4" />
               <span>خطط الوجبات</span>
             </Link>
             <Link href="/randomizer" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
@@ -212,13 +213,17 @@ const toggleDark = useToggle(isDark);
                   <span>شو نطبخ؟</span>
                   <Dices class="h-5 w-5" />
                 </Link>
+                <Link href="/meal-plans/browse" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors flex items-center justify-end gap-2">
+                  <span>خطط الوجبات</span>
+                  <Globe class="h-5 w-5" />
+                </Link>
                 <Link href="/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">بحث</Link>
                 <div class="h-px bg-border my-2"></div>
                 <template v-if="isAuthenticated">
                    <Link href="/recipes/new" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right text-primary hover:text-primary/80 transition-colors">+ وصفة جديدة</Link>
                    <Link href="/my/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">وصفاتي</Link>
                    <Link href="/my/lists" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">قوائمي</Link>
-                   <Link href="/my/meal-plans" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">خطط الوجبات</Link>
+                   <Link href="/my/meal-plans" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">خططي</Link>
                    <Link href="/settings" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">الملف الشخصي</Link>
                    <Link :href="route('logout')" method="post" as="button" class="text-lg font-medium text-right text-red-600">تسجيل الخروج</Link>
                 </template>
