@@ -19,7 +19,8 @@ import {
     SelectValue,
     Badge
 } from '@/components/ui';
-import { Plus, Trash, X } from 'lucide-vue-next';
+import { Plus, Trash, X, Eye } from 'lucide-vue-next';
+import RecipePreview from '@/components/recipes/RecipePreview.vue';
 
 // Types
 interface City {
@@ -99,6 +100,23 @@ const difficulties = [
 // State
 const isSubmitting = ref(false);
 const isAiProcessing = ref(false);
+const showPreview = ref(false);
+
+// Preview computed data
+const previewCityName = computed(() => {
+    if (!cityId.value) return null;
+    return props.cities.find(c => c.id.toString() === cityId.value)?.name || null;
+});
+const previewTags = computed(() => {
+    return (props.tags || []).filter(t => selectedTags.value.includes(t.id));
+});
+const previewTimeNeeded = computed(() => {
+    const valid = timeEntries.value.filter(e => e.step && e.duration);
+    if (!valid.length) return null;
+    const obj: Record<string, string> = {};
+    valid.forEach(e => { obj[e.step] = e.duration; });
+    return obj;
+});
 
 // Form fields
 const name = ref(props.initialData?.name || '');
@@ -956,19 +974,38 @@ const submit = async () => {
         </Card>
 
         <!-- Submit -->
-        <div class="flex justify-end gap-4 pb-12">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-4 pb-12">
             <Button type="button" variant="outline" @click="router.back()">
                 إلغاء
             </Button>
+            <Button type="button" variant="secondary" @click="showPreview = true" class="gap-2">
+                <Eye class="h-4 w-4" />
+                معاينة
+            </Button>
             <Button type="submit" :disabled="isSubmitting">
-                {{ isSubmitting 
-                    ? (isEditing ? 'جاري التحديث...' : 'جاري الإرسال...') 
-                    : (isEditing 
-                        ? (isAdmin ? 'تحديث الوصفة' : 'تحديث وإرسال للمراجعة') 
+                {{ isSubmitting
+                    ? (isEditing ? 'جاري التحديث...' : 'جاري الإرسال...')
+                    : (isEditing
+                        ? (isAdmin ? 'تحديث الوصفة' : 'تحديث وإرسال للمراجعة')
                         : (isAdmin ? 'نشر الوصفة' : 'إرسال للمراجعة')
-                    ) 
+                    )
                 }}
             </Button>
         </div>
+
+        <!-- Preview Dialog -->
+        <RecipePreview
+            v-model:open="showPreview"
+            :name="name"
+            :description="description"
+            :image-preview="imagePreview"
+            :difficulty="difficulty"
+            :servings="servings"
+            :city-name="previewCityName"
+            :tags="previewTags"
+            :ingredient-groups="ingredientGroups"
+            :step-groups="stepGroups"
+            :time-needed="previewTimeNeeded"
+        />
     </form>
 </template>
