@@ -8,11 +8,12 @@ import {
 import { Plus, Search, Loader2 } from 'lucide-vue-next';
 import { useDebounceFn } from '@vueuse/core';
 import { toast } from 'vue-sonner';
-import type { MealPlanEntry } from '@/types';
+import type { MealPlanEntry, Tag } from '@/types';
 
 const props = defineProps<{
     planId: number;
     date: string;
+    tags?: Tag[];
 }>();
 
 const emit = defineEmits<{
@@ -31,7 +32,7 @@ const selectedRecipe = ref<any>(null);
 // Form fields
 const customTitle = ref('');
 const notes = ref('');
-const mealType = ref('main');
+const mealType = ref(props.tags?.[0]?.slug || 'main');
 
 const searchRecipes = useDebounceFn(async () => {
     if (searchQuery.value.length < 2) {
@@ -114,7 +115,7 @@ const resetForm = () => {
     selectedRecipe.value = null;
     customTitle.value = '';
     notes.value = '';
-    mealType.value = 'main';
+    mealType.value = props.tags?.[0]?.slug || 'main';
 };
 </script>
 
@@ -181,10 +182,7 @@ const resetForm = () => {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="main">رئيسي</SelectItem>
-                            <SelectItem value="iftar">إفطار</SelectItem>
-                            <SelectItem value="suhoor">سحور</SelectItem>
-                            <SelectItem value="dessert">حلويات</SelectItem>
+                            <SelectItem v-for="tag in (props.tags || [])" :key="tag.id" :value="tag.slug">{{ tag.name }}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

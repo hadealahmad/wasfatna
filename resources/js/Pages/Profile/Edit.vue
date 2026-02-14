@@ -105,7 +105,7 @@ const getRoleDisplay = (role: string) => {
                     <CardHeader>
                         <div class="flex items-center gap-4">
                             <Avatar class="w-20 h-20">
-                                <AvatarImage :src="user?.avatar ? `/storage/${user.avatar}` : undefined" />
+                                <AvatarImage :src="user?.avatar_url || undefined" />
                                 <AvatarFallback class="text-2xl bg-primary/10 text-primary">
                                     {{ user?.name?.charAt(0) }}
                                 </AvatarFallback>

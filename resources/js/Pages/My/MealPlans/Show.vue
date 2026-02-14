@@ -12,13 +12,14 @@ import { CalendarDays, Pencil, Trash2, ChevronRight } from 'lucide-vue-next';
 import MealPlanCalendar from '@/components/features/meal-plans/MealPlanCalendar.vue';
 import RandomFillDialog from '@/components/features/meal-plans/RandomFillDialog.vue';
 import ShareMealPlan from '@/components/features/meal-plans/ShareMealPlan.vue';
-import type { MealPlan, MealPlanEntriesByDate } from '@/types';
+import type { MealPlan, MealPlanEntriesByDate, Tag } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     plan: MealPlan;
     entriesByDate: MealPlanEntriesByDate;
+    tags: Tag[];
 }>();
 
 const editOpen = ref(false);
@@ -79,12 +80,13 @@ const handleRandomFilled = () => {
                     <RandomFillDialog
                         :plan-id="plan.id"
                         :is-ramadan="plan.preset?.type === 'ramadan'"
+                        :tags="tags"
                         @filled="handleRandomFilled"
                     />
-                    <Button variant="ghost" size="icon" class="h-8 w-8" @click="editOpen = true">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground" @click="editOpen = true">
                         <Pencil class="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-red-500 hover:text-red-700" @click="handleDelete">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" @click="handleDelete">
                         <Trash2 class="h-4 w-4" />
                     </Button>
                 </div>
@@ -99,6 +101,7 @@ const handleRandomFilled = () => {
             <MealPlanCalendar
                 :plan="plan"
                 :entries-by-date="entriesByDate"
+                :tags="tags"
             />
         </div>
 

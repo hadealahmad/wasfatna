@@ -13,6 +13,8 @@ const delegatedProps = computed(() => {
 })
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+const isRtl = document.documentElement.dir === 'rtl'
 </script>
 
 <template>
@@ -29,7 +31,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <SwitchThumb
       class="pointer-events-none block h-5 w-5 rounded-full bg-background ring-0 shadow-lg transition-transform"
       :style="{
-        transform: props.checked ? 'translateX(1.25rem)' : 'translateX(0)',
+        transform: props.checked
+          ? (isRtl ? 'translateX(-1.25rem)' : 'translateX(1.25rem)')
+          : 'translateX(0)',
       }"
     />
   </SwitchRoot>

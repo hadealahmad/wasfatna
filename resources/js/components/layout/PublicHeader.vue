@@ -68,6 +68,10 @@ const toggleDark = useToggle(isDark);
           <nav class="hidden md:flex items-center gap-6">
             <Link href="/cities" class="text-sm font-medium hover:text-primary transition-colors">المدن</Link>
             <Link href="/lists" class="text-sm font-medium hover:text-primary transition-colors">القوائم</Link>
+            <Link v-if="isAuthenticated" href="/my/meal-plans" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <CalendarDays class="h-4 w-4" />
+              <span>خطط الوجبات</span>
+            </Link>
             <Link href="/randomizer" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
               <Dices class="h-4 w-4" />
               <span>شو نطبخ؟</span>
@@ -106,7 +110,7 @@ const toggleDark = useToggle(isDark);
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" class="relative h-9 w-9 rounded-full">
                   <Avatar class="h-9 w-9 border border-border/50">
-                    <AvatarImage :src="user.avatar || undefined" :alt="user.name" />
+                    <AvatarImage :src="user.avatar_url || undefined" :alt="user.name" />
                     <AvatarFallback>{{ user.name?.charAt(0) }}</AvatarFallback>
                   </Avatar>
                 </Button>

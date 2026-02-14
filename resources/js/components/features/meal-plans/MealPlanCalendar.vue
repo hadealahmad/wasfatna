@@ -3,13 +3,14 @@ import { computed, onMounted, ref, watch } from 'vue';
 import Badge from '@/components/ui/Badge.vue';
 import MealPlanEntryItem from './MealPlanEntryItem.vue';
 import AddEntryDialog from './AddEntryDialog.vue';
-import type { MealPlan, MealPlanEntry, MealPlanEntriesByDate } from '@/types';
+import type { MealPlan, MealPlanEntry, MealPlanEntriesByDate, Tag } from '@/types';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-vue-next';
 
 const props = defineProps<{
     plan: MealPlan;
     entriesByDate: MealPlanEntriesByDate;
     readonly?: boolean;
+    tags?: Tag[];
 }>();
 
 const localEntries = ref<MealPlanEntriesByDate>({ ...props.entriesByDate });
@@ -132,11 +133,11 @@ const handleEntryToggled = (entryId: number, isDone: boolean) => {
     if (entry) entry.is_done = isDone;
 };
 
-const dotColor: Record<string, string> = {
-    main: 'bg-sky-500',
-    iftar: 'bg-amber-500',
-    suhoor: 'bg-violet-500',
-    dessert: 'bg-rose-400',
+const dotColors = ['bg-sky-500', 'bg-amber-500', 'bg-violet-500', 'bg-rose-400', 'bg-emerald-500', 'bg-orange-500'];
+const getDotColor = (mealType: string) => {
+    let hash = 0;
+    for (let i = 0; i < mealType.length; i++) hash = mealType.charCodeAt(i) + ((hash << 5) - hash);
+    return dotColors[Math.abs(hash) % dotColors.length];
 };
 
 onMounted(() => {
@@ -153,11 +154,11 @@ onMounted(() => {
 <template>
     <div>
         <div class="rounded-2xl border border-border overflow-hidden">
-            <div class="flex items-center justify-between px-4 py-3 bg-card border-b border-border">
+            <div class="flex items-center justify-between px-4 py-3 bg-card text-card-foreground border-b border-border">
                 <button
                     :disabled="!canPrev"
                     @click="goPrev"
-                    class="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                     <ChevronRight class="w-5 h-5" />
                 </button>
@@ -165,7 +166,7 @@ onMounted(() => {
                 <button
                     :disabled="!canNext"
                     @click="goNext"
-                    class="p-1.5 rounded-lg hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                     <ChevronLeft class="w-5 h-5" />
                 </button>
@@ -215,7 +216,7 @@ onMounted(() => {
                                 entry.is_done ? 'line-through opacity-40' : '',
                             ]"
                         >
-                            <span :class="['shrink-0 w-1.5 h-1.5 rounded-full', dotColor[entry.meal_type]]" />
+                            <span :class="['shrink-0 w-1.5 h-1.5 rounded-full', getDotColor(entry.meal_type)]" />
                             <span class="truncate">{{ entry.title }}</span>
                         </div>
                         <span v-if="day.entries.length > 2" class="block text-[10px] text-muted-foreground">
@@ -227,7 +228,7 @@ onMounted(() => {
                         <span
                             v-for="entry in day.entries.slice(0, 4)"
                             :key="entry.id"
-                            :class="['w-1.5 h-1.5 rounded-full', dotColor[entry.meal_type], entry.is_done && 'opacity-40']"
+                            :class="['w-1.5 h-1.5 rounded-full', getDotColor(entry.meal_type), entry.is_done && 'opacity-40']"
                         />
                         <span v-if="day.entries.length > 4" class="text-[8px] text-muted-foreground leading-none">
                             +{{ day.entries.length - 4 }}
@@ -236,7 +237,7 @@ onMounted(() => {
                 </button>
             </div>
 
-            <div v-if="selectedInfo" class="bg-card">
+            <div v-if="selectedInfo" class="bg-card text-card-foreground">
                 <div class="flex items-center justify-between px-4 py-3 border-t border-border">
                     <div class="flex items-center gap-2">
                         <CalendarDays class="w-4 h-4 text-primary" />
@@ -247,6 +248,7 @@ onMounted(() => {
                         v-if="!readonly"
                         :plan-id="plan.id"
                         :date="selectedInfo.date"
+                        :tags="tags"
                         @added="handleEntryAdded"
                     />
                 </div>
