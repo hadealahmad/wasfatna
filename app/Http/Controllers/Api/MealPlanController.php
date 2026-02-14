@@ -191,6 +191,20 @@ class MealPlanController extends Controller
         ]);
     }
 
+    public function togglePublic(MealPlan $mealPlan)
+    {
+        if ($mealPlan->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $mealPlan->is_public = !$mealPlan->is_public;
+        $mealPlan->save();
+
+        return response()->json([
+            'is_public' => $mealPlan->is_public,
+        ]);
+    }
+
     public function searchRecipes(Request $request)
     {
         $query = $request->input('q', '');
