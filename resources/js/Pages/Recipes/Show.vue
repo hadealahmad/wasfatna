@@ -183,9 +183,9 @@ const groupedStepsList = computed(() => {
   <PublicLayout>
     <Head>
       <title>{{ recipe.name }}</title>
-      <meta name="description" content="تعلم طريقة عمل {{ recipe.name }} من مطبخ {{ recipe.city?.name || 'منوع' }}. اكتشف المكونات والخطوات بالتفصيل." />
-      <meta property="og:title" content="طريقة عمل {{ recipe.name }} | وصفاتنا" />
-      <meta property="og:description" content="تعلم طريقة عمل {{ recipe.name }} من مطبخ {{ recipe.city?.name || 'منوع' }}. اكتشف المكونات والخطوات بالتفصيل." />
+      <meta name="description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
+      <meta property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
+      <meta property="og:description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
       <meta property="og:image" :content="recipe.image_url || '/og-image.png'" />
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content="summary_large_image" />
@@ -267,6 +267,11 @@ const groupedStepsList = computed(() => {
                 </Badge>
               </div>
             </div>
+
+            <!-- Description -->
+            <p v-if="recipe.description" class="text-muted-foreground leading-relaxed mb-6">
+              {{ recipe.description }}
+            </p>
 
             <!-- Recipe Controls & Revisions -->
             <div class="flex items-center gap-2 mb-6">
