@@ -163,7 +163,7 @@ class MealPlanController extends Controller
     public function browse(Request $request)
     {
         $plans = MealPlan::where('is_public', true)
-            ->with('user:id,name,avatar')
+            ->with('user:id,name,display_name,avatar')
             ->withCount('entries')
             ->latest()
             ->paginate(12);
@@ -180,7 +180,7 @@ class MealPlanController extends Controller
                 'entries_count' => $p->entries_count,
                 'user' => $p->user ? [
                     'id' => $p->user->id,
-                    'name' => $p->user->display_name,
+                    'display_name' => $p->user->display_name,
                     'avatar_url' => $p->user->avatar_url,
                 ] : null,
             ]),
