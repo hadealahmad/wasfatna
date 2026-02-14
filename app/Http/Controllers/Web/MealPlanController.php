@@ -145,7 +145,15 @@ class MealPlanController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
         ]);
+
+        $start = \Carbon\Carbon::parse($validated['start_date']);
+        $end = \Carbon\Carbon::parse($validated['end_date']);
+        if ($start->diffInDays($end) > 90) {
+            return back()->withErrors(['end_date' => 'لا يمكن أن تتجاوز الخطة 90 يوماً']);
+        }
 
         $meal_plan->update($validated);
 

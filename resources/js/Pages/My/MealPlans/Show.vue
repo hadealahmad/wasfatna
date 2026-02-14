@@ -26,6 +26,8 @@ const editOpen = ref(false);
 const editForm = useForm({
     name: props.plan.name,
     description: props.plan.description || '',
+    start_date: props.plan.start_date,
+    end_date: props.plan.end_date,
 });
 
 const handleEdit = () => {
@@ -120,6 +122,18 @@ const handleRandomFilled = () => {
                     <div class="space-y-2">
                         <Label>الوصف (اختياري)</Label>
                         <Textarea v-model="editForm.description" rows="2" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <Label>تاريخ البداية</Label>
+                            <Input type="date" v-model="editForm.start_date" required />
+                            <div v-if="editForm.errors.start_date" class="text-sm text-red-500">{{ editForm.errors.start_date }}</div>
+                        </div>
+                        <div class="space-y-2">
+                            <Label>تاريخ النهاية</Label>
+                            <Input type="date" v-model="editForm.end_date" required />
+                            <div v-if="editForm.errors.end_date" class="text-sm text-red-500">{{ editForm.errors.end_date }}</div>
+                        </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <Button type="button" variant="ghost" @click="editOpen = false">إلغاء</Button>
