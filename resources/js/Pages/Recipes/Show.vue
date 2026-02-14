@@ -31,7 +31,7 @@ interface Recipe {
   user?: {
     id: number;
     name: string;
-    avatar: string | null;
+    avatar_url: string | null;
   };
   tags: Array<{ id: number; name: string; slug: string }>;
   created_at: string;
@@ -291,7 +291,7 @@ const groupedStepsList = computed(() => {
             <Link v-if="recipe.user && !recipe.is_anonymous" :href="`/users/${recipe.user.id}`">
               <div class="flex items-center gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                 <Avatar>
-                  <AvatarImage :src="recipe.user.avatar || undefined" />
+                  <AvatarImage :src="recipe.user.avatar_url || undefined" />
                   <AvatarFallback>{{ recipe.user.name.charAt(0) }}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -300,6 +300,15 @@ const groupedStepsList = computed(() => {
                 </div>
               </div>
             </Link>
+            <div v-else-if="recipe.author_name" class="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+              <Avatar>
+                <AvatarFallback>{{ recipe.author_name.charAt(0) }}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p class="font-medium">{{ recipe.author_name }}</p>
+                <p class="text-sm text-muted-foreground">نُشرت في {{ formatDate(recipe.created_at) }}</p>
+              </div>
+            </div>
           </div>
 
           <hr class="my-8 border-border" />
