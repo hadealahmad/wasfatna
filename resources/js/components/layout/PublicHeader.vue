@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
-import { 
-  User, 
-  LogOut, 
-  LayoutDashboard, 
-  PlusCircle, 
-  Settings, 
-  Menu, 
-  Moon, 
-  Sun, 
-  Dices, 
-  BookHeart, 
-  Flag 
+import {
+  User,
+  LogOut,
+  LayoutDashboard,
+  PlusCircle,
+  Settings,
+  Menu,
+  Moon,
+  Sun,
+  Dices,
+  BookHeart,
+  Flag,
+  CalendarDays
 } from 'lucide-vue-next';
 import { useDark, useToggle } from '@vueuse/core';
 import Avatar from '@/components/ui/Avatar.vue';
@@ -135,6 +136,12 @@ const toggleDark = useToggle(isDark);
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link href="/my/meal-plans" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
+                    <span>خطط الوجبات</span>
+                    <CalendarDays class="h-4 w-4" />
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/my/reports" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>بلاغاتي</span>
                     <Flag class="h-4 w-4" />
@@ -207,6 +214,7 @@ const toggleDark = useToggle(isDark);
                    <Link href="/recipes/new" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right text-primary hover:text-primary/80 transition-colors">+ وصفة جديدة</Link>
                    <Link href="/my/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">وصفاتي</Link>
                    <Link href="/my/lists" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">قوائمي</Link>
+                   <Link href="/my/meal-plans" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">خطط الوجبات</Link>
                    <Link href="/settings" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">الملف الشخصي</Link>
                    <Link :href="route('logout')" method="post" as="button" class="text-lg font-medium text-right text-red-600">تسجيل الخروج</Link>
                 </template>

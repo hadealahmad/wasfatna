@@ -122,4 +122,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Report::class);
     }
+
+    /**
+     * Get meal plans created by this user.
+     */
+    public function mealPlans(): HasMany
+    {
+        return $this->hasMany(MealPlan::class);
+    }
 }

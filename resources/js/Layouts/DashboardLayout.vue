@@ -2,16 +2,17 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { cn } from '@/lib/utils';
-import { 
-    LayoutDashboard, 
-    FileText, 
-    Users, 
-    MapPin, 
-    Settings, 
-    Flag, 
+import {
+    LayoutDashboard,
+    FileText,
+    Users,
+    MapPin,
+    Settings,
+    Flag,
     Tag,
     LogOut,
-    Upload
+    Upload,
+    CalendarDays
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
@@ -57,6 +58,11 @@ const navItems = computed(() => [
             name: 'dashboard.settings',
             label: 'الإعدادات',
             icon: Settings
+        },
+        {
+            name: 'dashboard.meal-plan-presets',
+            label: 'قوالب خطط الوجبات',
+            icon: CalendarDays
         }
     ] : []),
     {
