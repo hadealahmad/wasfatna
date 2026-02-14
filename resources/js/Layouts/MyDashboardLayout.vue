@@ -69,7 +69,7 @@ const isActive = (item: any) => {
                         <span class="text-sm font-bold">{{ user?.name }}</span>
                         <span class="text-xs text-muted-foreground">{{ user?.email }}</span>
                     </div>
-                    <img v-if="user?.avatar" :src="`/storage/${user.avatar}`" class="w-10 h-10 rounded-full border-2 border-primary/20 object-cover" />
+                    <img v-if="user?.avatar_url" :src="user.avatar_url" class="w-10 h-10 rounded-full border-2 border-primary/20 object-cover" />
                     <div v-else class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border-2 border-primary/20">
                         {{ user?.name?.charAt(0) }}
                     </div>

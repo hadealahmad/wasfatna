@@ -23,7 +23,7 @@ class MealPlanController extends Controller
             'recipe_id' => 'nullable|exists:recipes,id',
             'custom_title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'meal_type' => 'nullable|string|in:main,iftar,suhoor,dessert',
+            'meal_type' => 'nullable|string|max:255',
         ]);
 
         $date = Carbon::parse($validated['date']);
@@ -112,7 +112,7 @@ class MealPlanController extends Controller
         $validated = $request->validate([
             'custom_title' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'meal_type' => 'nullable|string|in:main,iftar,suhoor,dessert',
+            'meal_type' => 'nullable|string|max:255',
         ]);
 
         $entry->update($validated);
@@ -132,7 +132,7 @@ class MealPlanController extends Controller
         }
 
         $validated = $request->validate([
-            'meal_type' => 'nullable|string|in:main,iftar,suhoor,dessert',
+            'meal_type' => 'nullable|string|max:255',
             'overwrite' => 'boolean',
         ]);
 

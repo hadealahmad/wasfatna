@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\MealPlan;
 use App\Models\MealPlanPreset;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -131,6 +132,7 @@ class MealPlanController extends Controller
                 ] : null,
             ],
             'entriesByDate' => $entriesByDate,
+            'tags' => Tag::select('id', 'name', 'slug')->get(),
         ]);
     }
 

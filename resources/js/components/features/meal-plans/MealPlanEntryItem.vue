@@ -22,18 +22,19 @@ const emit = defineEmits<{
 
 const loading = ref(false);
 
-const mealTypeLabels: Record<string, string> = {
-    main: 'رئيسي',
-    iftar: 'إفطار',
-    suhoor: 'سحور',
-    dessert: 'حلويات',
-};
+const tagColors = [
+    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+];
 
-const mealTypeColors: Record<string, string> = {
-    main: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    iftar: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    suhoor: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    dessert: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+const getTagColor = (mealType: string) => {
+    let hash = 0;
+    for (let i = 0; i < mealType.length; i++) hash = mealType.charCodeAt(i) + ((hash << 5) - hash);
+    return tagColors[Math.abs(hash) % tagColors.length];
 };
 
 const toggleDone = async () => {
@@ -108,8 +109,8 @@ const removeEntry = async () => {
                     </Link>
                     <span v-else>{{ entry.title }}</span>
                 </span>
-                <Badge :class="mealTypeColors[entry.meal_type]" class="text-[10px] px-1.5 py-0">
-                    {{ mealTypeLabels[entry.meal_type] }}
+                <Badge :class="getTagColor(entry.meal_type)" class="text-[10px] px-1.5 py-0">
+                    {{ entry.meal_type }}
                 </Badge>
                 <StickyNote v-if="entry.notes" class="h-3 w-3 text-muted-foreground shrink-0" />
             </div>
@@ -129,7 +130,7 @@ const removeEntry = async () => {
             v-if="!readonly"
             variant="ghost"
             size="icon"
-            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500"
+            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500 dark:hover:text-red-400"
             @click.stop="removeEntry"
             :disabled="loading"
         >

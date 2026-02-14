@@ -129,6 +129,10 @@
     @apply bg-background text-foreground;
   }
 
+  .dark input::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
   button {
     cursor: pointer;
   }

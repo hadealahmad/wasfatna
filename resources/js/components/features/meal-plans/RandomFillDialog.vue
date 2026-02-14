@@ -8,9 +8,12 @@ import {
 import { Shuffle, Loader2 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
+import type { Tag } from '@/types';
+
 const props = defineProps<{
     planId: number;
     isRamadan?: boolean;
+    tags?: Tag[];
 }>();
 
 const emit = defineEmits<{
@@ -19,7 +22,7 @@ const emit = defineEmits<{
 
 const open = ref(false);
 const loading = ref(false);
-const mealType = ref(props.isRamadan ? 'iftar' : 'main');
+const mealType = ref(props.tags?.[0]?.slug || 'main');
 const overwrite = ref(false);
 
 const handleSubmit = async () => {
@@ -76,10 +79,7 @@ const handleSubmit = async () => {
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="main">رئيسي</SelectItem>
-                            <SelectItem value="iftar">إفطار</SelectItem>
-                            <SelectItem value="suhoor">سحور</SelectItem>
-                            <SelectItem value="dessert">حلويات</SelectItem>
+                            <SelectItem v-for="tag in (props.tags || [])" :key="tag.id" :value="tag.slug">{{ tag.name }}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

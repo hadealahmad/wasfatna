@@ -198,7 +198,7 @@ export interface AuthResponse {
 }
 
 // Meal Plan types
-export type MealType = 'main' | 'iftar' | 'suhoor' | 'dessert';
+export type MealType = string;
 
 export interface MealPlanPreset {
   id: number;
