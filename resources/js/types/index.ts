@@ -197,6 +197,67 @@ export interface AuthResponse {
   token: string;
 }
 
+// Meal Plan types
+export type MealType = 'main' | 'iftar' | 'suhoor' | 'dessert';
+
+export interface MealPlanPreset {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  type: 'ramadan' | 'custom';
+  is_active: boolean;
+  days_count: number;
+  meal_plans_count?: number;
+  created_at: string;
+}
+
+export interface MealPlan {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  share_token: string | null;
+  days_count: number;
+  entries_count?: number;
+  done_count?: number;
+  preset: {
+    id: number;
+    name: string;
+    type: 'ramadan' | 'custom';
+  } | null;
+  user?: {
+    name: string;
+  };
+  created_at?: string;
+}
+
+export interface MealPlanEntry {
+  id: number;
+  date: string;
+  recipe_id: number | null;
+  custom_title: string | null;
+  title: string;
+  notes: string | null;
+  meal_type: MealType;
+  is_done: boolean;
+  order: number;
+  recipe: {
+    id: number;
+    name: string;
+    slug: string;
+    image_url: string | null;
+    difficulty: string;
+    time_needed: TimeNeeded | null;
+  } | null;
+}
+
+export type MealPlanEntriesByDate = Record<string, MealPlanEntry[]>;
+
 export interface DashboardStats {
   total_recipes: number;
   approved_recipes: number;

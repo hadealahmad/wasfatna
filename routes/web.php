@@ -27,6 +27,14 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\AdminImportController;
+use App\Http\Controllers\Web\AdminMealPlanPresetController;
+use App\Http\Controllers\Web\MealPlanController;
+
+// DEV ONLY: Auto-login as admin (remove before deploying)
+Route::get('/dev-login', function () {
+    \Illuminate\Support\Facades\Auth::login(\App\Models\User::where('email', 'admin@wasfatna.com')->first(), true);
+    return redirect('/');
+});
 
 // Web Auth
 Route::get('/login', [WebAuthController::class, 'login'])->name('login');
@@ -55,6 +63,8 @@ Route::get('/privacy', function () { return Inertia::render('Privacy'); })->name
 Route::get('/terms', function () { return Inertia::render('Terms'); })->name('terms');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 
+Route::get('/meal-plans/shared/{token}', [MealPlanController::class, 'shared'])->name('meal-plans.shared');
+
 
 // Public User Profile
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -79,10 +89,19 @@ Route::middleware(['auth', 'not-banned'])->group(function () {
     Route::post('/settings', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/settings', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::resource('my/meal-plans', MealPlanController::class)->names('my.meal-plans')->parameters(['meal-plans' => 'meal_plan']);
+
     // Web API for lists (session-based auth - for modals/AJAX)
     Route::get('/web-api/lists', [\App\Http\Controllers\Api\ListController::class, 'index'])->name('web-api.lists.index');
     Route::post('/web-api/lists', [\App\Http\Controllers\Api\ListController::class, 'store'])->name('web-api.lists.store');
     Route::post('/web-api/lists/{list}/toggle', [\App\Http\Controllers\Api\ListController::class, 'toggleRecipe'])->name('web-api.lists.toggle');
+
+    Route::post('/web-api/meal-plans/{mealPlan}/entries', [\App\Http\Controllers\Api\MealPlanController::class, 'addEntry'])->name('web-api.meal-plans.entries.store');
+    Route::delete('/web-api/meal-plans/{mealPlan}/entries/{entry}', [\App\Http\Controllers\Api\MealPlanController::class, 'removeEntry'])->name('web-api.meal-plans.entries.destroy');
+    Route::post('/web-api/meal-plans/{mealPlan}/entries/{entry}/done', [\App\Http\Controllers\Api\MealPlanController::class, 'toggleDone'])->name('web-api.meal-plans.entries.done');
+    Route::put('/web-api/meal-plans/{mealPlan}/entries/{entry}', [\App\Http\Controllers\Api\MealPlanController::class, 'updateEntry'])->name('web-api.meal-plans.entries.update');
+    Route::post('/web-api/meal-plans/{mealPlan}/random-fill', [\App\Http\Controllers\Api\MealPlanController::class, 'randomFill'])->name('web-api.meal-plans.random-fill');
+    Route::get('/web-api/recipes/search', [\App\Http\Controllers\Api\MealPlanController::class, 'searchRecipes'])->name('web-api.recipes.search');
 });
 
 Route::middleware(['auth', 'not-banned', 'moderator'])->group(function () {
@@ -123,6 +142,11 @@ Route::middleware(['auth', 'not-banned', 'moderator'])->group(function () {
         // Import
         Route::get('/dashboard/import', [AdminImportController::class, 'index'])->name('dashboard.import');
         Route::post('/dashboard/import', [AdminImportController::class, 'import'])->name('dashboard.import.store');
+
+        Route::get('/dashboard/meal-plan-presets', [AdminMealPlanPresetController::class, 'index'])->name('dashboard.meal-plan-presets');
+        Route::post('/dashboard/meal-plan-presets', [AdminMealPlanPresetController::class, 'store'])->name('dashboard.meal-plan-presets.store');
+        Route::put('/dashboard/meal-plan-presets/{preset}', [AdminMealPlanPresetController::class, 'update'])->name('dashboard.meal-plan-presets.update');
+        Route::delete('/dashboard/meal-plan-presets/{preset}', [AdminMealPlanPresetController::class, 'destroy'])->name('dashboard.meal-plan-presets.destroy');
     });
 
     // Reports (Admins & Moderators)

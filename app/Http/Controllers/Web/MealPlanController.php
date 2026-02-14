@@ -1,0 +1,213 @@
+<?php
+
+namespace App\Http\Controllers\Web;
+
+use App\Http\Controllers\Controller;
+use App\Models\MealPlan;
+use App\Models\MealPlanPreset;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+
+class MealPlanController extends Controller
+{
+    public function index()
+    {
+        $plans = MealPlan::where('user_id', Auth::id())
+            ->withCount('entries')
+            ->with('preset:id,name,type')
+            ->latest()
+            ->get();
+
+        return Inertia::render('My/MealPlans/Index', [
+            'plans' => $plans->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'slug' => $p->slug,
+                'description' => $p->description,
+                'start_date' => $p->start_date->format('Y-m-d'),
+                'end_date' => $p->end_date->format('Y-m-d'),
+                'share_token' => $p->share_token,
+                'days_count' => $p->days_count,
+                'entries_count' => $p->entries_count,
+                'done_count' => $p->entries()->where('is_done', true)->count(),
+                'preset' => $p->preset ? [
+                    'id' => $p->preset->id,
+                    'name' => $p->preset->name,
+                    'type' => $p->preset->type,
+                ] : null,
+                'created_at' => $p->created_at->toISOString(),
+            ]),
+        ]);
+    }
+
+    public function create()
+    {
+        $presets = MealPlanPreset::active()
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(fn($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'type' => $p->type,
+                'start_date' => $p->start_date->format('Y-m-d'),
+                'end_date' => $p->end_date->format('Y-m-d'),
+                'days_count' => $p->days_count,
+            ]);
+
+        return Inertia::render('My/MealPlans/Create', [
+            'presets' => $presets,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'preset_id' => 'nullable|exists:meal_plan_presets,id',
+        ]);
+
+        $start = \Carbon\Carbon::parse($validated['start_date']);
+        $end = \Carbon\Carbon::parse($validated['end_date']);
+        if ($start->diffInDays($end) > 90) {
+            return back()->withErrors(['end_date' => 'لا يمكن أن تتجاوز الخطة 90 يوماً']);
+        }
+
+        $plan = new MealPlan($validated);
+        $plan->user_id = Auth::id();
+        $plan->save();
+
+        return redirect()->route('my.meal-plans.show', $plan)->with('success', 'تم إنشاء خطة الوجبات بنجاح');
+    }
+
+    public function show(MealPlan $meal_plan)
+    {
+        if ($meal_plan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $entries = $meal_plan->entries()
+            ->with(['recipe:id,name,slug,image_path,difficulty,time_needed'])
+            ->get();
+
+        $entriesByDate = $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
+            ->map(fn($group) => $group->map(fn($e) => [
+                'id' => $e->id,
+                'date' => $e->date->format('Y-m-d'),
+                'recipe_id' => $e->recipe_id,
+                'custom_title' => $e->custom_title,
+                'title' => $e->title,
+                'notes' => $e->notes,
+                'meal_type' => $e->meal_type,
+                'is_done' => $e->is_done,
+                'order' => $e->order,
+                'recipe' => $e->recipe ? [
+                    'id' => $e->recipe->id,
+                    'name' => $e->recipe->name,
+                    'slug' => $e->recipe->slug,
+                    'image_url' => $e->recipe->image_url,
+                    'difficulty' => $e->recipe->difficulty,
+                    'time_needed' => $e->recipe->time_needed,
+                ] : null,
+            ])->values());
+
+        return Inertia::render('My/MealPlans/Show', [
+            'plan' => [
+                'id' => $meal_plan->id,
+                'name' => $meal_plan->name,
+                'slug' => $meal_plan->slug,
+                'description' => $meal_plan->description,
+                'start_date' => $meal_plan->start_date->format('Y-m-d'),
+                'end_date' => $meal_plan->end_date->format('Y-m-d'),
+                'share_token' => $meal_plan->share_token,
+                'days_count' => $meal_plan->days_count,
+                'preset' => $meal_plan->preset ? [
+                    'id' => $meal_plan->preset->id,
+                    'name' => $meal_plan->preset->name,
+                    'type' => $meal_plan->preset->type,
+                ] : null,
+            ],
+            'entriesByDate' => $entriesByDate,
+        ]);
+    }
+
+    public function update(Request $request, MealPlan $meal_plan)
+    {
+        if ($meal_plan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $meal_plan->update($validated);
+
+        return back()->with('success', 'تم تحديث خطة الوجبات بنجاح');
+    }
+
+    public function destroy(MealPlan $meal_plan)
+    {
+        if ($meal_plan->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $meal_plan->delete();
+
+        return redirect()->route('my.meal-plans.index')->with('success', 'تم حذف خطة الوجبات');
+    }
+
+    public function shared(string $token)
+    {
+        $plan = MealPlan::where('share_token', $token)
+            ->firstOrFail();
+
+        $entries = $plan->entries()
+            ->with(['recipe:id,name,slug,image_path,difficulty,time_needed'])
+            ->get();
+
+        $entriesByDate = $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
+            ->map(fn($group) => $group->map(fn($e) => [
+                'id' => $e->id,
+                'date' => $e->date->format('Y-m-d'),
+                'recipe_id' => $e->recipe_id,
+                'custom_title' => $e->custom_title,
+                'title' => $e->title,
+                'notes' => $e->notes,
+                'meal_type' => $e->meal_type,
+                'is_done' => $e->is_done,
+                'order' => $e->order,
+                'recipe' => $e->recipe ? [
+                    'id' => $e->recipe->id,
+                    'name' => $e->recipe->name,
+                    'slug' => $e->recipe->slug,
+                    'image_url' => $e->recipe->image_url,
+                    'difficulty' => $e->recipe->difficulty,
+                    'time_needed' => $e->recipe->time_needed,
+                ] : null,
+            ])->values());
+
+        return Inertia::render('MealPlans/Shared', [
+            'plan' => [
+                'id' => $plan->id,
+                'name' => $plan->name,
+                'description' => $plan->description,
+                'start_date' => $plan->start_date->format('Y-m-d'),
+                'end_date' => $plan->end_date->format('Y-m-d'),
+                'days_count' => $plan->days_count,
+                'user' => [
+                    'name' => $plan->user->display_name,
+                ],
+                'preset' => $plan->preset ? [
+                    'name' => $plan->preset->name,
+                    'type' => $plan->preset->type,
+                ] : null,
+            ],
+            'entriesByDate' => $entriesByDate,
+        ]);
+    }
+}

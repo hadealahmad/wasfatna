@@ -3,14 +3,15 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { cn } from '@/lib/utils';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { 
-    LayoutDashboard, 
-    ChefHat, 
-    List, 
-    Flag, 
-    Settings, 
+import {
+    LayoutDashboard,
+    ChefHat,
+    List,
+    Flag,
+    Settings,
     User,
-    LogOut
+    LogOut,
+    CalendarDays
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -27,6 +28,11 @@ const navItems = computed(() => [
         name: 'my.lists.index',
         label: 'قوائمي',
         icon: List
+    },
+    {
+        name: 'my.meal-plans.index',
+        label: 'خطط الوجبات',
+        icon: CalendarDays
     },
     {
         name: 'my.reports.index',
