@@ -43,7 +43,7 @@ const props = defineProps<{
                         </Avatar>
                         <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-tight">{{ profile.name }}</h1>
                         <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground">
-                            {{ recipes.meta?.total || 0 }} وصفة
+                            {{ profile.recipes_count }} وصفة
                         </div>
                     </div>
                 </div>
