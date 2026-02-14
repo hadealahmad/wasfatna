@@ -71,12 +71,6 @@ class MealPlanController extends Controller
             'preset_id' => 'nullable|exists:meal_plan_presets,id',
         ]);
 
-        $start = \Carbon\Carbon::parse($validated['start_date']);
-        $end = \Carbon\Carbon::parse($validated['end_date']);
-        if ($start->diffInDays($end) > 90) {
-            return back()->withErrors(['end_date' => 'لا يمكن أن تتجاوز الخطة 90 يوماً']);
-        }
-
         $plan = new MealPlan($validated);
         $plan->user_id = Auth::id();
         $plan->save();
@@ -148,12 +142,6 @@ class MealPlanController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
         ]);
-
-        $start = \Carbon\Carbon::parse($validated['start_date']);
-        $end = \Carbon\Carbon::parse($validated['end_date']);
-        if ($start->diffInDays($end) > 90) {
-            return back()->withErrors(['end_date' => 'لا يمكن أن تتجاوز الخطة 90 يوماً']);
-        }
 
         $meal_plan->update($validated);
 
