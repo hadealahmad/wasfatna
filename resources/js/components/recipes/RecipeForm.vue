@@ -19,8 +19,9 @@ import {
     SelectValue,
     Badge
 } from '@/components/ui';
-import { Plus, Trash, X, Eye } from 'lucide-vue-next';
+import { Plus, Trash, X, Eye, GripVertical } from 'lucide-vue-next';
 import RecipePreview from '@/components/recipes/RecipePreview.vue';
+import draggable from 'vuedraggable';
 
 // Types
 interface City {
@@ -874,40 +875,53 @@ const submit = async () => {
                     </div>
 
                     <!-- Ingredient items -->
-                    <div v-for="(item, itemIndex) in group.items" :key="itemIndex" class="space-y-2">
-                        <div class="grid grid-cols-12 gap-2">
-                            <Input
-                                placeholder="الكمية"
-                                v-model="item.amount"
-                                class="h-11 text-base bg-background col-span-2"
-                            />
-                            <Input
-                                placeholder="الوحدة"
-                                v-model="item.unit"
-                                class="h-11 text-base bg-background col-span-2"
-                            />
-                            <Input
-                                placeholder="المكون *"
-                                v-model="item.name"
-                                class="h-11 text-base bg-background col-span-6"
-                            />
-                            <Button
-                                v-if="group.items.length > 1"
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                @click="removeIngredientItem(groupIndex, itemIndex)"
-                                class="h-11 text-destructive col-span-2"
-                            >
-                                <X class="w-4 h-4" />
-                            </Button>
-                        </div>
-                        <Input
-                            placeholder="وصف إضافي (اختياري)"
-                            v-model="item.descriptor"
-                            class="h-10 text-sm bg-background text-muted-foreground"
-                        />
-                    </div>
+                    <draggable
+                        :list="group.items"
+                        item-key="index"
+                        handle=".drag-handle"
+                        ghost-class="opacity-30"
+                        animation="200"
+                    >
+                        <template #item="{ element: item, index: itemIndex }">
+                            <div class="space-y-2 mb-3">
+                                <div class="flex gap-2 items-center">
+                                    <GripVertical class="w-4 h-4 shrink-0 text-muted-foreground cursor-grab drag-handle touch-none" />
+                                    <div class="grid grid-cols-12 gap-2 flex-1">
+                                        <Input
+                                            placeholder="الكمية"
+                                            v-model="item.amount"
+                                            class="h-11 text-base bg-background col-span-3 md:col-span-2"
+                                        />
+                                        <Input
+                                            placeholder="الوحدة"
+                                            v-model="item.unit"
+                                            class="h-11 text-base bg-background col-span-3 md:col-span-2"
+                                        />
+                                        <Input
+                                            placeholder="المكون *"
+                                            v-model="item.name"
+                                            class="h-11 text-base bg-background col-span-6"
+                                        />
+                                    </div>
+                                    <Button
+                                        v-if="group.items.length > 1"
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        @click="removeIngredientItem(groupIndex, itemIndex)"
+                                        class="h-11 text-destructive shrink-0"
+                                    >
+                                        <X class="w-4 h-4" />
+                                    </Button>
+                                </div>
+                                <Input
+                                    placeholder="وصف إضافي (اختياري)"
+                                    v-model="item.descriptor"
+                                    class="h-10 text-sm bg-background text-muted-foreground mr-6"
+                                />
+                            </div>
+                        </template>
+                    </draggable>
 
                     <Button
                         type="button"
@@ -951,27 +965,38 @@ const submit = async () => {
                     </div>
 
                     <!-- Step items -->
-                    <div v-for="(item, itemIndex) in group.items" :key="itemIndex" class="flex gap-2">
-                        <div class="flex-none pt-3 bg-muted w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
-                            {{ itemIndex + 1 }}
-                        </div>
-                        <Textarea
-                            :placeholder="`الخطوة ${itemIndex + 1}`"
-                            v-model="group.items[itemIndex]"
-                            :rows="3"
-                            class="text-base bg-background resize-y min-h-[100px] flex-1"
-                        />
-                        <Button
-                            v-if="group.items.length > 1"
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            @click="removeStepItem(groupIndex, itemIndex)"
-                            class="h-11 text-destructive"
-                        >
-                            <X class="w-4 h-4" />
-                        </Button>
-                    </div>
+                    <draggable
+                        :list="group.items"
+                        item-key="index"
+                        handle=".drag-handle"
+                        ghost-class="opacity-30"
+                        animation="200"
+                    >
+                        <template #item="{ index: itemIndex }">
+                            <div class="flex gap-2 mb-3">
+                                <GripVertical class="w-4 h-4 shrink-0 mt-3.5 text-muted-foreground cursor-grab drag-handle touch-none" />
+                                <div class="flex-none pt-3 bg-muted w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                                    {{ itemIndex + 1 }}
+                                </div>
+                                <Textarea
+                                    :placeholder="`الخطوة ${itemIndex + 1}`"
+                                    v-model="group.items[itemIndex]"
+                                    :rows="3"
+                                    class="text-base bg-background resize-y min-h-[100px] flex-1"
+                                />
+                                <Button
+                                    v-if="group.items.length > 1"
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    @click="removeStepItem(groupIndex, itemIndex)"
+                                    class="h-11 text-destructive shrink-0"
+                                >
+                                    <X class="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </template>
+                    </draggable>
 
                     <Button
                         type="button"
