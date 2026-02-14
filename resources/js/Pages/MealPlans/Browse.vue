@@ -17,7 +17,7 @@ interface MealPlanItem {
     entries_count: number;
     user: {
         id: number;
-        name: string;
+        display_name: string;
         avatar_url: string | null;
     } | null;
 }
@@ -87,9 +87,9 @@ const props = defineProps<{
                             <div v-if="plan.user" class="flex items-center gap-2 pt-2 border-t">
                                 <Avatar class="w-6 h-6">
                                     <AvatarImage :src="plan.user.avatar_url || undefined" />
-                                    <AvatarFallback class="text-xs">{{ plan.user.name.charAt(0) }}</AvatarFallback>
+                                    <AvatarFallback class="text-xs">{{ plan.user.display_name.charAt(0) }}</AvatarFallback>
                                 </Avatar>
-                                <span class="text-sm text-muted-foreground">{{ plan.user.name }}</span>
+                                <span class="text-sm text-muted-foreground">{{ plan.user.display_name }}</span>
                             </div>
                         </CardContent>
                     </Card>
