@@ -139,10 +139,15 @@ class MealPlanController extends Controller
         $mealType = $validated['meal_type'] ?? 'main';
         $overwrite = $validated['overwrite'] ?? false;
 
-        $recipes = Recipe::approved()->inRandomOrder()->limit(100)->pluck('id')->toArray();
+        $recipes = Recipe::approved()
+            ->whereHas('tags', fn($q) => $q->where('slug', $mealType))
+            ->inRandomOrder()
+            ->limit(100)
+            ->pluck('id')
+            ->toArray();
 
         if (empty($recipes)) {
-            return response()->json(['message' => 'لا توجد وصفات متاحة'], 422);
+            return response()->json(['message' => 'لا توجد وصفات بهذا الوسم'], 422);
         }
 
         $start = $mealPlan->start_date->copy();
