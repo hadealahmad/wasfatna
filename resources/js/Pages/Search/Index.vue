@@ -5,6 +5,7 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
 import { Skeleton } from '@/components/ui';
+import PaginationControls from '@/components/ui/PaginationControls.vue';
 
 interface Recipe {
     id: number;
@@ -37,6 +38,7 @@ const props = defineProps<{
         total: number;
         current_page: number;
         last_page: number;
+        per_page: number;
     };
     cities: City[];
     tags: Tag[];
@@ -73,6 +75,14 @@ const handleSearch = (params: { search: string; city: string; difficulty: string
             isLoading.value = false;
         }
     });
+};
+
+const handlePageChange = (page: number) => {
+    router.get(route('search.index'), { ...props.filters, page }, { preserveState: true, preserveScroll: false });
+};
+
+const handlePerPageChange = (perPage: number) => {
+    router.get(route('search.index'), { ...props.filters, per_page: perPage, page: 1 }, { preserveState: true, preserveScroll: false });
 };
 </script>
 
@@ -120,6 +130,18 @@ const handleSearch = (params: { search: string; city: string; difficulty: string
                 v-else
                 :recipes="recipes.data"
                 empty-message="جرب البحث بكلمات مختلفة"
+            />
+
+            <!-- Pagination -->
+            <PaginationControls
+                v-if="recipes.last_page > 1"
+                :current-page="recipes.current_page"
+                :total-pages="recipes.last_page"
+                :per-page="recipes.per_page"
+                :total-items="recipes.total"
+                class-name="mt-12"
+                @page-change="handlePageChange"
+                @per-page-change="handlePerPageChange"
             />
         </div>
     </PublicLayout>

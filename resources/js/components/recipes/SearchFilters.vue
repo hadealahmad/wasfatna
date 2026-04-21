@@ -64,8 +64,19 @@ const handleSearch = () => {
   if (city.value && city.value !== 'all') params.city = city.value;
   if (tag.value && tag.value !== 'all') params.tag = tag.value;
   if (difficulty.value && difficulty.value !== 'all') params.difficulty = difficulty.value;
+  
+  // Reset page when searching
+  params.page = 1;
 
-  router.get(route('recipes.index'), params, {
+  // Determine where to go. If we're on a page that supports these filters, stay there.
+  const currentRoute = route().current();
+  let targetRoute = route('search.index');
+  
+  if (currentRoute === 'home' || currentRoute === 'recipes.index' || currentRoute === 'search.index') {
+    targetRoute = route(currentRoute as string);
+  }
+
+  router.get(targetRoute, params, {
     preserveState: true,
     replace: true,
   });

@@ -27,23 +27,29 @@ class RecipeController extends Controller
             });
         }
 
-        if ($request->has('city')) {
-            $query->whereHas('city', function ($q) use ($request) {
-                $q->where('slug', $request->city);
+        if ($request->filled('city')) {
+            $city = $request->city;
+            $query->whereHas('city', function ($q) use ($city) {
+                $q->where('id', $city)->orWhere('slug', $city);
             });
         }
 
-        if ($request->has('tag')) {
-            $query->whereHas('tags', function ($q) use ($request) {
-                $q->where('slug', $request->tag);
+        if ($request->filled('tag')) {
+            $tag = $request->tag;
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where('id', $tag)->orWhere('slug', $tag);
             });
+        }
+
+        if ($request->filled('difficulty')) {
+            $query->where('difficulty', $request->difficulty);
         }
 
         $recipes = $query->paginate(12)->withQueryString();
 
         return Inertia::render('Recipes/Index', [
             'recipes' => $recipes,
-            'filters' => $request->only(['search', 'city', 'tag']),
+            'filters' => $request->only(['search', 'city', 'tag', 'difficulty']),
             'cities' => City::select('id', 'name', 'slug')->get(),
             'tags' => Tag::select('id', 'name', 'slug')->get(),
         ]);

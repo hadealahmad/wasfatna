@@ -5,6 +5,8 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
 
+import PaginationControls from '@/components/ui/PaginationControls.vue';
+
 interface Recipe {
   id: number;
   name: string;
@@ -25,6 +27,8 @@ interface Props {
     meta: any;
     current_page: number;
     last_page: number;
+    per_page: number;
+    total: number;
   };
   cities: Array<{ id: number; name: string; slug: string }>;
   tags: Array<{ id: number; name: string; slug: string }>;
@@ -32,15 +36,19 @@ interface Props {
     search?: string;
     city?: string;
     tag?: string;
+    per_page?: number;
   };
 }
 
 const props = defineProps<Props>();
 
-// Use a simplified version of SearchFilters logic directly or pass props
-// Since SearchFilters component is reused, we can use it here.
-// But we need to make sure SearchFilters component supports the "emit" way or "url" way.
-// The Vue SearchFilters component likely needs to be checked.
+function handlePageChange(page: number) {
+  router.get(route('recipes.index'), { ...props.filters, page }, { preserveState: true, preserveScroll: false });
+}
+
+function handlePerPageChange(perPage: number) {
+  router.get(route('recipes.index'), { ...props.filters, per_page: perPage, page: 1 }, { preserveState: true, preserveScroll: false });
+}
 </script>
 
 <template>
@@ -79,25 +87,16 @@ const props = defineProps<Props>();
       />
 
       <!-- Pagination -->
-      <div v-if="recipes.last_page > 1" class="mt-12 flex justify-center gap-2">
-         <!-- Simple Pagination for now -->
-         <div class="flex gap-2">
-            <template v-for="(link, key) in recipes.links" :key="key">
-                <component
-                    :is="link.url ? 'Link' : 'span'"
-                    :href="link.url"
-                    v-if="link.url || link.label === '...'"
-                    class="px-4 py-2 border rounded-md"
-                    :class="{ 
-                        'bg-primary text-primary-foreground': link.active,
-                        'bg-background hover:bg-muted': !link.active && link.url,
-                        'opacity-50 cursor-default': !link.url 
-                    }"
-                    v-html="link.label" 
-                />
-            </template>
-         </div>
-      </div>
+      <PaginationControls
+        v-if="recipes.last_page > 1"
+        :current-page="recipes.current_page"
+        :total-pages="recipes.last_page"
+        :per-page="recipes.per_page"
+        :total-items="recipes.total"
+        class-name="mt-12"
+        @page-change="handlePageChange"
+        @per-page-change="handlePerPageChange"
+      />
     </div>
   </PublicLayout>
 </template>

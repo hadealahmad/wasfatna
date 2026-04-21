@@ -26,14 +26,16 @@ class SearchController extends Controller
         }
 
         if ($request->filled('city')) {
-            $query->whereHas('city', function ($q) use ($request) {
-                $q->where('slug', $request->city);
+            $city = $request->city;
+            $query->whereHas('city', function ($q) use ($city) {
+                $q->where('id', $city)->orWhere('slug', $city);
             });
         }
 
         if ($request->filled('tag')) {
-            $query->whereHas('tags', function ($q) use ($request) {
-                $q->where('slug', $request->tag);
+            $tag = $request->tag;
+            $query->whereHas('tags', function ($q) use ($tag) {
+                $q->where('id', $tag)->orWhere('slug', $tag);
             });
         }
 

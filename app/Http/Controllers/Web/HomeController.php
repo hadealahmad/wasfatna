@@ -32,13 +32,21 @@ class HomeController extends Controller
         }
 
         if ($request->filled('city')) {
-            $recipesQuery->where('city_id', $request->city);
+            $city = $request->city;
+            $recipesQuery->whereHas('city', function ($q) use ($city) {
+                $q->where('id', $city)->orWhere('slug', $city);
+            });
         }
 
         if ($request->filled('tag')) {
-            $recipesQuery->whereHas('tags', function ($q) use ($request) {
-                $q->where('id', $request->tag)->orWhere('slug', $request->tag);
+            $tag = $request->tag;
+            $recipesQuery->whereHas('tags', function ($q) use ($tag) {
+                $q->where('id', $tag)->orWhere('slug', $tag);
             });
+        }
+
+        if ($request->filled('difficulty')) {
+            $recipesQuery->where('difficulty', $request->difficulty);
         }
 
         // Get per_page from request, with sensible limits
@@ -59,7 +67,7 @@ class HomeController extends Controller
             'cities' => $cities,
             'allCities' => $allCities,
             'allTags' => $allTags,
-            'filters' => $request->only(['search', 'city', 'tag']),
+            'filters' => $request->only(['search', 'city', 'tag', 'difficulty', 'per_page']),
             'canLogin' => \Route::has('login'),
             'canRegister' => \Route::has('register'),
         ]);
