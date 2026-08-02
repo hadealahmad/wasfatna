@@ -154,22 +154,37 @@ const groupedIngredientsList = computed(() => {
 
 // Check if steps are grouped and format them
 const groupedStepsList = computed(() => {
-  const steps = props.recipe.steps;
+  let steps = props.recipe.steps;
   if (!steps) return [];
-  
-  // If array of objects (new format)
-  if (Array.isArray(steps) && steps.length > 0 && typeof steps[0] === 'object' && 'name' in steps[0]) {
+
+  if (typeof steps === 'string') {
+    if (steps.startsWith('{') || steps.startsWith('[')) {
+      try {
+        steps = JSON.parse(steps);
+      } catch (e) {}
+    } else {
+      return [{ name: '', items: [steps] }];
+    }
+  }
+
+  // If array of objects (e.g. [{ name: 'Group Name', items: [...] }])
+  if (Array.isArray(steps) && steps.length > 0 && typeof steps[0] === 'object' && steps[0] !== null && 'items' in steps[0]) {
     return steps;
   }
-  
-  // If object where keys are group names (production format)
-  if (typeof steps === 'object' && !Array.isArray(steps)) {
-    return Object.entries(steps).map(([name, items]) => ({ 
-      name, 
-      items: Array.isArray(items) ? items : [items] 
+
+  // If simple array of strings or items (e.g. ['Step 1', 'Step 2'])
+  if (Array.isArray(steps)) {
+    return [{ name: '', items: steps }];
+  }
+
+  // If object where keys are group names (e.g. { "الحشوة": ["..."], "تجهيز مسبق": ["..."] })
+  if (typeof steps === 'object' && steps !== null) {
+    return Object.entries(steps).map(([name, items]) => ({
+      name: isNaN(Number(name)) ? name : '',
+      items: Array.isArray(items) ? items : [items]
     }));
   }
-  
+
   return [];
 });
 
@@ -385,7 +400,7 @@ const jsonLdSchema = computed(() => {
                         <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
                           {{ idx + 1 }}
                         </span>
-                        <p class="pt-1">{{ step }}</p>
+                        <p class="pt-1">{{ typeof step === 'string' ? step : (step.text || step.name || step) }}</p>
                       </li>
                     </ol>
                   </div>

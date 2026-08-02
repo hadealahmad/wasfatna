@@ -27,3 +27,6 @@ Thumbs.db
 production.env
 test_ingredients.php
 *.sql
+/bootstrap/ssr
+/study
+
