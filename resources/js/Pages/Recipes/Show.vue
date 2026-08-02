@@ -170,25 +170,54 @@ const groupedStepsList = computed(() => {
     }));
   }
   
-  // If simple array
-  if (Array.isArray(steps)) {
-    return [{ name: '', items: steps }];
-  }
-  
   return [];
+});
+
+const jsonLdSchema = computed(() => {
+  const allIngredients = groupedIngredientsList.value.flatMap(group => 
+    group.items.map((item: any) => formatIngredient(item))
+  );
+
+  const allInstructions = groupedStepsList.value.flatMap(group => 
+    group.items.map((step: any, index: number) => ({
+      '@type': 'HowToStep',
+      'name': group.name ? `${group.name} - الخطوة ${index + 1}` : `الخطوة ${index + 1}`,
+      'text': typeof step === 'string' ? step : step.text || step.name || ''
+    }))
+  );
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Recipe',
+    'name': props.recipe.name,
+    'image': props.recipe.image_url ? [props.recipe.image_url] : [],
+    'description': props.recipe.description || `طريقة عمل ${props.recipe.name}`,
+    'keywords': props.recipe.tags?.map(t => t.name).join(', ') || '',
+    'author': {
+      '@type': 'Person',
+      'name': props.recipe.author_name || 'وصفاتنا'
+    },
+    'recipeCuisine': props.recipe.city?.name || 'سوري',
+    'recipeYield': props.recipe.servings ? `${props.recipe.servings} حصص` : undefined,
+    'recipeIngredient': allIngredients,
+    'recipeInstructions': allInstructions
+  };
 });
 </script>
 
 <template>
   <PublicLayout>
     <Head>
-      <title>{{ recipe.name }}</title>
+      <title>{{ recipe.name }} - طريقة التحضير والمكونات</title>
       <meta name="description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
       <meta property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
       <meta property="og:description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
       <meta property="og:image" :content="recipe.image_url || '/og-image.png'" />
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content="summary_large_image" />
+      <script type="application/ld+json">
+        {{ JSON.stringify(jsonLdSchema) }}
+      </script>
     </Head>
 
     <div class="container mx-auto py-8 px-4 md:px-6">
