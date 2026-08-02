@@ -36,6 +36,7 @@ export default defineConfig(({ isSsrBuild }) => ({
                 manualChunks: {
                     'vendor-vue': ['vue', '@inertiajs/vue3'],
                     'vendor-ui': ['radix-vue', 'lucide-vue-next', 'clsx', 'tailwind-merge', 'class-variance-authority'],
+                    'vendor-draggable': ['vuedraggable'],
                 },
             },
         },

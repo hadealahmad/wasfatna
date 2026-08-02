@@ -69,7 +69,7 @@ function handlePerPageChange(perPage: number) {
       <meta property="og:title" content="وصفاتنا - مجتمع الطبخ السوري" />
       <meta property="og:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
       <meta property="og:type" content="website" />
-      <meta property="og:image" content="/og-image.png" />
+      <meta property="og:image" content="/og-image.webp" />
       <meta name="twitter:card" content="summary_large_image" />
     </Head>
 

@@ -227,7 +227,7 @@ const jsonLdSchema = computed(() => {
       <meta name="description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
       <meta property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
       <meta property="og:description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
-      <meta property="og:image" :content="recipe.image_url || '/og-image.png'" />
+      <meta property="og:image" :content="recipe.image_url || '/og-image.webp'" />
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content="summary_large_image" />
       <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />

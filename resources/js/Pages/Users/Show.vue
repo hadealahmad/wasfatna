@@ -27,7 +27,7 @@ const props = defineProps<{
             <meta name="description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
             <meta property="og:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
             <meta property="og:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta property="og:image" :content="profile.avatar_url || '/og-image.png'" />
+            <meta property="og:image" :content="profile.avatar_url || '/og-image.webp'" />
         </Head>
 
         <div>

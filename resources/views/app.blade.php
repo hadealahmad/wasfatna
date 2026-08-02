@@ -20,13 +20,13 @@
         <meta property="og:url" content="{{ url()->current() }}">
         <meta property="og:title" content="{{ config('app.name', 'وصفاتنا') }}">
         <meta property="og:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
-        <meta property="og:image" content="{{ asset('og-image.png') }}">
+        <meta property="og:image" content="{{ asset('og-image.webp') }}">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ config('app.name', 'وصفاتنا') }}">
         <meta name="twitter:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
-        <meta name="twitter:image" content="{{ asset('og-image.png') }}">
+        <meta name="twitter:image" content="{{ asset('og-image.webp') }}">
 
         <title inertia>{{ config('app.name', 'وصفاتنا') }}</title>
 
