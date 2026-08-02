@@ -30,11 +30,13 @@ use App\Http\Controllers\Web\AdminImportController;
 use App\Http\Controllers\Web\AdminMealPlanPresetController;
 use App\Http\Controllers\Web\MealPlanController;
 
-// DEV ONLY: Auto-login as admin (remove before deploying)
-Route::get('/dev-login', function () {
-    \Illuminate\Support\Facades\Auth::login(\App\Models\User::where('email', 'admin@wasfatna.com')->first(), true);
-    return redirect('/');
-});
+// DEV ONLY: Auto-login as admin (local environment only)
+if (app()->environment('local')) {
+    Route::get('/dev-login', function () {
+        \Illuminate\Support\Facades\Auth::login(\App\Models\User::where('email', 'admin@wasfatna.com')->first(), true);
+        return redirect('/');
+    });
+}
 
 // Web Auth
 Route::get('/login', [WebAuthController::class, 'login'])->name('login');

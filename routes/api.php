@@ -28,7 +28,6 @@ Route::get('recipes', [RecipeController::class, 'index']);
 Route::get('recipes/randomizer', [\App\Http\Controllers\Api\RandomizerController::class, 'index']);
 Route::get('recipes/{slug}', [RecipeController::class, 'show']);
 Route::get('recipes/{slug}/variations', [RecipeController::class, 'variations']);
-Route::get('recipes/randomizer', [\App\Http\Controllers\Api\RandomizerController::class, 'index']);
 
 // Cities
 Route::get('cities', [CityController::class, 'index']);
@@ -59,7 +58,6 @@ Route::middleware(['auth:sanctum', 'not-banned'])->group(function () {
     Route::post('recipes', [RecipeController::class, 'store']);
     Route::put('recipes/{recipe}', [RecipeController::class, 'update']);
     Route::post('recipes/{recipe}/unpublish', [RecipeController::class, 'unpublish']);
-    Route::get('recipes/{recipe}/history', [RecipeController::class, 'history']);
     Route::get('recipes/{recipe}/history', [RecipeController::class, 'history']);
     Route::delete('recipes/{recipe}/history', [RecipeController::class, 'clearHistory']);
     
@@ -98,7 +96,6 @@ Route::middleware(['auth:sanctum', 'not-banned', 'moderator'])->prefix('admin')-
     Route::get('lists', [\App\Http\Controllers\Api\AdminListController::class, 'index']);
     Route::get('lists/pending', [\App\Http\Controllers\Api\AdminListController::class, 'pending']);
     Route::post('lists/bulk', [\App\Http\Controllers\Api\AdminListController::class, 'bulkAction']);
-    Route::post('lists/{list}/approve', [\App\Http\Controllers\Api\AdminListController::class, 'approve']);
     Route::post('lists/{list}/approve', [\App\Http\Controllers\Api\AdminListController::class, 'approve']);
     Route::post('lists/{list}/reject', [\App\Http\Controllers\Api\AdminListController::class, 'reject']);
 

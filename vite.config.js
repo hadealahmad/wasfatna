@@ -29,4 +29,14 @@ export default defineConfig({
             ignored: ['**/storage/framework/views/**'],
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-vue': ['vue', '@inertiajs/vue3'],
+                    'vendor-ui': ['radix-vue', 'lucide-vue-next', 'clsx', 'tailwind-merge', 'class-variance-authority'],
+                },
+            },
+        },
+    },
 });
