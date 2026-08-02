@@ -58,15 +58,14 @@ const hasActiveFilters = computed(() => {
     return props.filters.search || props.filters.city || props.filters.tag || props.filters.difficulty;
 });
 
-// Handle filter changes from SearchFilters component
-const handleSearch = (params: { search: string; city: string; difficulty: string; tags: string[] }) => {
+const handleSearch = (params: any) => {
     isLoading.value = true;
     
     const query: Record<string, string> = {};
     if (params.search) query.search = params.search;
-    if (params.city) query.city = params.city;
-    if (params.difficulty) query.difficulty = params.difficulty;
-    if (params.tags && params.tags.length > 0) query.tag = params.tags[0];
+    if (params.city && params.city !== 'all') query.city = params.city;
+    if (params.tag && params.tag !== 'all') query.tag = params.tag;
+    if (params.difficulty && params.difficulty !== 'all') query.difficulty = params.difficulty;
     
     router.get(route('search.index'), query, {
         preserveState: true,

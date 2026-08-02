@@ -58,6 +58,10 @@ const difficulties = [
   { value: 'صعبة جداً', label: 'صعبة جداً' },
 ];
 
+const emit = defineEmits<{
+  (e: 'search', params: any): void;
+}>();
+
 const handleSearch = () => {
   const params: any = {};
   if (search.value) params.search = search.value;
@@ -68,11 +72,13 @@ const handleSearch = () => {
   // Reset page when searching
   params.page = 1;
 
-  // Determine where to go. If we're on a page that supports these filters, stay there.
+  emit('search', params);
+
+  // Determine target route. If on recipes.index or search.index, stay. Otherwise go to search.index
   const currentRoute = route().current();
   let targetRoute = route('search.index');
   
-  if (currentRoute === 'home' || currentRoute === 'recipes.index' || currentRoute === 'search.index') {
+  if (currentRoute === 'recipes.index' || currentRoute === 'search.index') {
     targetRoute = route(currentRoute as string);
   }
 

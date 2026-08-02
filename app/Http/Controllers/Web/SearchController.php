@@ -13,7 +13,7 @@ class SearchController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Recipe::with(['user', 'city', 'tags'])
+        $query = Recipe::with(['user', 'anonymousAuthor', 'city', 'tags', 'ingredients'])
             ->where('status', 'approved')
             ->latest();
 
@@ -21,7 +21,11 @@ class SearchController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('city', fn($c) => $c->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('tags', fn($t) => $t->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('ingredients', fn($i) => $i->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -43,13 +47,32 @@ class SearchController extends Controller
             $query->where('difficulty', $request->difficulty);
         }
 
-        $recipes = $query->paginate(12)->withQueryString();
+        $perPage = min(max((int) $request->input('per_page', 12), 10), 100);
+        $recipes = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('Search/Index', [
-            'recipes' => $recipes,
+            'recipes' => $recipes->through(fn($r) => $this->formatRecipeCard($r)),
             'cities' => City::select('id', 'name', 'slug')->get(),
             'tags' => Tag::select('id', 'name', 'slug')->get(),
-            'filters' => $request->only(['search', 'city', 'tag', 'difficulty']),
+            'filters' => $request->only(['search', 'city', 'tag', 'difficulty', 'per_page']),
         ]);
+    }
+
+    private function formatRecipeCard($recipe): array
+    {
+        return [
+            'id' => $recipe->id,
+            'name' => $recipe->name,
+            'slug' => $recipe->slug,
+            'image_url' => $recipe->image_path 
+                ? asset('storage/' . $recipe->image_path) 
+                : null,
+            'city' => $recipe->city?->name,
+            'city_slug' => $recipe->city?->slug,
+            'time_needed' => $recipe->time_needed,
+            'difficulty' => $recipe->difficulty,
+            'author_name' => $recipe->author_name,
+            'tags' => $recipe->tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
+        ];
     }
 }

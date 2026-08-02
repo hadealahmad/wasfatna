@@ -14,7 +14,7 @@ const query = ref('');
 
 const handleSearch = () => {
   if (query.value.trim()) {
-    router.get(route('recipes.index'), { search: query.value }, {
+    router.get(route('search.index'), { search: query.value }, {
       preserveState: true,
       replace: true,
     });

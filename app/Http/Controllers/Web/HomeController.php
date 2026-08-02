@@ -27,7 +27,10 @@ class HomeController extends Controller
             $search = $request->search;
             $recipesQuery->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhereHas('city', fn($c) => $c->where('name', 'LIKE', "%{$search}%"));
+                  ->orWhere('description', 'LIKE', "%{$search}%")
+                  ->orWhereHas('city', fn($c) => $c->where('name', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('tags', fn($t) => $t->where('name', 'LIKE', "%{$search}%"))
+                  ->orWhereHas('ingredients', fn($i) => $i->where('name', 'LIKE', "%{$search}%"));
             });
         }
 
