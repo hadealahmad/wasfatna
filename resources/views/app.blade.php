@@ -11,6 +11,7 @@
         <meta name="author" content="وصفاتنا">
         <meta name="robots" content="index, follow">
         <link rel="canonical" href="{{ url()->current() }}">
+        <link rel="alternate" type="text/markdown" href="{{ url('/llms.txt') }}" title="LLMs Index">
 
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">

@@ -215,6 +215,7 @@ const jsonLdSchema = computed(() => {
       <meta property="og:image" :content="recipe.image_url || '/og-image.png'" />
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content="summary_large_image" />
+      <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />
       <script type="application/ld+json">
         {{ JSON.stringify(jsonLdSchema) }}
       </script>

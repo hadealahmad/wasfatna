@@ -1093,7 +1093,7 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
             _push2(ssrRenderComponent(unref(Head), null, {
               default: withCtx((_2, _push3, _parent3, _scopeId2) => {
                 if (_push3) {
-                  _push3(`<title${_scopeId2}>${ssrInterpolate(__props.recipe.name)} - طريقة التحضير والمكونات</title><meta name="description"${ssrRenderAttr("content", __props.recipe.description || `تعلم طريقة عمل ${__props.recipe.name} من مطبخ ${__props.recipe.city?.name || "منوع"}. اكتشف المكونات والخطوات بالتفصيل.`)}${_scopeId2}><meta property="og:title"${ssrRenderAttr("content", `طريقة عمل ${__props.recipe.name} | وصفاتنا`)}${_scopeId2}><meta property="og:description"${ssrRenderAttr("content", __props.recipe.description || `تعلم طريقة عمل ${__props.recipe.name} من مطبخ ${__props.recipe.city?.name || "منوع"}. اكتشف المكونات والخطوات بالتفصيل.`)}${_scopeId2}><meta property="og:image"${ssrRenderAttr("content", __props.recipe.image_url || "/og-image.png")}${_scopeId2}><meta property="og:type" content="article"${_scopeId2}><meta name="twitter:card" content="summary_large_image"${_scopeId2}><script type="application/ld+json"${_scopeId2}>
+                  _push3(`<title${_scopeId2}>${ssrInterpolate(__props.recipe.name)} - طريقة التحضير والمكونات</title><meta name="description"${ssrRenderAttr("content", __props.recipe.description || `تعلم طريقة عمل ${__props.recipe.name} من مطبخ ${__props.recipe.city?.name || "منوع"}. اكتشف المكونات والخطوات بالتفصيل.`)}${_scopeId2}><meta property="og:title"${ssrRenderAttr("content", `طريقة عمل ${__props.recipe.name} | وصفاتنا`)}${_scopeId2}><meta property="og:description"${ssrRenderAttr("content", __props.recipe.description || `تعلم طريقة عمل ${__props.recipe.name} من مطبخ ${__props.recipe.city?.name || "منوع"}. اكتشف المكونات والخطوات بالتفصيل.`)}${_scopeId2}><meta property="og:image"${ssrRenderAttr("content", __props.recipe.image_url || "/og-image.png")}${_scopeId2}><meta property="og:type" content="article"${_scopeId2}><meta name="twitter:card" content="summary_large_image"${_scopeId2}><link rel="alternate" type="text/markdown"${ssrRenderAttr("href", `/recipes/${__props.recipe.slug}.md`)}${_scopeId2}><script type="application/ld+json"${_scopeId2}>
         {{ JSON.stringify(jsonLdSchema) }}
       <\/script>`);
                 } else {
@@ -1123,6 +1123,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                       name: "twitter:card",
                       content: "summary_large_image"
                     }),
+                    createVNode("link", {
+                      rel: "alternate",
+                      type: "text/markdown",
+                      href: `/recipes/${__props.recipe.slug}.md`
+                    }, null, 8, ["href"]),
                     createVNode("script", { type: "application/ld+json" }, "\n        {{ JSON.stringify(jsonLdSchema) }}\n      ")
                   ];
                 }
@@ -1952,6 +1957,11 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
                     name: "twitter:card",
                     content: "summary_large_image"
                   }),
+                  createVNode("link", {
+                    rel: "alternate",
+                    type: "text/markdown",
+                    href: `/recipes/${__props.recipe.slug}.md`
+                  }, null, 8, ["href"]),
                   createVNode("script", { type: "application/ld+json" }, "\n        {{ JSON.stringify(jsonLdSchema) }}\n      ")
                 ]),
                 _: 1

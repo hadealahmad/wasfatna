@@ -270,4 +270,21 @@ class RecipeController extends Controller
             'recipes' => $recipes,
         ]);
     }
+
+    public function showMarkdown($slug)
+    {
+        $recipe = Recipe::with(['user', 'anonymousAuthor', 'city', 'tags', 'ingredients'])
+            ->where('slug', $slug)
+            ->where('status', 'approved')
+            ->firstOrFail();
+
+        $content = view('markdown.recipe', [
+            'recipe' => $recipe,
+            'baseUrl' => config('app.url', 'https://wasfatna.com'),
+        ])->render();
+
+        return response($content, 200, [
+            'Content-Type' => 'text/markdown; charset=utf-8',
+        ]);
+    }
 }

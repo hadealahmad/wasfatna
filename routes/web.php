@@ -29,6 +29,7 @@ use App\Http\Controllers\Web\SearchController;
 use App\Http\Controllers\Web\AdminImportController;
 use App\Http\Controllers\Web\AdminMealPlanPresetController;
 use App\Http\Controllers\Web\MealPlanController;
+use App\Http\Controllers\Web\LlmsController;
 
 // DEV ONLY: Auto-login as admin (local environment only)
 if (app()->environment('local')) {
@@ -37,6 +38,10 @@ if (app()->environment('local')) {
         return redirect('/');
     });
 }
+
+// LLM Machine-Readable Endpoints
+Route::get('/llms.txt', [LlmsController::class, 'index'])->name('llms.index');
+Route::get('/llms-full.txt', [LlmsController::class, 'full'])->name('llms.full');
 
 // Web Auth
 Route::get('/login', [WebAuthController::class, 'login'])->name('login');
@@ -50,6 +55,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/recipes', [RecipeController::class, 'index'])->name('recipes.index');
 Route::get('/recipes/new', [RecipeController::class, 'create'])->name('recipes.create')->middleware('auth');
 Route::post('/recipes', [RecipeController::class, 'store'])->name('recipes.store')->middleware('auth');
+Route::get('/recipes/{slug}.md', [RecipeController::class, 'showMarkdown'])->name('recipes.markdown');
 Route::get('/recipes/{slug}', [RecipeController::class, 'show'])->name('recipes.show');
 Route::get('/recipes/{slug}/variations', [RecipeController::class, 'variations'])->name('recipes.variations');
 
