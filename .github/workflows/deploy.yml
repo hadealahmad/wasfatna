@@ -62,9 +62,12 @@ jobs:
           # Storage Link (Idempotent)
           php artisan storage:link --force
 
-          # Fix Permissions (Optional, but good practice if runner permissions differ slightly)
-          # Note: If running as owner 'syrian', standard umask should handle this, 
-          # but 775/storage ensures the web server group can write if needed.
+          # Restart Queue Workers
+          php artisan queue:restart
+
+          # Stop Inertia SSR Server (forces process manager to reload fresh SSR bundle)
+          php artisan inertia:stop-ssr || true
+
           # Fix Permissions
           # Ensure backend storage is writable
           chmod -R 775 storage bootstrap/cache
@@ -75,6 +78,3 @@ jobs:
           chmod 711 /home/syrian/domains
           chmod 711 /home/syrian/domains/food.syrian.zone
           chmod 711 /home/syrian/domains/food.syrian.zone/public_html
-
-          # Restart Queue Workers (if any)
-          # php artisan queue:restart
