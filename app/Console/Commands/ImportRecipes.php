@@ -5,10 +5,9 @@ namespace App\Console\Commands;
 use App\Models\AnonymousAuthor;
 use App\Models\City;
 use App\Models\Recipe;
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use App\Services\ImageService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 
 class ImportRecipes extends Command
 {
@@ -39,26 +38,28 @@ class ImportRecipes extends Command
     {
         $file = $this->argument('file');
 
-        if (!file_exists($file)) {
+        if (! file_exists($file)) {
             $this->error("File not found: $file");
+
             return 1;
         }
 
         $json = file_get_contents($file);
         $recipes = json_decode($json, true);
 
-        if (!$recipes) {
-            $this->error("Invalid JSON format");
+        if (! $recipes) {
+            $this->error('Invalid JSON format');
+
             return 1;
         }
 
-        $this->info("Found " . count($recipes) . " recipes to import.");
+        $this->info('Found '.count($recipes).' recipes to import.');
 
         // Ensure recipes directory exists in public disk
         Storage::disk('public')->makeDirectory('recipes');
 
         foreach ($recipes as $data) {
-            $this->info("Importing: " . $data['name']);
+            $this->info('Importing: '.$data['name']);
 
             // 1. Handle Author (Default to Anonymous)
             $authorName = $data['author_name'] ?: 'مجهول';
@@ -67,20 +68,20 @@ class ImportRecipes extends Command
             // 2. Handle City
             $citySlug = $data['city_slug'];
             $city = City::where('slug', $citySlug)->first();
-            if (!$city) {
+            if (! $city) {
                 $this->warn("City not found for slug: $citySlug. Defaulting to General.");
                 $city = City::where('slug', 'general')->first(); // Ensure 'general' exists or handle error
             }
 
             // 3. Handle Image
             $sourceImagePath = null;
-            
+
             // Try 1: Relative to project root (local dev typical)
-            $try1 = base_path('../' . $data['image_path']);
-            
+            $try1 = base_path('../'.$data['image_path']);
+
             // Try 2: Inside storage/app (production import typical)
             // JSON path: "import 2/images/..."
-            $try2 = storage_path('app/' . $data['image_path']);
+            $try2 = storage_path('app/'.$data['image_path']);
 
             // Try 3: Direct path (cwd)
             $try3 = $data['image_path'];
@@ -94,15 +95,15 @@ class ImportRecipes extends Command
             }
 
             $storagePath = null;
-            if (file_exists($sourceImagePath)) {
+            if ($sourceImagePath !== null && file_exists($sourceImagePath)) {
                 $result = $this->imageService->processFromFile($sourceImagePath);
                 if ($result['success']) {
                     $storagePath = $result['path'];
                 } else {
-                    $this->warn("Failed to process image: " . $result['error']);
+                    $this->warn('Failed to process image: '.$result['error']);
                 }
             } else {
-                $this->warn("Image not found: $sourceImagePath");
+                $this->warn('Image not found: '.($data['image_path'] ?? 'null'));
             }
 
             // 4. Create Recipe
@@ -119,15 +120,18 @@ class ImportRecipes extends Command
                 // 'ingredients' => $data['ingredients'], // REMOVED: Handled via syncIngredients
                 'steps' => $data['steps'],
                 'difficulty' => $data['difficulty'],
+            ]);
+            $recipe->forceFill([
                 'status' => 'approved',
                 'approved_at' => now(),
-            ]);
+            ])->save();
 
             // 5. Link Ingredients
             $this->syncIngredients($recipe, $data['ingredients']);
         }
 
-        $this->info("Import completed successfully.");
+        $this->info('Import completed successfully.');
+
         return 0;
     }
 
@@ -137,55 +141,6 @@ class ImportRecipes extends Command
      */
     private function syncIngredients(Recipe $recipe, array $ingredients): void
     {
-        $syncData = [];
-        $idsToSync = [];
-
-        foreach ($ingredients as $key => $value) {
-            // Handle grouped ingredients: "Sauce" => [ {name: "Tomato", ...}, ... ]
-            if (is_string($key) && is_array($value)) {
-                $groupName = $key;
-                foreach ($value as $item) {
-                    $this->processIngredientItem($item, $syncData, $groupName);
-                }
-            } 
-            // Handle flat list items
-            else {
-                $this->processIngredientItem($value, $syncData);
-            }
-        }
-
-        $recipe->ingredients()->sync($syncData);
-    }
-
-    private function processIngredientItem(array|string $item, array &$syncData, ?string $group = null): void
-    {
-        if (is_string($item)) {
-            $name = $item;
-            $amount = null;
-            $unit = null;
-            $descriptor = null;
-        } else {
-            $name = $item['name'] ?? null;
-            $amount = $item['amount'] ?? null;
-            $unit = $item['unit'] ?? null;
-            $descriptor = $item['descriptor'] ?? null;
-            $group = $item['group'] ?? $group;
-        }
-
-        if (!$name) return;
-
-        $normalized = \App\Models\Ingredient::normalize($name);
-        
-        $ingredient = \App\Models\Ingredient::firstOrCreate(
-            ['normalized_name' => $normalized],
-            ['name' => $name]
-        );
-
-        $syncData[$ingredient->id] = [
-            'amount' => $amount,
-            'unit' => $unit,
-            'ingredient_descriptor' => $descriptor,
-            'group' => $group,
-        ];
+        app(\App\Services\IngredientSyncService::class)->sync($recipe, $ingredients);
     }
 }

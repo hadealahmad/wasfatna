@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Recipe;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 use App\Models\Setting;
 use App\Models\Tag;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class AdminRecipeController extends Controller
 {
@@ -25,7 +25,7 @@ class AdminRecipeController extends Controller
         // Filter by status
         if ($request->filled('status')) {
             $statuses = is_array($request->status) ? $request->status : explode(',', $request->status);
-            
+
             $query->where(function ($q) use ($statuses) {
                 $q->whereIn('status', $statuses);
                 if (in_array('pending', $statuses)) {
@@ -38,16 +38,16 @@ class AdminRecipeController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhereHas('user', function ($subQ) use ($request) {
-                      $subQ->where('name', 'LIKE', "%{$request->search}%");
-                  });
+                    ->orWhereHas('user', function ($subQ) use ($request) {
+                        $subQ->where('name', 'LIKE', "%{$request->search}%");
+                    });
             });
         }
 
         // Sorting
         $sortColumn = $request->input('sort_by', 'created_at');
         $sortDirection = $request->input('sort_dir', 'desc');
-        
+
         $allowedSorts = ['name', 'created_at', 'status', 'approved_at', 'tags_count'];
         if (in_array($sortColumn, $allowedSorts)) {
             $query->orderBy($sortColumn, $sortDirection);
@@ -58,7 +58,7 @@ class AdminRecipeController extends Controller
         $recipes = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('Dashboard/Recipes/Index', [
-            'recipes' => $recipes->through(fn($r) => $this->formatAdminRecipe($r)),
+            'recipes' => $recipes->through(fn ($r) => $this->formatAdminRecipe($r)),
             'filters' => $request->only(['status', 'search', 'sort_by', 'sort_dir', 'per_page']),
         ]);
     }
@@ -78,7 +78,7 @@ class AdminRecipeController extends Controller
         try {
             switch ($action) {
                 case 'delete':
-                    if (!$request->user()->isAdmin()) {
+                    if (! $request->user()->isAdmin()) {
                         return back()->with('error', 'غير مصرح لك بحذف الوصفات');
                     }
                     Recipe::whereIn('id', $ids)->delete();
@@ -97,17 +97,17 @@ class AdminRecipeController extends Controller
                 case 'unpublish':
                     Recipe::whereIn('id', $ids)->update(['status' => 'unpublished']);
                     break;
-                
+
                 case 'change_status':
-                     $updateData = ['status' => $request->status];
-                     if ($request->status === 'approved') {
-                         $updateData['approved_by'] = $request->user()->id;
-                         $updateData['approved_at'] = now();
-                         $updateData['needs_reapproval'] = false;
-                         $updateData['rejection_reason'] = null;
-                     }
-                     Recipe::whereIn('id', $ids)->update($updateData);
-                     break;
+                    $updateData = ['status' => $request->status];
+                    if ($request->status === 'approved') {
+                        $updateData['approved_by'] = $request->user()->id;
+                        $updateData['approved_at'] = now();
+                        $updateData['needs_reapproval'] = false;
+                        $updateData['rejection_reason'] = null;
+                    }
+                    Recipe::whereIn('id', $ids)->update($updateData);
+                    break;
             }
 
             return back()->with('success', 'تم تنفيذ الإجراء بنجاح');
@@ -120,14 +120,14 @@ class AdminRecipeController extends Controller
     {
         $request->validate([
             'ids' => 'required|array',
-            'ids.*' => 'exists:recipes,id'
+            'ids.*' => 'exists:recipes,id',
         ]);
 
         $apiKey = Setting::find('gemini_api_key')?->value;
-        if (!$apiKey) {
+        if (! $apiKey) {
             return back()->with('error', 'Gemini API Key not configured');
         }
-        
+
         $model = trim(Setting::find('gemini_model')?->value ?? 'gemini-1.5-flash');
 
         $recipes = Recipe::with(['ingredients', 'tags'])->whereIn('id', $request->ids)->get();
@@ -139,8 +139,8 @@ class AdminRecipeController extends Controller
 
         foreach ($recipes as $recipe) {
             try {
-                $ingredientsText = $recipe->ingredients->map(function($i) {
-                    return $i->pivot->amount . ' ' . $i->pivot->unit . ' ' . $i->name;
+                $ingredientsText = $recipe->ingredients->map(function ($i) {
+                    return $i->pivot->amount.' '.$i->pivot->unit.' '.$i->name;
                 })->join(', ');
 
                 $prompt = "
@@ -151,41 +151,41 @@ class AdminRecipeController extends Controller
                 Existing Tags: $existingTagsStr
                 
                 Return JSON: { \"tags\": [\"tag1\", \"tag2\"] }
-                Pre-existing tags for this recipe: " . $recipe->tags->pluck('name')->join(', ') . "
+                Pre-existing tags for this recipe: ".$recipe->tags->pluck('name')->join(', ').'
                 Keep existing valid tags and add new ones if missing.
                 NO markdown. JSON only.
-                ";
+                ';
 
                 $response = Http::withHeaders(['Content-Type' => 'application/json'])
-                    ->post("https://genergenerativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-                    'contents' => [
-                        ['parts' => [['text' => $prompt]]]
-                    ]
-                ]);
+                    ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
+                        'contents' => [
+                            ['parts' => [['text' => $prompt]]],
+                        ],
+                    ]);
 
                 if ($response->successful()) {
                     $generated = $response->json();
                     $txt = $generated['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
                     $clean = str_replace(['```json', '```'], '', $txt);
                     $data = json_decode($clean, true);
-                    
+
                     if (isset($data['tags']) && is_array($data['tags'])) {
                         $tagIds = Tag::whereIn('name', $data['tags'])->pluck('id');
                         $recipe->tags()->sync($tagIds);
                         $successCount++;
                     }
                 } else {
-                    $errors[] = "Failed ID {$recipe->id}: " . $response->status();
+                    $errors[] = "Failed ID {$recipe->id}: ".$response->status();
                 }
 
-                sleep(1); 
+                sleep(1);
             } catch (\Exception $e) {
-                $errors[] = "Error ID {$recipe->id}: " . $e->getMessage();
+                $errors[] = "Error ID {$recipe->id}: ".$e->getMessage();
             }
         }
 
         if (count($errors) > 0) {
-            return back()->with('warning', "تم تحديث {$successCount} وصفات، مع وجود " . count($errors) . " أخطاء.");
+            return back()->with('warning', "تم تحديث {$successCount} وصفات، مع وجود ".count($errors).' أخطاء.');
         }
 
         return back()->with('success', "تم تحديث وسوم {$successCount} وصفات بنجاح.");
@@ -197,32 +197,30 @@ class AdminRecipeController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $recipe->update([
+        $recipe->forceFill([
             'status' => 'rejected',
             'rejection_reason' => $request->reason,
-        ]);
+        ])->save();
 
         return back()->with('success', 'تم رفض الوصفة');
     }
 
     public function approve(Request $request, Recipe $recipe): \Illuminate\Http\JsonResponse
     {
-        $recipe->update([
+        $recipe->forceFill([
             'status' => 'approved',
             'approved_by' => $request->user()->id,
             'approved_at' => now(),
             'needs_reapproval' => false,
             'rejection_reason' => null,
-        ]);
+        ])->save();
 
         return response()->json(['success' => true, 'message' => 'تم نشر الوصفة بنجاح']);
     }
 
     public function unpublish(Request $request, Recipe $recipe): \Illuminate\Http\JsonResponse
     {
-        $recipe->update([
-            'status' => 'unpublished',
-        ]);
+        $recipe->forceFill(['status' => 'unpublished'])->save();
 
         return response()->json(['success' => true, 'message' => 'تم إلغاء نشر الوصفة']);
     }
@@ -254,7 +252,7 @@ class AdminRecipeController extends Controller
                 'id' => $recipe->approver->id,
                 'name' => $recipe->approver->name,
             ] : null,
-            'tags' => $recipe->tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name]),
+            'tags' => $recipe->tags->map(fn ($t) => ['id' => $t->id, 'name' => $t->name]),
         ];
     }
 }

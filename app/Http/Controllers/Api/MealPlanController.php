@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\MealPlan;
 use App\Models\MealPlanEntry;
 use App\Models\Recipe;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class MealPlanController extends Controller
 {
@@ -35,16 +35,22 @@ class MealPlanController extends Controller
             return response()->json(['message' => 'يجب إضافة وصفة أو عنوان مخصص'], 422);
         }
 
-        $maxOrder = $mealPlan->entries()->where('date', $validated['date'])->max('order') ?? -1;
+        // Lock the parent plan row to serialize concurrent entry inserts
+        // (prevents duplicate `order` values from read-max-then-insert races)
+        $entry = \DB::transaction(function () use ($mealPlan, $validated) {
+            $mealPlan->lockForUpdate()->first();
 
-        $entry = $mealPlan->entries()->create([
-            'date' => $validated['date'],
-            'recipe_id' => $validated['recipe_id'] ?? null,
-            'custom_title' => $validated['custom_title'] ?? null,
-            'notes' => $validated['notes'] ?? null,
-            'meal_type' => $validated['meal_type'] ?? 'main',
-            'order' => $maxOrder + 1,
-        ]);
+            $maxOrder = $mealPlan->entries()->where('date', $validated['date'])->max('order') ?? -1;
+
+            return $mealPlan->entries()->create([
+                'date' => $validated['date'],
+                'recipe_id' => $validated['recipe_id'] ?? null,
+                'custom_title' => $validated['custom_title'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'meal_type' => $validated['meal_type'] ?? 'main',
+                'order' => $maxOrder + 1,
+            ]);
+        });
 
         $entry->load('recipe:id,name,slug,image_path,difficulty,time_needed');
 
@@ -94,7 +100,7 @@ class MealPlanController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
 
-        $entry->update(['is_done' => !$entry->is_done]);
+        $entry->update(['is_done' => ! $entry->is_done]);
 
         return response()->json(['is_done' => $entry->is_done]);
     }
@@ -140,7 +146,7 @@ class MealPlanController extends Controller
         $overwrite = $validated['overwrite'] ?? false;
 
         $recipes = Recipe::approved()
-            ->whereHas('tags', fn($q) => $q->where('slug', $mealType))
+            ->whereHas('tags', fn ($q) => $q->where('slug', $mealType))
             ->inRandomOrder()
             ->limit(100)
             ->pluck('id')
@@ -152,10 +158,12 @@ class MealPlanController extends Controller
 
         $start = $mealPlan->start_date->copy();
         $end = $mealPlan->end_date->copy();
+        // Guard against unbounded loops if plan dates were mutated inconsistently
+        $maxIterations = 400;
         $added = 0;
         $recipeIndex = 0;
 
-        while ($start->lte($end)) {
+        while ($start->lte($end) && $maxIterations-- > 0) {
             $dateStr = $start->format('Y-m-d');
 
             $existing = $mealPlan->entries()
@@ -163,7 +171,7 @@ class MealPlanController extends Controller
                 ->where('meal_type', $mealType)
                 ->exists();
 
-            if (!$existing || $overwrite) {
+            if (! $existing || $overwrite) {
                 if ($overwrite) {
                     $mealPlan->entries()
                         ->where('date', $dateStr)
@@ -197,7 +205,7 @@ class MealPlanController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $mealPlan->is_public = !$mealPlan->is_public;
+        $mealPlan->is_public = ! $mealPlan->is_public;
         $mealPlan->save();
 
         return response()->json([
@@ -218,7 +226,7 @@ class MealPlanController extends Controller
             ->select('id', 'name', 'slug', 'image_path', 'difficulty', 'time_needed')
             ->limit(10)
             ->get()
-            ->map(fn($r) => [
+            ->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'slug' => $r->slug,

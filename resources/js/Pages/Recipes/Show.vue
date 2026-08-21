@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { Link, Head, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Badge, Card, CardContent, CardHeader, CardTitle, Button, Avatar, AvatarImage, AvatarFallback } from '@/components/ui';
@@ -43,6 +43,21 @@ const props = defineProps<{
   has_variations?: boolean;
   variations_count?: number;
 }>();
+
+// JSON-LD structured data can't be rendered as a <script> tag inside a Vue
+// template (side-effect tags are rejected by the compiler) — inject it manually.
+const injectJsonLd = () => {
+  document.getElementById('recipe-jsonld')?.remove();
+  const script = document.createElement('script');
+  script.id = 'recipe-jsonld';
+  script.type = 'application/ld+json';
+  script.textContent = JSON.stringify(jsonLdSchema.value);
+  document.head.appendChild(script);
+};
+
+onMounted(injectJsonLd);
+watch(() => props.recipe, injectJsonLd);
+onUnmounted(() => document.getElementById('recipe-jsonld')?.remove());
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -231,9 +246,6 @@ const jsonLdSchema = computed(() => {
       <meta property="og:type" content="article" />
       <meta name="twitter:card" content="summary_large_image" />
       <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />
-      <script type="application/ld+json">
-        {{ JSON.stringify(jsonLdSchema) }}
-      </script>
     </Head>
 
     <div class="container mx-auto py-8 px-4 md:px-6">

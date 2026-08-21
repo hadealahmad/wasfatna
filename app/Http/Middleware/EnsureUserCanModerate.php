@@ -15,9 +15,15 @@ class EnsureUserCanModerate
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || !$request->user()->canApproveRecipes()) {
-            return response()->json([
-                'error' => 'غير مصرح. يجب أن تكون مشرفاً أو مسؤولاً.',
-            ], 403);
+            // API clients get JSON; web (Inertia) requests get a friendly redirect
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'غير مصرح. يجب أن تكون مشرفاً أو مسؤولاً.',
+                ], 403);
+            }
+
+            return redirect()->route('home')
+                ->with('error', 'غير مصرح. يجب أن تكون مشرفاً أو مسؤولاً.');
         }
 
         return $next($request);

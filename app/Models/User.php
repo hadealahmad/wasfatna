@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -19,19 +19,14 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
-        'role',
-        'is_banned',
-        'ban_reason',
-        'banned_at',
-        'deletion_requested',
-        'deletion_requested_at',
+        'email_verified_at',
     ];
 
     protected $appends = ['avatar_url'];
 
     public function getAvatarUrlAttribute(): ?string
     {
-        if (!$this->avatar) {
+        if (! $this->avatar) {
             return null;
         }
 
@@ -39,7 +34,7 @@ class User extends Authenticatable
             return $this->avatar;
         }
 
-        return asset('storage/' . $this->avatar);
+        return asset('storage/'.$this->avatar);
     }
 
     protected $hidden = [
@@ -115,6 +110,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Recipe::class, 'approved_by');
     }
+
     /**
      * Get reports made by this user.
      */

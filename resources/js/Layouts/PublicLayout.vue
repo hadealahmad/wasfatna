@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import PublicHeader from '@/components/layout/PublicHeader.vue';
-import { Toaster } from 'vue-sonner';
+import { Toaster, toast } from 'vue-sonner';
 import { useDark } from '@vueuse/core';
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 
 defineProps<{
   title?: string;
@@ -11,6 +11,17 @@ defineProps<{
 
 const isDark = useDark();
 const theme = computed(() => isDark.value ? 'dark' : 'light');
+
+// Surface backend flash messages (e.g. middleware redirects) as toasts
+const page = usePage();
+watch(
+  () => page.props.flash,
+  (flash: any) => {
+    if (flash?.error) toast.error(flash.error);
+    if (flash?.success) toast.success(flash.success);
+  },
+  { deep: true, immediate: true }
+);
 </script>
 
 <template>

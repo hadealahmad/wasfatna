@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\RecipeController;
-use App\Http\Controllers\Api\CityController;
-use App\Http\Controllers\Api\IngredientController;
-use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\ImportController;
+use App\Http\Controllers\Api\IngredientController;
+use App\Http\Controllers\Api\RecipeController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,7 +52,7 @@ Route::middleware(['auth:sanctum', 'not-banned'])->group(function () {
     Route::post('user/request-deletion', [AuthController::class, 'requestDeletion']);
     Route::post('user/cancel-deletion', [AuthController::class, 'cancelDeletion']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
-    
+
     // User's own recipes
     Route::get('my-recipes', [RecipeController::class, 'myRecipes']);
     Route::post('recipes', [RecipeController::class, 'store']);
@@ -60,7 +60,7 @@ Route::middleware(['auth:sanctum', 'not-banned'])->group(function () {
     Route::post('recipes/{recipe}/unpublish', [RecipeController::class, 'unpublish']);
     Route::get('recipes/{recipe}/history', [RecipeController::class, 'history']);
     Route::delete('recipes/{recipe}/history', [RecipeController::class, 'clearHistory']);
-    
+
     // Reports
     Route::post('reports', [\App\Http\Controllers\Api\ReportController::class, 'store']);
     Route::get('my-reports', [\App\Http\Controllers\Api\ReportController::class, 'userIndex']);
@@ -71,7 +71,7 @@ Route::middleware(['auth:sanctum', 'not-banned'])->group(function () {
 Route::middleware(['auth:sanctum', 'not-banned', 'moderator'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('dashboard', [AdminController::class, 'dashboard']);
-    
+
     // Recipe management
     Route::get('recipes/pending', [AdminController::class, 'pendingRecipes']);
     Route::get('recipes', [AdminController::class, 'allRecipes']);
@@ -79,10 +79,10 @@ Route::middleware(['auth:sanctum', 'not-banned', 'moderator'])->prefix('admin')-
     Route::post('recipes/{recipe}/approve', [AdminController::class, 'approveRecipe']);
     Route::post('recipes/{recipe}/reject', [AdminController::class, 'rejectRecipe']);
     Route::post('recipes/{recipe}/unpublish', [AdminController::class, 'unpublishRecipe']);
-    
+
     // Ingredients (list)
     Route::get('ingredients', [IngredientController::class, 'index']);
-    
+
     // Anonymous authors
     Route::get('anonymous-authors', [AdminController::class, 'anonymousAuthors']);
     Route::post('anonymous-authors', [AdminController::class, 'createAnonymousAuthor']);
@@ -118,10 +118,10 @@ Route::middleware(['auth:sanctum', 'not-banned', 'admin'])->prefix('admin')->gro
     Route::post('users/{user}/ban', [AdminController::class, 'banUser']);
     Route::post('users/{user}/unban', [AdminController::class, 'unbanUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
-    
+
     // Recipe deletion (admin only)
     Route::delete('recipes/{recipe}', [RecipeController::class, 'destroy']);
-    
+
     // City management
     Route::get('cities', [AdminController::class, 'cities']);
     Route::post('cities', [AdminController::class, 'createCity']);
@@ -145,12 +145,12 @@ Route::middleware(['auth:sanctum', 'not-banned', 'admin'])->prefix('admin')->gro
 // ==================== AUTHENTICATED ROUTES (Lists) ====================
 
 Route::middleware(['auth:sanctum', 'not-banned'])->name('api.')->group(function () {
-    Route::apiResource('lists', \App\Http\Controllers\Api\ListController::class);
+    Route::apiResource('lists', \App\Http\Controllers\Api\ListController::class)->except(['show']);
     Route::post('lists/{list}/items', [\App\Http\Controllers\Api\ListController::class, 'addRecipe']);
     Route::delete('lists/{list}/items', [\App\Http\Controllers\Api\ListController::class, 'removeRecipe']);
     Route::post('lists/{list}/toggle', [\App\Http\Controllers\Api\ListController::class, 'toggleRecipe']);
 });
 
-// Public List View
+// Public List View (show() enforces its own visibility/ownership checks)
 Route::get('public-lists', [\App\Http\Controllers\Api\ListController::class, 'publicIndex'])->name('api.public-lists.index');
 Route::get('lists/{id}', [\App\Http\Controllers\Api\ListController::class, 'show'])->name('api.lists.show.public');

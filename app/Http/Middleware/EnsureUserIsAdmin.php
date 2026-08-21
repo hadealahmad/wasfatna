@@ -14,9 +14,15 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || !$request->user()->isAdmin()) {
-            return response()->json([
-                'error' => 'غير مصرح. يجب أن تكون مسؤولاً.',
-            ], 403);
+            // API clients get JSON; web (Inertia) requests get a friendly redirect
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'غير مصرح. يجب أن تكون مسؤولاً.',
+                ], 403);
+            }
+
+            return redirect()->route('home')
+                ->with('error', 'غير مصرح. يجب أن تكون مسؤولاً.');
         }
 
         return $next($request);

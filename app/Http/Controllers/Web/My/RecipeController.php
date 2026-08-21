@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Web\My;
 
 use App\Http\Controllers\Controller;
-use App\Models\Recipe;
 use App\Models\City;
+use App\Models\Recipe;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class RecipeController extends Controller
 {
@@ -20,9 +20,9 @@ class RecipeController extends Controller
             ->latest();
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
-        
+
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
@@ -37,7 +37,7 @@ class RecipeController extends Controller
 
     public function edit(Recipe $recipe)
     {
-        if ($recipe->user_id !== Auth::id() && !Auth::user()->isModerator()) {
+        if ($recipe->user_id !== Auth::id() && ! Auth::user()->isModerator()) {
             abort(403);
         }
 
@@ -57,9 +57,9 @@ class RecipeController extends Controller
         return Inertia::render('My/Recipes/Edit', $data);
     }
 
-    public function update(Request $request, Recipe $recipe)
+    public function update(Request $request, Recipe $recipe, \App\Services\ImageService $imageService)
     {
-        if ($recipe->user_id !== Auth::id() && !Auth::user()->isModerator()) {
+        if ($recipe->user_id !== Auth::id() && ! Auth::user()->isModerator()) {
             abort(403);
         }
 
@@ -101,6 +101,7 @@ class RecipeController extends Controller
             'tags' => 'nullable|array',
             'manual_author_name' => 'nullable|string|max:255',
             'user_id' => 'nullable|exists:users,id',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:10240',
         ]);
 
         $recipe->name = $validated['name'];
@@ -124,61 +125,42 @@ class RecipeController extends Controller
             }
         }
 
+        // Match API behavior: regular users editing approved recipes
+        // must go through re-approval before going live again.
+        $needsReapproval = $recipe->isApproved() && ! Auth::user()->canApproveRecipes();
+        if ($needsReapproval) {
+            $recipe->needs_reapproval = true;
+            $recipe->status = 'pending';
+        }
+
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('recipes', 'public');
-            $recipe->image_path = $path;
+            $result = $imageService->processAndStore($request->file('image'), 'recipes');
+            if (! $result['success']) {
+                return back()->withErrors(['image' => $result['error']])->withInput();
+            }
+            $recipe->image_path = $result['path'];
         }
 
         $recipe->save();
 
-        if (!empty($validated['tags'])) {
+        if (! empty($validated['tags'])) {
             $recipe->tags()->sync($validated['tags']);
         }
 
         // Handle ingredients sync with proper structure
-        if (!empty($validated['ingredients'])) {
-            $ingredientsData = [];
-            $sortOrder = 0;
-            
-            // Check if it's grouped format
-            if (isset($validated['ingredients'][0]['items'])) {
-                foreach ($validated['ingredients'] as $group) {
-                    $groupName = $group['name'] ?? 'المكونات';
-                    foreach ($group['items'] as $item) {
-                        if (empty($item['name'])) continue;
-                        $ingredient = \App\Models\Ingredient::firstOrCreate(['name' => $item['name']]);
-                        $ingredientsData[$ingredient->id] = [
-                            'amount' => $item['amount'] ?? '',
-                            'unit' => $item['unit'] ?? '',
-                            'group' => $groupName,
-                            'ingredient_descriptor' => $item['descriptor'] ?? '',
-                            'sort_order' => $sortOrder++,
-                        ];
-                    }
-                }
-            } else {
-                // Flat array format
-                foreach ($validated['ingredients'] as $item) {
-                    if (empty($item['name'])) continue;
-                    $ingredient = \App\Models\Ingredient::firstOrCreate(['name' => $item['name']]);
-                    $ingredientsData[$ingredient->id] = [
-                        'amount' => $item['amount'] ?? '',
-                        'unit' => $item['unit'] ?? '',
-                        'group' => $item['group'] ?? 'المكونات',
-                        'ingredient_descriptor' => $item['descriptor'] ?? '',
-                        'sort_order' => $sortOrder++,
-                    ];
-                }
-            }
-            $recipe->ingredients()->sync($ingredientsData);
+        if (! empty($validated['ingredients'])) {
+            app(\App\Services\IngredientSyncService::class)->sync($recipe, $validated['ingredients']);
         }
 
-        return redirect()->route('my.recipes.index')->with('success', 'تم تحديث الوصفة بنجاح');
+        return redirect()->route('my.recipes.index')->with(
+            'success',
+            $needsReapproval ? 'تم تعديل الوصفة وإرسالها للمراجعة مجدداً' : 'تم تحديث الوصفة بنجاح'
+        );
     }
 
     public function destroy(Recipe $recipe)
     {
-        if ($recipe->user_id !== Auth::id() && !Auth::user()->isModerator()) {
+        if ($recipe->user_id !== Auth::id() && ! Auth::user()->isModerator()) {
             abort(403);
         }
 

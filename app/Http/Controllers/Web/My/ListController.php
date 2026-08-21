@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Web\My;
 use App\Http\Controllers\Controller;
 use App\Models\RecipeList;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class ListController extends Controller
 {
@@ -33,15 +33,16 @@ class ListController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_public' => 'boolean',
-            'cover_image' => 'nullable|image|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:2048',
         ]);
 
         $list = new RecipeList($validated);
         $list->user_id = Auth::id();
-        $list->slug = Str::slug($validated['name']) . '-' . Str::random(6);
-        $list->status = 'approved'; // Default approved for user lists? or pending? Assuming approved.
-        
+        $list->slug = Str::slug($validated['name']).'-'.Str::random(6);
+        // New lists start private as drafts; publishing goes through requestPublish → moderator review
+        $list->is_public = false;
+        $list->status = 'draft';
+
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('lists', 'public');
             $list->cover_image = $path;
@@ -72,9 +73,14 @@ class ListController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'is_public' => 'boolean',
-            'cover_image' => 'nullable|image|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp,gif|max:2048',
         ]);
+
+        // Only already-approved lists may toggle public visibility directly;
+        // everything else must go through requestPublish → moderator review.
+        if ($list->status !== 'approved') {
+            unset($validated['is_public']);
+        }
 
         $list->fill($validated);
 
@@ -129,4 +135,3 @@ class ListController extends Controller
         return back()->with('success', 'تم إلغاء نشر القائمة');
     }
 }
-

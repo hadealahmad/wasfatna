@@ -16,12 +16,13 @@ class MealPlanController extends Controller
     {
         $plans = MealPlan::where('user_id', Auth::id())
             ->withCount('entries')
+            ->withCount(['entries as done_count' => fn ($q) => $q->where('is_done', true)])
             ->with('preset:id,name,type')
             ->latest()
             ->get();
 
         return Inertia::render('My/MealPlans/Index', [
-            'plans' => $plans->map(fn($p) => [
+            'plans' => $plans->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'slug' => $p->slug,
@@ -31,7 +32,7 @@ class MealPlanController extends Controller
                 'share_token' => $p->share_token,
                 'days_count' => $p->days_count,
                 'entries_count' => $p->entries_count,
-                'done_count' => $p->entries()->where('is_done', true)->count(),
+                'done_count' => $p->done_count,
                 'preset' => $p->preset ? [
                     'id' => $p->preset->id,
                     'name' => $p->preset->name,
@@ -47,7 +48,7 @@ class MealPlanController extends Controller
         $presets = MealPlanPreset::active()
             ->orderBy('start_date', 'desc')
             ->get()
-            ->map(fn($p) => [
+            ->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'type' => $p->type,
@@ -88,8 +89,8 @@ class MealPlanController extends Controller
             ->with(['recipe:id,name,slug,image_path,difficulty,time_needed'])
             ->get();
 
-        $entriesByDate = $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
-            ->map(fn($group) => $group->map(fn($e) => [
+        $entriesByDate = $entries->groupBy(fn ($e) => $e->date->format('Y-m-d'))
+            ->map(fn ($group) => $group->map(fn ($e) => [
                 'id' => $e->id,
                 'date' => $e->date->format('Y-m-d'),
                 'recipe_id' => $e->recipe_id,
@@ -169,12 +170,14 @@ class MealPlanController extends Controller
             ->paginate(12);
 
         return Inertia::render('MealPlans/Browse', [
-            'plans' => $plans->through(fn($p) => [
+            'plans' => $plans->through(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'description' => $p->description,
                 'start_date' => $p->start_date->format('Y-m-d'),
                 'end_date' => $p->end_date->format('Y-m-d'),
+                // Safe to expose: browse only lists is_public plans, and shared()
+                // re-checks is_public so un-publishing revokes access immediately.
                 'share_token' => $p->share_token,
                 'days_count' => $p->days_count,
                 'entries_count' => $p->entries_count,
@@ -190,14 +193,15 @@ class MealPlanController extends Controller
     public function shared(string $token)
     {
         $plan = MealPlan::where('share_token', $token)
+            ->where('is_public', true)
             ->firstOrFail();
 
         $entries = $plan->entries()
             ->with(['recipe:id,name,slug,image_path,difficulty,time_needed'])
             ->get();
 
-        $entriesByDate = $entries->groupBy(fn($e) => $e->date->format('Y-m-d'))
-            ->map(fn($group) => $group->map(fn($e) => [
+        $entriesByDate = $entries->groupBy(fn ($e) => $e->date->format('Y-m-d'))
+            ->map(fn ($group) => $group->map(fn ($e) => [
                 'id' => $e->id,
                 'date' => $e->date->format('Y-m-d'),
                 'recipe_id' => $e->recipe_id,
@@ -226,7 +230,7 @@ class MealPlanController extends Controller
                 'end_date' => $plan->end_date->format('Y-m-d'),
                 'days_count' => $plan->days_count,
                 'user' => [
-                    'name' => $plan->user->display_name,
+                    'name' => $plan->user?->display_name ?? 'مستخدم',
                 ],
                 'preset' => $plan->preset ? [
                     'name' => $plan->preset->name,

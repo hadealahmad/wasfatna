@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnonymousAuthor;
+use App\Models\City;
+use App\Models\Ingredient;
 use App\Models\Recipe;
 use App\Models\User;
-use App\Models\City;
-use App\Models\AnonymousAuthor;
-use App\Models\Ingredient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,14 +44,16 @@ class AdminController extends Controller
         $perPage = $request->input('per_page', 20);
         $perPage = min($perPage, 100); // Cap at 100
 
-        $recipes = Recipe::pending()
-            ->orWhere('needs_reapproval', true)
+        $recipes = Recipe::query()
+            ->where(function ($q) {
+                $q->pending()->orWhere('needs_reapproval', true);
+            })
             ->with(['city', 'user', 'anonymousAuthor', 'tags'])
             ->latest()
             ->paginate($perPage);
 
         return response()->json([
-            'recipes' => $recipes->through(fn($r) => $this->formatAdminRecipe($r)),
+            'recipes' => $recipes->through(fn ($r) => $this->formatAdminRecipe($r)),
             'pagination' => [
                 'current_page' => $recipes->currentPage(),
                 'last_page' => $recipes->lastPage(),
@@ -75,11 +77,11 @@ class AdminController extends Controller
         // Filter by status (can be comma-separated or array)
         if ($request->filled('status')) {
             $statuses = is_array($request->status) ? $request->status : explode(',', $request->status);
-            
+
             $query->where(function ($q) use ($statuses) {
                 $q->whereIn('status', $statuses);
-                
-                // Special case for "awaiting_approval" if we treat it as a status, 
+
+                // Special case for "awaiting_approval" if we treat it as a status,
                 // but usually it's status=pending or needs_reapproval=true.
                 // If the frontend sends 'pending', it matches status=pending.
                 // If we want to include needs_reapproval when filtering for pending:
@@ -93,16 +95,16 @@ class AdminController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhereHas('user', function ($subQ) use ($request) {
-                      $subQ->where('name', 'LIKE', "%{$request->search}%");
-                  });
+                    ->orWhereHas('user', function ($subQ) use ($request) {
+                        $subQ->where('name', 'LIKE', "%{$request->search}%");
+                    });
             });
         }
 
         // Sorting
         $sortColumn = $request->input('sort_by', 'created_at');
         $sortDirection = $request->input('sort_dir', 'desc');
-        
+
         // Allowable sort columns to prevent SQL injection
         $allowedSorts = ['name', 'created_at', 'status', 'approved_at', 'tags_count'];
         if (in_array($sortColumn, $allowedSorts)) {
@@ -114,7 +116,7 @@ class AdminController extends Controller
         $recipes = $query->paginate($perPage);
 
         return response()->json([
-            'recipes' => $recipes->through(fn($r) => $this->formatAdminRecipe($r)),
+            'recipes' => $recipes->through(fn ($r) => $this->formatAdminRecipe($r)),
             'pagination' => [
                 'current_page' => $recipes->currentPage(),
                 'last_page' => $recipes->lastPage(),
@@ -129,13 +131,13 @@ class AdminController extends Controller
      */
     public function approveRecipe(Request $request, Recipe $recipe): JsonResponse
     {
-        $recipe->update([
+        $recipe->forceFill([
             'status' => 'approved',
             'approved_by' => $request->user()->id,
             'approved_at' => now(),
             'needs_reapproval' => false,
             'rejection_reason' => null,
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => 'تمت الموافقة على الوصفة',
@@ -152,10 +154,10 @@ class AdminController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $recipe->update([
+        $recipe->forceFill([
             'status' => 'rejected',
             'rejection_reason' => $request->reason,
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => 'تم رفض الوصفة',
@@ -169,18 +171,17 @@ class AdminController extends Controller
     public function unpublishRecipe(Request $request, Recipe $recipe): JsonResponse
     {
         try {
-            $recipe->update([
-                'status' => 'unpublished',
-            ]);
+            $recipe->forceFill(['status' => 'unpublished'])->save();
 
             return response()->json([
                 'message' => 'تم إلغاء نشر الوصفة',
                 'recipe' => $this->formatAdminRecipe($recipe->fresh(['user', 'city', 'anonymousAuthor', 'approver'])),
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Unpublish error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Unpublish error: '.$e->getMessage());
+
             return response()->json([
-                'error' => 'فشل إلغاء نشر الوصفة: ' . $e->getMessage(),
+                'error' => 'فشل إلغاء نشر الوصفة: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -204,7 +205,7 @@ class AdminController extends Controller
             switch ($action) {
                 case 'delete':
                     // check permission for delete? Admin only probably.
-                    if (!$request->user()->isAdmin()) {
+                    if (! $request->user()->isAdmin()) {
                         return response()->json(['error' => 'غير مصرح لك بحذف الوصفات'], 403);
                     }
                     Recipe::whereIn('id', $ids)->delete();
@@ -226,18 +227,18 @@ class AdminController extends Controller
                     Recipe::whereIn('id', $ids)->update(['status' => 'unpublished']);
                     $message = 'تم إلغاء نشر الوصفات المحددة';
                     break;
-                
+
                 case 'change_status':
-                     $updateData = ['status' => $request->status];
-                     if ($request->status === 'approved') {
-                         $updateData['approved_by'] = $request->user()->id;
-                         $updateData['approved_at'] = now();
-                         $updateData['needs_reapproval'] = false;
-                         $updateData['rejection_reason'] = null;
-                     }
-                     Recipe::whereIn('id', $ids)->update($updateData);
-                     $message = 'تم تغيير حالة الوصفات المحددة';
-                     break;
+                    $updateData = ['status' => $request->status];
+                    if ($request->status === 'approved') {
+                        $updateData['approved_by'] = $request->user()->id;
+                        $updateData['approved_at'] = now();
+                        $updateData['needs_reapproval'] = false;
+                        $updateData['rejection_reason'] = null;
+                    }
+                    Recipe::whereIn('id', $ids)->update($updateData);
+                    $message = 'تم تغيير حالة الوصفات المحددة';
+                    break;
 
                 default:
                     return response()->json(['error' => 'إجراء غير معروف'], 400);
@@ -246,7 +247,7 @@ class AdminController extends Controller
             return response()->json(['message' => $message]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'حدث خطأ أثناء تنفيذ الإجراء: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'حدث خطأ أثناء تنفيذ الإجراء: '.$e->getMessage()], 500);
         }
     }
 
@@ -269,24 +270,24 @@ class AdminController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhere('email', 'LIKE', "%{$request->search}%");
+                    ->orWhere('email', 'LIKE', "%{$request->search}%");
             });
         }
-        
+
         $sortColumn = $request->input('sort_by', 'created_at');
         $sortDirection = $request->input('sort_dir', 'desc');
         $allowedSorts = ['name', 'email', 'role', 'recipes_count', 'created_at'];
 
         if (in_array($sortColumn, $allowedSorts)) {
-             $query->orderBy($sortColumn, $sortDirection);
+            $query->orderBy($sortColumn, $sortDirection);
         } else {
-             $query->latest();
+            $query->latest();
         }
 
         $users = $query->paginate($perPage);
 
         return response()->json([
-            'users' => $users->through(fn($u) => $this->formatAdminUser($u)),
+            'users' => $users->through(fn ($u) => $this->formatAdminUser($u)),
             'pagination' => [
                 'current_page' => $users->currentPage(),
                 'last_page' => $users->lastPage(),
@@ -307,11 +308,59 @@ class AdminController extends Controller
             ->get();
 
         return response()->json([
-            'users' => $users->map(fn($u) => [
+            'users' => $users->map(fn ($u) => [
                 ...$this->formatAdminUser($u),
                 'deletion_requested_at' => $u->deletion_requested_at,
             ]),
         ]);
+    }
+
+    /**
+     * Bulk actions for users (admin only).
+     */
+    public function bulkUserActions(Request $request): JsonResponse
+    {
+        if (! $request->user()->isAdmin()) {
+            return response()->json(['error' => 'غير مصرح'], 403);
+        }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+            'action' => 'required|in:delete,ban,unban,change_role',
+            'role' => 'required_if:action,change_role|in:admin,moderator,user',
+            'reason' => 'required_if:action,ban|string|max:500',
+        ]);
+
+        // Never act on yourself or on other admins
+        $ids = collect($request->ids)
+            ->reject(fn ($id) => $id == $request->user()->id)
+            ->filter(fn ($id) => ! User::find($id)?->isAdmin())
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return response()->json(['message' => 'لا يوجد مستخدمون صالحون للتنفيذ'], 422);
+        }
+
+        match ($request->action) {
+            'delete' => User::whereIn('id', $ids)->get()->each(function ($u) {
+                $u->tokens()->delete();
+                $u->delete();
+            }),
+            'ban' => User::whereIn('id', $ids)->update([
+                'is_banned' => true,
+                'ban_reason' => $request->reason,
+                'banned_at' => now(),
+            ]),
+            'unban' => User::whereIn('id', $ids)->update([
+                'is_banned' => false,
+                'ban_reason' => null,
+                'banned_at' => null,
+            ]),
+            'change_role' => User::whereIn('id', $ids)->update(['role' => $request->role]),
+        };
+
+        return response()->json(['message' => 'تم تنفيذ الإجراء بنجاح']);
     }
 
     /**
@@ -320,7 +369,7 @@ class AdminController extends Controller
     public function updateUserRole(Request $request, User $user): JsonResponse
     {
         // Only admin can change roles
-        if (!$request->user()->isAdmin()) {
+        if (! $request->user()->isAdmin()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -333,7 +382,7 @@ class AdminController extends Controller
             'role' => 'required|in:admin,moderator,user',
         ]);
 
-        $user->update(['role' => $request->role]);
+        $user->forceFill(['role' => $request->role])->save();
 
         return response()->json([
             'message' => 'تم تحديث صلاحيات المستخدم',
@@ -346,7 +395,7 @@ class AdminController extends Controller
      */
     public function banUser(Request $request, User $user): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        if (! $request->user()->isAdmin()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -359,11 +408,11 @@ class AdminController extends Controller
             'reason' => 'required|string|max:500',
         ]);
 
-        $user->update([
+        $user->forceFill([
             'is_banned' => true,
             'ban_reason' => $request->reason,
             'banned_at' => now(),
-        ]);
+        ])->save();
 
         // Revoke all tokens
         $user->tokens()->delete();
@@ -379,15 +428,15 @@ class AdminController extends Controller
      */
     public function unbanUser(Request $request, User $user): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        if (! $request->user()->isAdmin()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
-        $user->update([
+        $user->forceFill([
             'is_banned' => false,
             'ban_reason' => null,
             'banned_at' => null,
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => 'تم إلغاء حظر المستخدم',
@@ -400,7 +449,7 @@ class AdminController extends Controller
      */
     public function deleteUser(Request $request, User $user): JsonResponse
     {
-        if (!$request->user()->isAdmin()) {
+        if (! $request->user()->isAdmin()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -449,29 +498,29 @@ class AdminController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhere('description', 'LIKE', "%{$request->search}%");
+                    ->orWhere('description', 'LIKE', "%{$request->search}%");
             });
         }
-        
+
         $sortColumn = $request->input('sort_by', 'name');
         $sortDirection = $request->input('sort_dir', 'asc');
         $allowedSorts = ['name', 'recipes_count', 'slug']; // Description not usually sorted, but can be added
 
         if (in_array($sortColumn, $allowedSorts)) {
-             $query->orderBy($sortColumn, $sortDirection);
+            $query->orderBy($sortColumn, $sortDirection);
         } else {
-             $query->orderBy('name');
+            $query->orderBy('name');
         }
 
         $cities = $query->paginate($perPage);
 
         return response()->json([
-            'cities' => $cities->map(fn($city) => [
+            'cities' => $cities->map(fn ($city) => [
                 'id' => $city->id,
                 'name' => $city->name,
                 'slug' => $city->slug,
                 'description' => $city->description,
-                'image_url' => $city->image_path ? asset('storage/' . $city->image_path) : null,
+                'image_url' => $city->image_path ? asset('storage/'.$city->image_path) : null,
                 'recipes_count' => $city->recipes_count,
             ])->values(),
             'pagination' => [
@@ -517,7 +566,7 @@ class AdminController extends Controller
     public function updateCity(Request $request, City $city): JsonResponse
     {
         $request->validate([
-            'name' => 'sometimes|string|max:100|unique:cities,name,' . $city->id,
+            'name' => 'sometimes|string|max:100|unique:cities,name,'.$city->id,
             'description' => 'nullable|string|max:500',
             'image' => 'nullable|image|max:2048',
         ]);
@@ -548,7 +597,7 @@ class AdminController extends Controller
         // Get default city from settings
         $defaultCityId = Setting::where('key', 'default_city_id')->value('value');
 
-        if (!$defaultCityId) {
+        if (! $defaultCityId) {
             return response()->json([
                 'error' => 'يجب تحديد المدينة الافتراضية في الإعدادات قبل حذف أي مدينة',
             ], 422);
@@ -585,9 +634,9 @@ class AdminController extends Controller
         $action = $request->action;
 
         if ($action === 'delete') {
-             $defaultCityId = Setting::where('key', 'default_city_id')->value('value');
+            $defaultCityId = Setting::where('key', 'default_city_id')->value('value');
 
-            if (!$defaultCityId) {
+            if (! $defaultCityId) {
                 return response()->json([
                     'error' => 'يجب تحديد المدينة الافتراضية في الإعدادات قبل حذف أي مدينة',
                 ], 422);
@@ -595,7 +644,7 @@ class AdminController extends Controller
 
             // Ensure we are not deleting the default city
             if (in_array($defaultCityId, $ids)) {
-                 return response()->json([
+                return response()->json([
                     'error' => 'لا يمكن حذف المدينة الافتراضية ضمن عملية الحذف الجماعي',
                 ], 422);
             }
@@ -604,7 +653,7 @@ class AdminController extends Controller
             Recipe::whereIn('city_id', $ids)->update(['city_id' => $defaultCityId]);
 
             City::whereIn('id', $ids)->delete();
-            
+
             return response()->json(['message' => 'تم حذف المدن المحددة ونقل وصفاتها للمدينة الافتراضية']);
         }
 
@@ -621,7 +670,7 @@ class AdminController extends Controller
         $authors = AnonymousAuthor::withCount('recipes')->get();
 
         return response()->json([
-            'authors' => $authors->map(fn($a) => [
+            'authors' => $authors->map(fn ($a) => [
                 'id' => $a->id,
                 'name' => $a->name,
                 'bio' => $a->bio,
@@ -659,7 +708,7 @@ class AdminController extends Controller
             'id' => $recipe->id,
             'name' => $recipe->name,
             'slug' => $recipe->slug,
-            'image_url' => $recipe->image_path ? asset('storage/' . $recipe->image_path) : null,
+            'image_url' => $recipe->image_path ? asset('storage/'.$recipe->image_path) : null,
             'city' => $recipe->city?->name,
             'difficulty' => $recipe->difficulty,
             'status' => $recipe->status,
@@ -678,7 +727,7 @@ class AdminController extends Controller
             ] : null,
             'approved_at' => $recipe->approved_at,
             'created_at' => $recipe->created_at,
-            'tags' => $recipe->tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
+            'tags' => $recipe->tags->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
         ];
     }
 

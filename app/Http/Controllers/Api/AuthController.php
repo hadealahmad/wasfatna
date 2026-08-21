@@ -37,11 +37,19 @@ class AuthController extends Controller
             // Find or create user
             $user = User::where('google_id', $googleUser->getId())->first();
 
-            if (!$user) {
+            if (! $user) {
                 // Check if email already exists (linked to different auth method)
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
-                
+
                 if ($existingUser) {
+                    // Only link when the Google account's email is verified,
+                    // otherwise this would allow pre-hijacking the existing account.
+                    $emailVerified = $googleUser->user['email_verified'] ?? false;
+                    if (! $emailVerified) {
+                        return response()->json([
+                            'error' => 'لم يتم تأكيد بريدك الإلكتروني في Google، لا يمكن ربط الحساب.',
+                        ], 403);
+                    }
                     // Link Google account to existing user
                     $existingUser->update([
                         'google_id' => $googleUser->getId(),
@@ -85,17 +93,17 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Redirect to frontend
+            // Redirect to frontend — token passed in the URL fragment (never sent to servers, logs, or Referer)
             $frontendUrl = config('services.frontend_url');
-            $query = http_build_query([
+            $fragment = http_build_query([
                 'token' => $token,
                 'user' => json_encode($userData),
             ]);
 
-            return redirect("$frontendUrl/auth/callback?$query");
+            return redirect("$frontendUrl/auth/callback#$fragment");
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'فشل في تسجيل الدخول: ' . $e->getMessage(),
+                'error' => 'فشل في تسجيل الدخول: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -136,10 +144,10 @@ class AuthController extends Controller
     public function requestDeletion(Request $request): JsonResponse
     {
         $user = $request->user();
-        $user->update([
+        $user->forceFill([
             'deletion_requested' => true,
             'deletion_requested_at' => now(),
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => 'تم إرسال طلب حذف الحساب. سيتم مراجعته من قبل المسؤول.',
@@ -152,10 +160,10 @@ class AuthController extends Controller
     public function cancelDeletion(Request $request): JsonResponse
     {
         $user = $request->user();
-        $user->update([
+        $user->forceFill([
             'deletion_requested' => false,
             'deletion_requested_at' => null,
-        ]);
+        ])->save();
 
         return response()->json([
             'message' => 'تم إلغاء طلب حذف الحساب.',

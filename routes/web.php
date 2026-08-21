@@ -1,40 +1,42 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-use Inertia\Inertia;
-use Illuminate\Foundation\Application;
-
-use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\AdminRecipeController;
-use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\AdminCityController;
-use App\Http\Controllers\Web\AdminReportController;
-use App\Http\Controllers\Web\AdminTagController;
-use App\Http\Controllers\Web\AdminSettingController;
-use App\Http\Controllers\Web\AdminDashboardController;
+use App\Http\Controllers\Web\AdminImportController;
 use App\Http\Controllers\Web\AdminListController;
-use App\Http\Controllers\Web\WebAuthController;
-use App\Http\Controllers\Web\HomeController;
-use App\Http\Controllers\Web\RecipeController;
+use App\Http\Controllers\Web\AdminMealPlanPresetController;
+use App\Http\Controllers\Web\AdminRecipeController;
+use App\Http\Controllers\Web\AdminReportController;
+use App\Http\Controllers\Web\AdminSettingController;
+use App\Http\Controllers\Web\AdminTagController;
+use App\Http\Controllers\Web\AdminUserController;
 use App\Http\Controllers\Web\CityController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\ListController;
-use App\Http\Controllers\Web\RandomizerController;
-use App\Http\Controllers\Web\My\RecipeController as MyRecipeController;
+use App\Http\Controllers\Web\LlmsController;
+use App\Http\Controllers\Web\MealPlanController;
 use App\Http\Controllers\Web\My\ListController as MyListController;
+use App\Http\Controllers\Web\My\RecipeController as MyRecipeController;
 use App\Http\Controllers\Web\My\ReportController as MyReportController;
 use App\Http\Controllers\Web\ProfileController;
-use App\Http\Controllers\Web\UserController;
+use App\Http\Controllers\Web\RandomizerController;
+use App\Http\Controllers\Web\RecipeController;
 use App\Http\Controllers\Web\SearchController;
-use App\Http\Controllers\Web\AdminImportController;
-use App\Http\Controllers\Web\AdminMealPlanPresetController;
-use App\Http\Controllers\Web\MealPlanController;
-use App\Http\Controllers\Web\LlmsController;
+use App\Http\Controllers\Web\UserController;
+use App\Http\Controllers\Web\WebAuthController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 // DEV ONLY: Auto-login as admin (local environment only)
 if (app()->environment('local')) {
     Route::get('/dev-login', function () {
-        \Illuminate\Support\Facades\Auth::login(\App\Models\User::where('email', 'admin@wasfatna.com')->first(), true);
+        $user = \App\Models\User::where('email', 'admin@example.com')->first()
+            ?? \App\Models\User::where('role', 'admin')->first();
+
+        abort_if(! $user, 404, 'No admin user found — run `php artisan db:seed` first.');
+
+        \Illuminate\Support\Facades\Auth::login($user, true);
+
         return redirect('/');
     });
 }
@@ -67,8 +69,12 @@ Route::get('/lists/{list}', [ListController::class, 'show'])->name('lists.show')
 
 Route::get('/randomizer', [RandomizerController::class, 'index'])->name('randomizer.index');
 
-Route::get('/privacy', function () { return Inertia::render('Privacy'); })->name('privacy');
-Route::get('/terms', function () { return Inertia::render('Terms'); })->name('terms');
+Route::get('/privacy', function () {
+    return Inertia::render('Privacy');
+})->name('privacy');
+Route::get('/terms', function () {
+    return Inertia::render('Terms');
+})->name('terms');
 Route::get('/search', [SearchController::class, 'index'])->name('search.index');
 
 Route::get('/meal-plans/shared/{token}', [MealPlanController::class, 'shared'])->name('meal-plans.shared');
@@ -115,7 +121,7 @@ Route::middleware(['auth', 'not-banned'])->group(function () {
 
 Route::middleware(['auth', 'not-banned', 'moderator'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
-    
+
     // Recipes
     Route::get('/dashboard/recipes', [AdminRecipeController::class, 'index'])->name('dashboard.recipes');
     Route::post('/dashboard/recipes/bulk', [AdminRecipeController::class, 'bulkActions'])->name('dashboard.recipes.bulk');

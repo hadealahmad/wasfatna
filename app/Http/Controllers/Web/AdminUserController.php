@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse;
 
 class AdminUserController extends Controller
 {
@@ -25,24 +25,24 @@ class AdminUserController extends Controller
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'LIKE', "%{$request->search}%")
-                  ->orWhere('email', 'LIKE', "%{$request->search}%");
+                    ->orWhere('email', 'LIKE', "%{$request->search}%");
             });
         }
-        
+
         $sortColumn = $request->input('sort_by', 'created_at');
         $sortDirection = $request->input('sort_dir', 'desc');
         $allowedSorts = ['name', 'email', 'role', 'recipes_count', 'created_at'];
 
         if (in_array($sortColumn, $allowedSorts)) {
-             $query->orderBy($sortColumn, $sortDirection);
+            $query->orderBy($sortColumn, $sortDirection);
         } else {
-             $query->latest();
+            $query->latest();
         }
 
         $users = $query->paginate($perPage)->withQueryString();
 
         return Inertia::render('Dashboard/Users/Index', [
-            'users' => $users->through(fn($u) => $this->formatAdminUser($u)),
+            'users' => $users->through(fn ($u) => $this->formatAdminUser($u)),
             'filters' => $request->only(['role', 'search', 'sort_by', 'sort_dir', 'per_page']),
         ]);
     }
@@ -61,8 +61,8 @@ class AdminUserController extends Controller
         $action = $request->action;
 
         // Prevent performing actions on current user
-        $ids = array_filter($ids, fn($id) => $id != $request->user()->id);
-        
+        $ids = array_filter($ids, fn ($id) => $id != $request->user()->id);
+
         if (empty($ids)) {
             return back()->with('error', 'لا يمكن تنفيذ الإجراء على هذا المستخدم');
         }
@@ -86,7 +86,7 @@ class AdminUserController extends Controller
                         'ban_reason' => null,
                     ]);
                     break;
-                
+
                 case 'change_role':
                     User::whereIn('id', $ids)->update(['role' => $request->role]);
                     break;
@@ -104,8 +104,12 @@ class AdminUserController extends Controller
             return back()->with('error', 'لا يمكنك تغيير دورك الخاص');
         }
 
-        $request->validate(['role' => 'required|string']);
-        $user->update(['role' => $request->role]);
+        if ($user->isAdmin()) {
+            return back()->with('error', 'لا يمكن تغيير دور مدير');
+        }
+
+        $request->validate(['role' => 'required|in:admin,moderator,user']);
+        $user->forceFill(['role' => $request->role])->save();
 
         return back()->with('success', 'تم تحديث الدور بنجاح');
     }
@@ -116,21 +120,26 @@ class AdminUserController extends Controller
             return back()->with('error', 'لا يمكنك حظر نفسك');
         }
 
+        if ($user->isAdmin()) {
+            return back()->with('error', 'لا يمكن حظر مدير');
+        }
+
         $request->validate(['reason' => 'required|string|max:500']);
-        $user->update([
+        $user->forceFill([
             'is_banned' => true,
             'ban_reason' => $request->reason,
-        ]);
+        ])->save();
+        $user->tokens()->delete();
 
         return back()->with('success', 'تم حظر المستخدم');
     }
 
     public function unban(User $user): RedirectResponse
     {
-        $user->update([
+        $user->forceFill([
             'is_banned' => false,
             'ban_reason' => null,
-        ]);
+        ])->save();
 
         return back()->with('success', 'تم إلغاء حظر المستخدم');
     }

@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build && vite build --ssr",
         "build:ssr": "vite build --ssr",
-        "dev": "vite"
+        "dev": "concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"vite\" --names=server,queue,logs,vite --kill-others"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

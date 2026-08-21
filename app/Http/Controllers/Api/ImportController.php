@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\AnonymousAuthor;
 use App\Models\City;
 use App\Models\Recipe;
-use App\Models\Ingredient;
 use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,30 +19,30 @@ class ImportController extends Controller
      * City name to slug mapping.
      */
     private const CITY_MAP = [
-        "شامية" => "damascus",
-        "دمشق" => "damascus",
-        "مو لمدينة محددة/لأكثر من مدينة" => "general",
-        "عام" => "general",
-        "درعاوية" => "daraa",
-        "حلبية" => "aleppo",
-        "حمصية" => "homs",
-        "حموية" => "hama",
-        "ساحلية" => "latakia",
-        "ديرية" => "deir-ez-zor",
-        "ادلبية" => "idlib",
+        'شامية' => 'damascus',
+        'دمشق' => 'damascus',
+        'مو لمدينة محددة/لأكثر من مدينة' => 'general',
+        'عام' => 'general',
+        'درعاوية' => 'daraa',
+        'حلبية' => 'aleppo',
+        'حمصية' => 'homs',
+        'حموية' => 'hama',
+        'ساحلية' => 'latakia',
+        'ديرية' => 'deir-ez-zor',
+        'ادلبية' => 'idlib',
     ];
 
     /**
      * Difficulty mapping to database enum.
      */
     private const DIFFICULTY_MAP = [
-        "سهلة كتير" => "سهلة جداً",
-        "متوسطة" => "متوسطة",
-        "صعبة كتير" => "صعبة جداً",
-        "سهلة" => "سهلة",
-        "صعبة" => "صعبة",
-        "صعبة جداً" => "صعبة جداً",
-        "سهلة جداً" => "سهلة جداً",
+        'سهلة كتير' => 'سهلة جداً',
+        'متوسطة' => 'متوسطة',
+        'صعبة كتير' => 'صعبة جداً',
+        'سهلة' => 'سهلة',
+        'صعبة' => 'صعبة',
+        'صعبة جداً' => 'صعبة جداً',
+        'سهلة جداً' => 'سهلة جداً',
     ];
 
     public function __construct(
@@ -119,7 +118,7 @@ class ImportController extends Controller
 
         // 4. Handle Image (download from Google Drive)
         $imagePath = null;
-        if (!empty($data['image_link'])) {
+        if (! empty($data['image_link'])) {
             $imagePath = $this->downloadGoogleDriveImage($data['image_link']);
         }
 
@@ -136,12 +135,14 @@ class ImportController extends Controller
             'is_anonymous' => true,
             'steps' => $data['steps'] ?? [],
             'difficulty' => $difficulty,
+        ]);
+        $recipe->forceFill([
             'status' => 'approved',
             'approved_at' => now(),
-        ]);
+        ])->save();
 
         // 6. Sync Ingredients
-        if (!empty($data['ingredients'])) {
+        if (! empty($data['ingredients'])) {
             $this->syncIngredients($recipe, $data['ingredients']);
         }
 
@@ -154,7 +155,7 @@ class ImportController extends Controller
     private function downloadGoogleDriveImage(string $url): ?string
     {
         $driveId = $this->extractDriveId($url);
-        if (!$driveId) {
+        if (! $driveId) {
             return null;
         }
 
@@ -164,7 +165,7 @@ class ImportController extends Controller
             // Download the file
             $response = Http::timeout(30)->get($downloadUrl);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 throw new \Exception("Failed to download image: HTTP {$response->status()}");
             }
 
@@ -172,11 +173,11 @@ class ImportController extends Controller
 
             // Check if it's an HTML page (permission denied)
             if (str_starts_with($content, '<!DOCTYPE html') || str_starts_with($content, '<html')) {
-                throw new \Exception("Image link is not publicly accessible");
+                throw new \Exception('Image link is not publicly accessible');
             }
 
             // Save to temp file
-            $tempPath = storage_path('app/temp_' . Str::uuid() . '.jpg');
+            $tempPath = storage_path('app/temp_'.Str::uuid().'.jpg');
             file_put_contents($tempPath, $content);
 
             // Process with ImageService
@@ -194,7 +195,8 @@ class ImportController extends Controller
             throw new \Exception($result['error'] ?? 'Image processing failed');
         } catch (\Exception $e) {
             // Log but don't fail the entire import for image issues
-            \Log::warning("Failed to download image for Drive ID {$driveId}: " . $e->getMessage());
+            \Log::warning("Failed to download image for Drive ID {$driveId}: ".$e->getMessage());
+
             return null;
         }
     }
@@ -207,6 +209,7 @@ class ImportController extends Controller
         if (preg_match('/id=([a-zA-Z0-9_-]+)/', $url, $matches)) {
             return $matches[1];
         }
+
         return null;
     }
 
@@ -216,57 +219,6 @@ class ImportController extends Controller
      */
     private function syncIngredients(Recipe $recipe, array $ingredients): void
     {
-        $syncData = [];
-
-        foreach ($ingredients as $key => $value) {
-            // Handle grouped ingredients: "Sauce" => [ {name: "Tomato", ...}, ... ]
-            if (is_string($key) && is_array($value)) {
-                $groupName = $key;
-                foreach ($value as $item) {
-                    $this->processIngredientItem($item, $syncData, $groupName);
-                }
-            }
-            // Handle flat list items
-            else {
-                $this->processIngredientItem($value, $syncData);
-            }
-        }
-
-        $recipe->ingredients()->sync($syncData);
-    }
-
-    /**
-     * Process a single ingredient item.
-     */
-    private function processIngredientItem(array|string $item, array &$syncData, ?string $group = null): void
-    {
-        if (is_string($item)) {
-            $name = $item;
-            $amount = null;
-            $unit = null;
-            $descriptor = null;
-        } else {
-            $name = $item['name'] ?? null;
-            $amount = $item['amount'] ?? null;
-            $unit = $item['unit'] ?? null;
-            $descriptor = $item['descriptor'] ?? null;
-            $group = $item['group'] ?? $group;
-        }
-
-        if (!$name) return;
-
-        $normalized = Ingredient::normalize($name);
-
-        $ingredient = Ingredient::firstOrCreate(
-            ['normalized_name' => $normalized],
-            ['name' => $name]
-        );
-
-        $syncData[$ingredient->id] = [
-            'amount' => $amount,
-            'unit' => $unit,
-            'ingredient_descriptor' => $descriptor,
-            'group' => $group,
-        ];
+        app(\App\Services\IngredientSyncService::class)->sync($recipe, $ingredients);
     }
 }

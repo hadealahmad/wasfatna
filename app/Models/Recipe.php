@@ -26,11 +26,6 @@ class Recipe extends Model
 
         'steps',
         'difficulty',
-        'status',
-        'rejection_reason',
-        'approved_by',
-        'approved_at',
-        'needs_reapproval',
     ];
 
     protected $appends = ['image_url', 'author_name'];
@@ -51,7 +46,7 @@ class Recipe extends Model
      */
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image_path) {
+        if (! $this->image_path) {
             return null;
         }
 
@@ -59,14 +54,14 @@ class Recipe extends Model
             return $this->image_path;
         }
 
-        return asset('storage/' . $this->image_path);
+        return asset('storage/'.$this->image_path);
     }
 
     protected static function booted(): void
     {
         static::creating(function (Recipe $recipe) {
             if (empty($recipe->slug)) {
-                $recipe->slug = Str::slug($recipe->name) . '-' . Str::random(6);
+                $recipe->slug = Str::slug($recipe->name).'-'.Str::random(6);
             }
         });
     }
@@ -129,7 +124,6 @@ class Recipe extends Model
         return $this->hasMany(RecipeRevision::class);
     }
 
-
     /**
      * Get author display name (user, anonymous, or default).
      */
@@ -138,11 +132,11 @@ class Recipe extends Model
         if ($this->is_anonymous && $this->anonymousAuthor) {
             return $this->anonymousAuthor->name;
         }
-        
+
         if ($this->user) {
             return $this->user->display_name ?? $this->user->name;
         }
-        
+
         return 'مجهول'; // Anonymous in Arabic
     }
 
@@ -165,11 +159,12 @@ class Recipe extends Model
     /**
      * Get similar recipes by name (same dish, different methods).
      */
-    public function getSimilarByName()
+    public function getSimilarByName($limit = 6)
     {
         return static::where('name', $this->name)
             ->where('id', '!=', $this->id)
             ->where('status', 'approved')
+            ->limit($limit)
             ->get();
     }
 
@@ -224,5 +219,4 @@ class Recipe extends Model
     {
         return $this->morphMany(Report::class, 'reportable');
     }
-
 }

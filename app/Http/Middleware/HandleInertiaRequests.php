@@ -37,8 +37,22 @@ class HandleInertiaRequests extends Middleware
     {
         return [
             ...parent::share($request),
+            'flash' => [
+                'error' => fn () => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success'),
+            ],
             'auth' => [
-                'user' => $request->user(),
+                // Whitelist only what the frontend actually consumes —
+                // never leak role internals, ban_reason, deletion requests, etc.
+                'user' => $request->user() ? $request->user()->only([
+                    'id',
+                    'name',
+                    'display_name',
+                    'email',
+                    'avatar_url',
+                    'role',
+                    'created_at',
+                ]) : null,
             ],
         ];
     }

@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\City;
 use App\Models\Recipe;
 use App\Models\RecipeRevision;
-use App\Models\City;
-use App\Models\Ingredient;
 use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class RecipeController extends Controller
 {
@@ -31,7 +29,7 @@ class RecipeController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                  ->orWhereHas('city', fn($c) => $c->where('name', 'LIKE', "%{$search}%"));
+                    ->orWhereHas('city', fn ($c) => $c->where('name', 'LIKE', "%{$search}%"));
             });
         }
 
@@ -56,7 +54,7 @@ class RecipeController extends Controller
         $recipes = $query->latest()->paginate(12);
 
         return response()->json([
-            'recipes' => $recipes->getCollection()->map(fn($r) => $this->formatRecipeCard($r))->values(),
+            'recipes' => $recipes->getCollection()->map(fn ($r) => $this->formatRecipeCard($r))->values(),
             'pagination' => [
                 'current_page' => $recipes->currentPage(),
                 'last_page' => $recipes->lastPage(),
@@ -75,11 +73,11 @@ class RecipeController extends Controller
             ->firstOrFail();
 
         // Check visibility
-        if (!$recipe->isApproved()) {
+        if (! $recipe->isApproved()) {
             $user = request()->user('sanctum');
             $canView = $user && ($user->id === $recipe->user_id || $user->canApproveRecipes());
-            
-            if (!$canView) {
+
+            if (! $canView) {
                 // If not authorized to see pending, check if it was approved (it wasn't, so 404)
                 abort(404);
             }
@@ -87,7 +85,7 @@ class RecipeController extends Controller
 
         // Get similar recipes by name
         $similarByName = $recipe->getSimilarByName();
-        
+
         // Get similar recipes by ingredients
         $similarByIngredients = $recipe->getSimilarByIngredients();
 
@@ -95,7 +93,7 @@ class RecipeController extends Controller
             'recipe' => $this->formatRecipeFull($recipe),
             'has_variations' => $similarByName->count() > 0,
             'variations_count' => $similarByName->count(),
-            'similar_recipes' => $similarByIngredients->map(fn($r) => $this->formatRecipeCard($r)),
+            'similar_recipes' => $similarByIngredients->map(fn ($r) => $this->formatRecipeCard($r)),
         ]);
     }
 
@@ -105,17 +103,17 @@ class RecipeController extends Controller
     public function variations(string $slug): JsonResponse
     {
         $recipe = Recipe::where('slug', $slug)->firstOrFail();
-        
+
         // Check visibility if not approved
-        if (!$recipe->isApproved()) {
+        if (! $recipe->isApproved()) {
             $user = request()->user('sanctum');
             $canView = $user && ($user->id === $recipe->user_id || $user->canApproveRecipes());
-            
-            if (!$canView) {
+
+            if (! $canView) {
                 abort(404);
             }
         }
-        
+
         $variations = Recipe::where('name', $recipe->name)
             ->approved()
             ->with(['city', 'user', 'anonymousAuthor'])
@@ -123,7 +121,7 @@ class RecipeController extends Controller
 
         return response()->json([
             'dish_name' => $recipe->name,
-            'recipes' => $variations->map(fn($r) => $this->formatRecipeCard($r)),
+            'recipes' => $variations->map(fn ($r) => $this->formatRecipeCard($r)),
         ]);
     }
 
@@ -156,7 +154,7 @@ class RecipeController extends Controller
         // Process image
         if ($request->hasFile('image')) {
             $result = $this->imageService->processAndStore($request->file('image'));
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return response()->json(['error' => $result['error']], 422);
             }
             $imagePath = $result['path'];
@@ -170,7 +168,7 @@ class RecipeController extends Controller
         // Handle manual anonymous author (Admin only)
         $anonymousAuthorId = $request->anonymous_author_id;
         $isAnonymous = $request->is_anonymous ?? false;
-        $userId = $request->filled('user_id') ? $request->user_id : $user->id;
+        $userId = ($user->canApproveRecipes() && $request->filled('user_id')) ? $request->user_id : $user->id;
 
         if ($user->canApproveRecipes() && $request->filled('manual_author_name')) {
             $author = \App\Models\AnonymousAuthor::firstOrCreate(
@@ -192,14 +190,16 @@ class RecipeController extends Controller
             'user_id' => $userId,
             'anonymous_author_id' => $anonymousAuthorId,
             'is_anonymous' => $isAnonymous,
-            'is_anonymous' => $isAnonymous,
             // 'ingredients' => $request->ingredients, // REMOVED: Stored in pivot table
             'steps' => $request->steps,
             'difficulty' => $request->difficulty,
+        ]);
+        // Moderation fields are privileged — set explicitly, not via mass assignment
+        $recipe->forceFill([
             'status' => $status,
             'approved_by' => $approvedBy,
             'approved_at' => $approvedAt,
-        ]);
+        ])->save();
 
         // Link ingredients with structured data
         $this->syncIngredients($recipe, $request->ingredients);
@@ -214,8 +214,8 @@ class RecipeController extends Controller
 
         return response()->json([
             'recipe' => $this->formatRecipeFull($recipe),
-            'message' => $status === 'approved' 
-                ? 'تم نشر الوصفة' 
+            'message' => $status === 'approved'
+                ? 'تم نشر الوصفة'
                 : 'تم إرسال الوصفة للمراجعة',
         ], 201);
     }
@@ -230,7 +230,7 @@ class RecipeController extends Controller
         $user = $request->user();
 
         // Check ownership or permission
-        if ($recipe->user_id !== $user->id && !$user->canApproveRecipes()) {
+        if ($recipe->user_id !== $user->id && ! $user->canApproveRecipes()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -275,18 +275,20 @@ class RecipeController extends Controller
             if ($recipe->image_path) {
                 $this->imageService->delete($recipe->image_path);
             }
-            
+
             $result = $this->imageService->processAndStore($request->file('image'));
-            if (!$result['success']) {
+            if (! $result['success']) {
                 return response()->json(['error' => $result['error']], 422);
             }
             $data['image_path'] = $result['path'];
         }
 
         // Check if needs reapproval (regular users editing approved recipes)
-        if ($recipe->isApproved() && !$user->canApproveRecipes()) {
-            $data['needs_reapproval'] = true;
-            $data['status'] = 'pending';
+        if ($recipe->isApproved() && ! $user->canApproveRecipes()) {
+            $recipe->forceFill([
+                'needs_reapproval' => true,
+                'status' => 'pending',
+            ])->save();
         }
 
         $recipe->update($data);
@@ -306,8 +308,8 @@ class RecipeController extends Controller
 
         return response()->json([
             'recipe' => $this->formatRecipeFull($recipe),
-            'message' => $recipe->needs_reapproval 
-                ? 'تم تعديل الوصفة وإرسالها للمراجعة مجدداً' 
+            'message' => $recipe->needs_reapproval
+                ? 'تم تعديل الوصفة وإرسالها للمراجعة مجدداً'
                 : 'تم تحديث الوصفة',
         ]);
     }
@@ -319,7 +321,7 @@ class RecipeController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->canDeleteRecipes()) {
+        if (! $user->canDeleteRecipes()) {
             return response()->json(['error' => 'غير مصرح بالحذف'], 403);
         }
 
@@ -346,9 +348,7 @@ class RecipeController extends Controller
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
-        $recipe->update([
-            'status' => 'unpublished',
-        ]);
+        $recipe->forceFill(['status' => 'unpublished'])->save();
 
         return response()->json([
             'message' => 'تم إلغاء نشر الوصفة',
@@ -367,7 +367,7 @@ class RecipeController extends Controller
             ->paginate(12);
 
         return response()->json([
-            'recipes' => $recipes->getCollection()->map(fn($r) => [
+            'recipes' => $recipes->getCollection()->map(fn ($r) => [
                 ...$this->formatRecipeCard($r),
                 'status' => $r->status,
                 'needs_reapproval' => $r->needs_reapproval,
@@ -388,7 +388,7 @@ class RecipeController extends Controller
         $user = $request->user();
 
         // Check permission (owner or admin/moderator)
-        if ($recipe->user_id !== $user->id && !$user->canApproveRecipes()) {
+        if ($recipe->user_id !== $user->id && ! $user->canApproveRecipes()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -420,7 +420,7 @@ class RecipeController extends Controller
         $user = $request->user();
 
         // Check permission (owner only? or admin too? Let's say owner or admin)
-        if ($recipe->user_id !== $user->id && !$user->canDeleteRecipes()) {
+        if ($recipe->user_id !== $user->id && ! $user->canDeleteRecipes()) {
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
@@ -438,10 +438,10 @@ class RecipeController extends Controller
     {
         // Load relationships to include in snapshot
         $recipe->load(['ingredients', 'tags', 'city', 'anonymousAuthor']);
-        
+
         // Create snapshot data
         $snapshot = $this->formatRecipeFull($recipe);
-        
+
         RecipeRevision::create([
             'recipe_id' => $recipe->id,
             'user_id' => $userId,
@@ -467,7 +467,7 @@ class RecipeController extends Controller
             }
         }
 
-        if (!empty($data)) {
+        if (! empty($data)) {
             $request->merge($data);
         }
     }
@@ -478,81 +478,7 @@ class RecipeController extends Controller
      */
     private function syncIngredients(Recipe $recipe, array $ingredients): void
     {
-        $syncData = [];
-
-        foreach ($ingredients as $key => $value) {
-            // Case 1: Associative array "Group Name" => [ items... ] (Legacy/Current possible input)
-            if (is_string($key) && is_array($value)) {
-                $groupName = $key;
-                foreach ($value as $item) {
-                    $this->processIngredientItem($item, $syncData, $groupName);
-                }
-            } 
-            // Case 2: Structured Group Object { "name": "Group Name", "items": [ ... ] } (Frontend New Format)
-            elseif (is_array($value) && isset($value['name']) && isset($value['items']) && is_array($value['items'])) {
-                $groupName = $value['name'];
-                foreach ($value['items'] as $item) {
-                     $this->processIngredientItem($item, $syncData, $groupName);
-                }
-            }
-            // Case 3: Flat Item (legacy simple list or flat item object)
-            else {
-                $this->processIngredientItem($value, $syncData);
-            }
-        }
-
-        $recipe->ingredients()->sync($syncData);
-    }
-
-    private function processIngredientItem(array|string $item, array &$syncData, ?string $group = null): void
-    {
-        // Handle simple string input (fallback/legacy)
-        if (is_string($item)) {
-            $name = $item;
-            $amount = null;
-            $unit = null;
-            $descriptor = null;
-        } else {
-            $name = $item['name'] ?? null;
-            $amount = $item['amount'] ?? null;
-            $unit = $item['unit'] ?? null;
-            $descriptor = $item['descriptor'] ?? null;
-            // Allow item to override group if needed, or use passed group
-            $group = $item['group'] ?? $group;
-        }
-
-        if (!$name) return;
-
-        $normalized = Ingredient::normalize($name);
-        
-        $ingredient = Ingredient::firstOrCreate(
-            ['normalized_name' => $normalized],
-            ['name' => $name]
-        );
-
-        // We use the ingredient ID as key for sync, but since we might have duplicates 
-        // with different groups (though schema changes were discussed), Eloquent sync 
-        // usually expects unique IDs unless using proper pivot handling.
-        // However, standard sync([id => attributes]) overrides previous entry for that ID.
-        // If we want multiple entries for same ingredient (e.g. sugar in dough vs sugar in sauce), 
-        // standard sync might not be enough if IDs collide.
-        // But typically pivot tables use [recipe_id, ingredient_id] as primary key.
-        // If we allowed duplicates in migration, we might need `detach()` then `attach()`.
-        // But for `sync`, keys are IDs. 
-        // Let's assume unique ingredients per recipe for now or that inputs are distinct enough.
-        // Actually, if we have "Sugar" in "Dough" and "Sugar" in "Sauce", `sync` keyed by ID will overwrite one.
-        // To support duplicates, we should use `attach` after `detach`, or construct array carefully.
-        // But `sync` is safer for updates. 
-        // If we assume Ingredients are unique per recipe (simplification), this works.
-        // If user *really* needs duplicates, we should check. 
-        // Given constraints, I will use `sync` for now. If duplicates needed, we'd need a different approach.
-        
-        $syncData[$ingredient->id] = [
-            'amount' => $amount,
-            'unit' => $unit,
-            'ingredient_descriptor' => $descriptor,
-            'group' => $group,
-        ];
+        app(\App\Services\IngredientSyncService::class)->sync($recipe, $ingredients);
     }
 
     /**
@@ -595,16 +521,15 @@ class RecipeController extends Controller
             'id' => $recipe->id,
             'name' => $recipe->name,
             'slug' => $recipe->slug,
-            'image_url' => $recipe->image_path 
-                ? asset('storage/' . $recipe->image_path) 
+            'image_url' => $recipe->image_path
+                ? asset('storage/'.$recipe->image_path)
                 : null,
             'city' => $recipe->city?->name,
             'city_slug' => $recipe->city?->slug,
             'time_needed' => $recipe->time_needed,
             'difficulty' => $recipe->difficulty,
-            'difficulty' => $recipe->difficulty,
             'author_name' => $recipe->author_name,
-            'tags' => $recipe->tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
+            'tags' => $recipe->tags->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
         ];
     }
 
