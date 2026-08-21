@@ -10,7 +10,7 @@ This document outlines the requirements, deployment process, server configuratio
 - **Operating System**: Linux (Ubuntu 22.04 / 24.04 LTS recommended)
 - **PHP**: `^8.2` or higher
   - Required PHP Extensions: `pdo`, `pdo_sqlite` (or `pdo_mysql`), `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `fileinfo`, `gd` or `imagick`, `curl`.
-- **Node.js**: `^18.0` or `^20.0` (with `npm` v9+)
+- **Node.js**: `^18.0` or `^20.0` (with `npm` v9+). CI/CD uses **Bun** (`bun install --frozen-lockfile`, `bun run build`) — keep `bun.lock` in sync with `package.json`.
 - **Database**: SQLite (default / small setups) or MySQL 8.0+ / MariaDB 10.6+ / PostgreSQL 14+.
 - **Web Server**: Nginx or Apache with `mod_rewrite`.
 - **Composer**: `v2.5+`
@@ -30,7 +30,7 @@ cd /var/www/wasfatna
 # Install PHP dependencies without development packages
 composer install --no-dev --optimize-autoloader
 
-# Install Node dependencies
+# Install Node dependencies (npm) — CI uses: bun install --frozen-lockfile
 npm ci
 ```
 
@@ -142,7 +142,18 @@ sudo systemctl reload nginx
 
 ---
 
-## 4. Application Update Protocol (Standard Deployment Update)
+## 4. Application Update Protocol
+
+### Automated CI/CD (production — active)
+
+Pushes to `main` trigger `.github/workflows/deploy.yml` on a self-hosted runner (`cooking-runner`):
+
+1. `composer install --no-dev --optimize-autoloader`
+2. `bun install --frozen-lockfile` && `bun run build` (client + SSR bundles)
+3. `rsync` to `/home/syrian/domains/food.syrian.zone/public_html/` (excludes `.git`, `.env`, storage runtime dirs, `public/storage`)
+4. Post-deploy: `php artisan migrate --force`, `config:cache`, `route:cache`, `view:cache`, `event:cache`, `storage:link --force`, `queue:restart`, `inertia:stop-ssr` (forces SSR reload), permission fixes (`chmod 711` on parent dirs to avoid 403s).
+
+### Manual update script (generic servers)
 
 When deploying updates or pull requests to production, run the following automated deployment script:
 
@@ -176,6 +187,9 @@ php artisan view:cache
 
 # Restart queue workers (if background queues are used)
 php artisan queue:restart
+
+# Reload Inertia SSR with the fresh bundle
+php artisan inertia:stop-ssr || true
 
 # Disable maintenance mode
 php artisan up

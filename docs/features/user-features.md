@@ -65,6 +65,8 @@ This document describes all user-facing features, administrative capabilities, a
 
 ## 2. Moderation & Administrative Features
 
+See [admin-moderation.md](admin-moderation.md) for the full dashboard reference. Summary:
+
 Admin and Moderator dashboard features accessible at `/dashboard` ([DashboardController.php](file:///run/media/hadi/SSD2/Coding/cooking/app/Http/Controllers/Web/DashboardController.php)):
 
 - **Recipe Moderation ([resources/js/Pages/Dashboard/Recipes/Index.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/Pages/Dashboard/Recipes/Index.vue))**:
@@ -87,7 +89,7 @@ Admin and Moderator dashboard features accessible at `/dashboard` ([DashboardCon
 
 ## 3. External API Integration (Sanctum REST API)
 
-All endpoints under `/api/*` in [routes/api.php](file:///run/media/hadi/SSD2/Coding/cooking/routes/api.php):
+Full endpoint map: [api-reference.md](api-reference.md). Summary of groups under `/api/*` in [routes/api.php](file:///run/media/hadi/SSD2/Coding/cooking/routes/api.php):
 
 | Endpoint Group | Auth Required | Function |
 | :--- | :---: | :--- |
