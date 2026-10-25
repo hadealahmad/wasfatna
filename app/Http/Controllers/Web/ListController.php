@@ -3,20 +3,18 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\RecipeList; // Assuming model name is RecipeList or ListModel
-use Illuminate\Http\Request;
+use App\Models\RecipeList;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ListController extends Controller
 {
     public function index()
     {
-        // Adjust model name as per your actual model for Lists
-        // Assuming 'RecipeList'
-        
-        $lists = \App\Models\RecipeList::where('is_public', true)
+        $lists = RecipeList::where('is_public', true)
+            ->where('status', 'approved')
             ->with(['user'])
-            ->withCount('recipes')
+            ->withCount(['recipes' => fn ($q) => $q->where('recipes.status', 'approved')])
             ->latest()
             ->paginate(12);
 
@@ -27,19 +25,34 @@ class ListController extends Controller
 
     public function show($id)
     {
-        $list = \App\Models\RecipeList::where('id', $id)
-            ->with(['user', 'recipes' => function ($query) {
-                $query->with(['user', 'city', 'tags']);
-            }])
+        $list = RecipeList::where('id', $id)
+            ->with(['user'])
             ->firstOrFail();
 
-        // Check visibility: if private, must be owner or admin/moderator
-        if (!$list->is_public) {
-            $user = auth()->user();
-            if (!$user || ($user->id !== $list->user_id && !$user->isModerator())) {
+        $user = Auth::user();
+        $isOwner = $user && $user->id === $list->user_id;
+        $isModerator = $user && $user->canApproveRecipes();
+
+        // Check visibility: if not owner or moderator, require public and approved
+        if (! $isOwner && ! $isModerator) {
+            if (! $list->is_public || $list->status !== 'approved') {
                 abort(404);
             }
         }
+
+        $list->load([
+            'recipes' => function ($query) use ($isOwner, $isModerator) {
+                if (! $isOwner && ! $isModerator) {
+                    $query->where('recipes.status', 'approved');
+                }
+                $query->with([
+                    'city:id,name,slug',
+                    'user:id,name,avatar',
+                    'anonymousAuthor:id,name',
+                    'tags:id,name,slug',
+                ]);
+            },
+        ]);
 
         return Inertia::render('Lists/Show', [
             'list' => $list,

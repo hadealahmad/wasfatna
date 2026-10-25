@@ -1,12 +1,27 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="rtl">
+<html lang="ar" dir="rtl">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
+        <!-- Pre-paint dark mode script to prevent FOUC -->
+        <script>
+            (function() {
+                try {
+                    if (localStorage.getItem('vueuse-color-scheme') === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    }
+                } catch (e) {}
+            })();
+        </script>
+
+        <!-- Favicons -->
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="alternate icon" href="/favicon.ico">
+
         <!-- SEO Meta Tags -->
-        <meta name="description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta head-key="description" name="description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
         <meta name="keywords" content="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية">
         <meta name="author" content="وصفاتنا">
         <meta name="robots" content="index, follow">
@@ -18,17 +33,17 @@
         <meta property="og:site_name" content="وصفاتنا">
         <meta property="og:locale" content="ar_SY">
         <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:title" content="{{ config('app.name', 'وصفاتنا') }}">
-        <meta property="og:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
-        <meta property="og:image" content="{{ asset('og-image.webp') }}">
+        <meta head-key="og:title" property="og:title" content="وصفاتنا">
+        <meta head-key="og:description" property="og:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta head-key="og:image" property="og:image" content="{{ asset('og-image.webp') }}">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="{{ config('app.name', 'وصفاتنا') }}">
-        <meta name="twitter:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
-        <meta name="twitter:image" content="{{ asset('og-image.webp') }}">
+        <meta head-key="twitter:title" name="twitter:title" content="وصفاتنا">
+        <meta head-key="twitter:description" name="twitter:description" content="وصفاتنا - مجتمع الطبخ السوري. اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق.">
+        <meta head-key="twitter:image" name="twitter:image" content="{{ asset('og-image.webp') }}">
 
-        <title inertia>{{ config('app.name', 'وصفاتنا') }}</title>
+        <title inertia>وصفاتنا</title>
 
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKT27FY67J"></script>
@@ -42,7 +57,7 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
         @routes

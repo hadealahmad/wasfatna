@@ -36,7 +36,8 @@ class AdminListController extends Controller
             $query->latest('updated_at');
         }
 
-        $lists = $query->paginate($request->input('per_page', 20));
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
+        $lists = $query->paginate($perPage);
 
         return response()->json($lists);
     }
@@ -68,7 +69,6 @@ class AdminListController extends Controller
         $list = RecipeList::findOrFail($id);
 
         $list->status = 'rejected';
-        // $list->rejection_reason = $request->input('reason');
         $list->save();
 
         return response()->json(['message' => 'تم رفض القائمة']);
@@ -102,7 +102,7 @@ class AdminListController extends Controller
                 return response()->json(['message' => 'تم رفض القوائم المحددة']);
 
             case 'unpublish':
-                RecipeList::whereIn('id', $ids)->update(['status' => 'private', 'is_public' => false]); // Or 'review'? 'private' seems safer for unpublish
+                RecipeList::whereIn('id', $ids)->update(['status' => 'private', 'is_public' => false]);
 
                 return response()->json(['message' => 'تم إلغاء نشر القوائم المحددة']);
         }

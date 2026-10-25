@@ -1,69 +1,97 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import Card from '@/components/ui/Card.vue';
-import CardContent from '@/components/ui/CardContent.vue';
-import CardFooter from '@/components/ui/CardFooter.vue';
 import CardHeader from '@/components/ui/CardHeader.vue';
-import CardTitle from '@/components/ui/CardTitle.vue';
+import CardContent from '@/components/ui/CardContent.vue';
 import Badge from '@/components/ui/Badge.vue';
-import { Lock, Globe, Image as ImageIcon } from 'lucide-vue-next';
+import Avatar from '@/components/ui/Avatar.vue';
+import AvatarImage from '@/components/ui/AvatarImage.vue';
+import AvatarFallback from '@/components/ui/AvatarFallback.vue';
+import { Lock, Globe, AlertCircle, BookOpen } from 'lucide-vue-next';
 
-interface List {
-    id: number;
-    name: string;
-    slug: string | null;
-    description: string | null;
-    cover_image: string | null;
-    is_default: boolean;
-    is_public: boolean;
-    status: string;
-    recipes_count: number;
+interface Props {
+    list: {
+        id: number;
+        name: string;
+        slug: string;
+        description?: string;
+        is_public: boolean;
+        status: string;
+        recipes_count?: number;
+        cover_image?: string;
+        recipes?: Array<{ image_url?: string }>;
+        user: {
+            id: number;
+            name: string;
+            avatar?: string;
+        };
+    };
 }
 
-defineProps<{
-    list: List;
-    href: string;
-}>();
+const props = defineProps<Props>();
+
+const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
 </script>
 
 <template>
-    <Link :href="href">
-        <Card class="h-full overflow-hidden hover:shadow-md transition-shadow cursor-pointer group bg-card">
-            <div class="aspect-video relative bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+    <Link :href="route('lists.show', { list: list.slug || list.id })">
+        <Card class="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group cursor-pointer flex flex-col">
+            <!-- Cover Image -->
+            <div class="relative aspect-video bg-muted overflow-hidden">
                 <img
-                    v-if="list.cover_image"
-                    :src="list.cover_image"
+                    v-if="coverImage"
+                    :src="coverImage"
                     :alt="list.name"
-                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    decoding="async"
+                    width="640"
+                    height="360"
+                    class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />
-                <ImageIcon v-else class="text-slate-300 dark:text-slate-600 h-10 w-10" />
-                
-                <div v-if="list.is_public" class="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white">
-                    <Globe class="h-3 w-3" />
+                <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/20">
+                    <BookOpen class="w-12 h-12 text-primary/40" />
                 </div>
-                <div v-else class="absolute top-2 right-2 bg-black/50 p-1 rounded-full text-white">
-                    <Lock class="h-3 w-3" />
+
+                <!-- Status Badges -->
+                <div class="absolute top-3 left-3 flex gap-1">
+                    <Badge v-if="list.is_public && list.status === 'approved'" variant="secondary" class="bg-background/80 backdrop-blur-sm gap-1">
+                        <Globe class="w-3 h-3 text-green-600" />
+                        <span class="text-xs">عامة</span>
+                    </Badge>
+                    <Badge v-if="list.is_public && list.status === 'review'" variant="secondary" class="bg-yellow-100/90 text-yellow-800 gap-1">
+                        <AlertCircle class="w-3 h-3" />
+                        <span class="text-xs">قيد المراجعة</span>
+                    </Badge>
+                    <Badge v-if="!list.is_public" variant="secondary" class="bg-background/80 backdrop-blur-sm gap-1">
+                        <Lock class="w-3 h-3 text-muted-foreground" />
+                        <span class="text-xs">خاصة</span>
+                    </Badge>
+                </div>
+
+                <!-- Recipe Count -->
+                <div class="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-xs backdrop-blur-sm">
+                    {{ list.recipes_count || 0 }} وصفة
                 </div>
             </div>
-            
-            <CardHeader class="p-4 pb-2">
-                <div class="flex justify-between items-start">
-                    <CardTitle class="text-lg line-clamp-1">{{ list.name }}</CardTitle>
-                    <Badge v-if="list.is_default" variant="secondary" class="text-xs">افتراضي</Badge>
-                </div>
+
+            <CardHeader class="pb-2">
+                <h3 class="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+                    {{ list.name }}
+                </h3>
+                <p v-if="list.description" class="text-xs text-muted-foreground line-clamp-2 min-h-[2.5em]">
+                    {{ list.description }}
+                </p>
             </CardHeader>
-            
-            <CardContent class="p-4 py-2 text-sm text-muted-foreground min-h-[40px]">
-                <p class="line-clamp-2">{{ list.description || 'لا يوجد وصف' }}</p>
+
+            <CardContent class="mt-auto pt-2 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                <div class="flex items-center gap-2">
+                    <Avatar class="w-5 h-5">
+                        <AvatarImage :src="list.user.avatar || ''" />
+                        <AvatarFallback class="text-[10px]">{{ list.user.name.charAt(0) }}</AvatarFallback>
+                    </Avatar>
+                    <span class="truncate max-w-[120px]">{{ list.user.name }}</span>
+                </div>
             </CardContent>
-            
-            <CardFooter class="p-4 pt-2 text-xs text-muted-foreground flex justify-between">
-                <span>{{ list.recipes_count }} وصفة</span>
-                <span>
-                    <Badge v-if="list.status === 'review'" variant="outline" class="text-yellow-600 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/30 dark:border-yellow-900">قيد المراجعة</Badge>
-                    <Badge v-if="list.status === 'rejected'" variant="outline" class="text-red-600 border-red-200 bg-red-50 dark:bg-red-900/30 dark:border-red-900">مرفوض</Badge>
-                </span>
-            </CardFooter>
         </Card>
     </Link>
 </template>

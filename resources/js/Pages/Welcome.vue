@@ -50,6 +50,32 @@ const props = defineProps<{
   filters: any;
 }>();
 
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  'name': 'وصفاتنا - مجتمع الطبخ السوري',
+  'alternateName': 'Wasfatna',
+  'url': 'https://food.syrian.zone',
+  'inLanguage': 'ar-SY',
+  'potentialAction': {
+    '@type': 'SearchAction',
+    'target': {
+      '@type': 'EntryPoint',
+      'urlTemplate': 'https://food.syrian.zone/search?search={search_term_string}'
+    },
+    'query-input': 'required name=search_term_string'
+  }
+};
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  'name': 'وصفاتنا',
+  'url': 'https://food.syrian.zone',
+  'logo': 'https://food.syrian.zone/logo-light.svg',
+  'description': 'مجتمع الطبخ السوري الأول لتوثيق ومشاركة أشهى الوصفات والأكلات التراثية من جميع المدن والمناطق السورية.'
+};
+
 // Handle page navigation
 function handlePageChange(page: number) {
   router.get('/', { ...props.filters, page }, { preserveState: true, preserveScroll: false });
@@ -64,13 +90,18 @@ function handlePerPageChange(perPage: number) {
   <PublicLayout>
     <Head>
       <title>وصفاتنا - مجتمع الطبخ السوري</title>
-      <meta name="description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
-      <meta name="keywords" content="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية, حلويات سورية, مقبلات سورية" />
-      <meta property="og:title" content="وصفاتنا - مجتمع الطبخ السوري" />
-      <meta property="og:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
-      <meta property="og:type" content="website" />
-      <meta property="og:image" content="/og-image.webp" />
-      <meta name="twitter:card" content="summary_large_image" />
+      <meta head-key="description" name="description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
+      <meta head-key="keywords" name="keywords" content="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية, حلويات سورية, مقبلات سورية" />
+      <meta head-key="og:title" property="og:title" content="وصفاتنا - مجتمع الطبخ السوري" />
+      <meta head-key="og:description" property="og:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
+      <meta head-key="og:type" property="og:type" content="website" />
+      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
+      <meta head-key="twitter:title" name="twitter:title" content="وصفاتنا - مجتمع الطبخ السوري" />
+      <meta head-key="twitter:description" name="twitter:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
+      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-website" v-html="JSON.stringify(websiteSchema)" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-organization" v-html="JSON.stringify(organizationSchema)" />
     </Head>
 
     <!-- Hero Section -->
@@ -78,8 +109,8 @@ function handlePerPageChange(perPage: number) {
       <div class="container mx-auto px-4 md:px-6">
         <div class="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto">
           <div class="relative mb-8 h-10 w-32 md:h-12 md:w-40">
-            <img src="/logo-light.svg" alt="وصفاتنا" class="dark:hidden w-full h-full object-contain" />
-            <img src="/logo-dark.svg" alt="وصفاتنا" class="hidden dark:block w-full h-full object-contain" />
+            <img src="/logo-light.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="dark:hidden w-full h-full object-contain" />
+            <img src="/logo-dark.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="hidden dark:block w-full h-full object-contain" />
           </div>
           <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground">
             اكتشف أشهى الوصفات السورية

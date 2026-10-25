@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed } from 'vue';
 import { Link, Head, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Badge, Card, CardContent, CardHeader, CardTitle, Button, Avatar, AvatarImage, AvatarFallback } from '@/components/ui';
@@ -43,21 +43,6 @@ const props = defineProps<{
   has_variations?: boolean;
   variations_count?: number;
 }>();
-
-// JSON-LD structured data can't be rendered as a <script> tag inside a Vue
-// template (side-effect tags are rejected by the compiler) — inject it manually.
-const injectJsonLd = () => {
-  document.getElementById('recipe-jsonld')?.remove();
-  const script = document.createElement('script');
-  script.id = 'recipe-jsonld';
-  script.type = 'application/ld+json';
-  script.textContent = JSON.stringify(jsonLdSchema.value);
-  document.head.appendChild(script);
-};
-
-onMounted(injectJsonLd);
-watch(() => props.recipe, injectJsonLd);
-onUnmounted(() => document.getElementById('recipe-jsonld')?.remove());
 
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
@@ -127,6 +112,73 @@ const formatTimeNeeded = (time: any) => {
   return null;
 };
 
+const extractMinutes = (val: any): number => {
+  if (typeof val === 'number') return val > 0 ? Math.round(val) : 0;
+  if (typeof val !== 'string') return 0;
+  const s = val.trim();
+  let total = 0;
+  const hourMatch = s.match(/(\d+)\s*(?:ساعة|ساعات|ساعه|h|hr|hour)/i);
+  if (hourMatch) {
+    total += parseInt(hourMatch[1], 10) * 60;
+  } else if (/ساعة\s*ونصف/.test(s)) {
+    total += 90;
+  } else if (/نصف\s*ساعة/.test(s)) {
+    total += 30;
+  } else if (/ربع\s*ساعة/.test(s)) {
+    total += 15;
+  } else if (/ساعتين/.test(s)) {
+    total += 120;
+  }
+  const minMatch = s.match(/(\d+)\s*(?:دقيقة|دقائق|دقيقه|د|m|min)/i);
+  if (minMatch) {
+    total += parseInt(minMatch[1], 10);
+  }
+  if (total === 0) {
+    const plainNum = parseInt(s, 10);
+    if (!isNaN(plainNum) && plainNum > 0) total = plainNum;
+  }
+  return total;
+};
+
+const parseIsoDurations = (rawTime: any): { prepTime?: string; cookTime?: string; totalTime?: string } => {
+  if (!rawTime) return {};
+  let time = rawTime;
+  if (typeof time === 'string') {
+    if (time.startsWith('{') || time.startsWith('[')) {
+      try {
+        time = JSON.parse(time);
+      } catch (e) {}
+    } else {
+      const mins = extractMinutes(time);
+      return mins > 0 ? { totalTime: `PT${mins}M` } : {};
+    }
+  }
+  if (typeof time === 'object' && time !== null) {
+    let prepMins = 0;
+    let cookMins = 0;
+    let otherMins = 0;
+    Object.entries(time).forEach(([key, value]) => {
+      const mins = extractMinutes(value);
+      if (!mins) return;
+      const k = key.toLowerCase();
+      if (k === 'prep' || k.includes('تحضير') || k.includes('تجهيز')) {
+        prepMins += mins;
+      } else if (k === 'cook' || k.includes('طبخ') || k.includes('طهي') || k.includes('شوي') || k.includes('خبز')) {
+        cookMins += mins;
+      } else {
+        otherMins += mins;
+      }
+    });
+    const totalMins = prepMins + cookMins + otherMins;
+    const result: { prepTime?: string; cookTime?: string; totalTime?: string } = {};
+    if (prepMins > 0) result.prepTime = `PT${prepMins}M`;
+    if (cookMins > 0) result.cookTime = `PT${cookMins}M`;
+    if (totalMins > 0) result.totalTime = `PT${totalMins}M`;
+    return result;
+  }
+  return {};
+};
+
 const formatIngredient = (item: string | any) => {
   if (typeof item === 'string') return item;
   const parts = [item.amount, item.unit, item.name, item.descriptor].filter(Boolean);
@@ -144,27 +196,43 @@ const formatDate = (dateString: string) => {
 // Check if ingredients are grouped and format them
 const groupedIngredientsList = computed(() => {
   const ing = props.recipe.ingredients;
-  if (!Array.isArray(ing) || ing.length === 0) return [];
-  
-  // If already in the new ordered group format: Array<{ name: string, items: any[] }>
-  if (typeof ing[0] === 'object' && ing[0] !== null && 'name' in ing[0] && 'items' in ing[0]) {
-    return ing;
-  }
-  
-  // Group by pivot.group for Eloquent relations
-  const groups: Record<string, any[]> = {};
-  ing.forEach(item => {
-    const groupName = item.pivot?.group || 'المكونات';
-    if (!groups[groupName]) groups[groupName] = [];
-    groups[groupName].push({
-      name: item.name,
-      amount: item.pivot?.amount,
-      unit: item.pivot?.unit,
-      descriptor: item.pivot?.ingredient_descriptor || item.pivot?.descriptor
+  if (!ing) return [];
+
+  if (Array.isArray(ing)) {
+    if (ing.length === 0) return [];
+    // If already in the new ordered group format: Array<{ name: string, items: any[] }>
+    if (typeof ing[0] === 'object' && ing[0] !== null && 'name' in ing[0] && 'items' in ing[0]) {
+      return ing;
+    }
+    // Group by pivot.group for Eloquent relations
+    const groups: Record<string, any[]> = {};
+    ing.forEach(item => {
+      if (typeof item === 'string') {
+        const groupName = 'المكونات';
+        if (!groups[groupName]) groups[groupName] = [];
+        groups[groupName].push(item);
+        return;
+      }
+      const groupName = item.pivot?.group || item.group || 'المكونات';
+      if (!groups[groupName]) groups[groupName] = [];
+      groups[groupName].push({
+        name: item.name,
+        amount: item.pivot?.amount ?? item.amount,
+        unit: item.pivot?.unit ?? item.unit,
+        descriptor: item.pivot?.ingredient_descriptor || item.pivot?.descriptor || item.descriptor
+      });
     });
-  });
-  
-  return Object.entries(groups).map(([name, items]) => ({ name, items }));
+    return Object.entries(groups).map(([name, items]) => ({ name, items }));
+  }
+
+  if (typeof ing === 'object') {
+    return Object.entries(ing).map(([name, items]) => ({
+      name: isNaN(Number(name)) ? name : 'المكونات',
+      items: Array.isArray(items) ? items : [items]
+    }));
+  }
+
+  return [];
 });
 
 // Check if steps are grouped and format them
@@ -176,15 +244,20 @@ const groupedStepsList = computed(() => {
     if (steps.startsWith('{') || steps.startsWith('[')) {
       try {
         steps = JSON.parse(steps);
-      } catch (e) {}
+      } catch (e) {
+        return [{ name: '', items: [steps] }];
+      }
     } else {
       return [{ name: '', items: [steps] }];
     }
   }
 
-  // If array of objects (e.g. [{ name: 'Group Name', items: [...] }])
-  if (Array.isArray(steps) && steps.length > 0 && typeof steps[0] === 'object' && steps[0] !== null && 'items' in steps[0]) {
-    return steps;
+  // If array of objects (e.g. [{ name: 'Group Name', items: [...] }] or [{ name: 'Group Name', steps: [...] }])
+  if (Array.isArray(steps) && steps.length > 0 && typeof steps[0] === 'object' && steps[0] !== null && ('items' in steps[0] || 'steps' in steps[0])) {
+    return steps.map((group: any) => ({
+      name: group.name || '',
+      items: Array.isArray(group.items) ? group.items : (Array.isArray(group.steps) ? group.steps : [])
+    }));
   }
 
   // If simple array of strings or items (e.g. ['Step 1', 'Step 2'])
@@ -203,34 +276,87 @@ const groupedStepsList = computed(() => {
   return [];
 });
 
+const metaDescription = computed(() =>
+  props.recipe.description || `تعلم طريقة عمل ${props.recipe.name} من مطبخ ${props.recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`
+);
+
+const ogImageUrl = computed(() =>
+  props.recipe.image_url || 'https://food.syrian.zone/og-image.webp'
+);
+
 const jsonLdSchema = computed(() => {
   const allIngredients = groupedIngredientsList.value.flatMap(group => 
-    group.items.map((item: any) => formatIngredient(item))
+    (group.items || []).map((item: any) => formatIngredient(item)).filter(Boolean)
   );
 
   const allInstructions = groupedStepsList.value.flatMap(group => 
-    group.items.map((step: any, index: number) => ({
+    (group.items || []).map((step: any, index: number) => ({
       '@type': 'HowToStep',
       'name': group.name ? `${group.name} - الخطوة ${index + 1}` : `الخطوة ${index + 1}`,
-      'text': typeof step === 'string' ? step : step.text || step.name || ''
-    }))
+      'text': typeof step === 'string' ? step : (step?.text || step?.content || step?.name || String(step || ''))
+    })).filter((s: any) => s.text)
   );
+
+  const durations = parseIsoDurations(props.recipe.time_needed);
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Recipe',
     'name': props.recipe.name,
-    'image': props.recipe.image_url ? [props.recipe.image_url] : [],
+    'inLanguage': 'ar-SY',
+    'url': typeof window !== 'undefined' ? window.location.href : 'https://food.syrian.zone/recipes/' + props.recipe.slug,
+    'datePublished': props.recipe.created_at,
+    'image': props.recipe.image_url ? [props.recipe.image_url] : ['https://food.syrian.zone/og-image.webp'],
     'description': props.recipe.description || `طريقة عمل ${props.recipe.name}`,
     'keywords': props.recipe.tags?.map(t => t.name).join(', ') || '',
     'author': {
       '@type': 'Person',
       'name': props.recipe.author_name || 'وصفاتنا'
     },
-    'recipeCuisine': props.recipe.city?.name || 'سوري',
+    'recipeCuisine': props.recipe.city?.name ? `مطبخ ${props.recipe.city.name} - سوري` : 'سوري',
     'recipeYield': props.recipe.servings ? `${props.recipe.servings} حصص` : undefined,
+    ...durations,
     'recipeIngredient': allIngredients,
     'recipeInstructions': allInstructions
+  };
+});
+
+const breadcrumbSchema = computed(() => {
+  const items: any[] = [
+    {
+      '@type': 'ListItem',
+      'position': 1,
+      'name': 'الرئيسية',
+      'item': 'https://food.syrian.zone/'
+    },
+    {
+      '@type': 'ListItem',
+      'position': 2,
+      'name': 'الوصفات',
+      'item': 'https://food.syrian.zone/recipes'
+    }
+  ];
+
+  if (props.recipe.city) {
+    items.push({
+      '@type': 'ListItem',
+      'position': items.length + 1,
+      'name': `وصفات ${props.recipe.city.name}`,
+      'item': `https://food.syrian.zone/cities/${props.recipe.city.slug || props.recipe.city_slug}`
+    });
+  }
+
+  items.push({
+    '@type': 'ListItem',
+    'position': items.length + 1,
+    'name': props.recipe.name,
+    'item': `https://food.syrian.zone/recipes/${props.recipe.slug}`
+  });
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    'itemListElement': items
   };
 });
 </script>
@@ -239,13 +365,18 @@ const jsonLdSchema = computed(() => {
   <PublicLayout>
     <Head>
       <title>{{ recipe.name }} - طريقة التحضير والمكونات</title>
-      <meta name="description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
-      <meta property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
-      <meta property="og:description" :content="recipe.description || `تعلم طريقة عمل ${recipe.name} من مطبخ ${recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`" />
-      <meta property="og:image" :content="recipe.image_url || '/og-image.webp'" />
-      <meta property="og:type" content="article" />
-      <meta name="twitter:card" content="summary_large_image" />
+      <meta head-key="description" name="description" :content="metaDescription" />
+      <meta head-key="og:title" property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
+      <meta head-key="og:description" property="og:description" :content="metaDescription" />
+      <meta head-key="og:image" property="og:image" :content="ogImageUrl" />
+      <meta head-key="og:type" property="og:type" content="article" />
+      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
+      <meta head-key="twitter:title" name="twitter:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
+      <meta head-key="twitter:description" name="twitter:description" :content="metaDescription" />
+      <meta head-key="twitter:image" name="twitter:image" :content="ogImageUrl" />
       <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-recipe" v-html="JSON.stringify(jsonLdSchema)" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-breadcrumb" v-html="JSON.stringify(breadcrumbSchema)" />
     </Head>
 
     <div class="container mx-auto py-8 px-4 md:px-6">
@@ -255,7 +386,16 @@ const jsonLdSchema = computed(() => {
           <div class="mb-8">
             <!-- Recipe Image -->
             <div class="relative aspect-video rounded-2xl overflow-hidden mb-6 bg-muted">
-              <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="w-full h-full object-cover" />
+              <img
+                v-if="recipe.image_url"
+                :src="recipe.image_url"
+                :alt="recipe.name"
+                fetchpriority="high"
+                decoding="async"
+                width="1200"
+                height="675"
+                class="w-full h-full object-cover"
+              />
               <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
                 <span class="text-9xl">🍽️</span>
               </div>
@@ -448,7 +588,16 @@ const jsonLdSchema = computed(() => {
                 >
                   <div class="flex gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
                     <div class="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                      <img v-if="similar.image_url" :src="similar.image_url" :alt="similar.name" class="w-full h-full object-cover" />
+                      <img
+                        v-if="similar.image_url"
+                        :src="similar.image_url"
+                        :alt="similar.name"
+                        loading="lazy"
+                        decoding="async"
+                        width="64"
+                        height="64"
+                        class="w-full h-full object-cover"
+                      />
                       <div v-else class="flex w-full h-full items-center justify-center">🍽️</div>
                     </div>
                     <div>
@@ -475,4 +624,3 @@ const jsonLdSchema = computed(() => {
     </div>
   </PublicLayout>
 </template>
-

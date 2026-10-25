@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
@@ -37,11 +38,29 @@ interface Props {
 const props = defineProps<Props>();
 
 const initials = (name: string) => name.charAt(0).toUpperCase();
+
+const listDescription = computed(() =>
+  props.list.description || `قائمة وصفات "${props.list.name}" من إعداد ${props.list.user?.name || 'مستخدم وصفاتنا'} وتضم ${props.list.recipes?.length || 0} وصفة على منصة وصفاتنا.`
+);
+
+const listImage = computed(() =>
+  props.list.cover_image || 'https://food.syrian.zone/og-image.webp'
+);
 </script>
 
 <template>
   <PublicLayout>
-    <Head :title="list.name" />
+    <Head>
+      <title>{{ list.name }}</title>
+      <meta head-key="description" name="description" :content="listDescription" />
+      <meta head-key="og:title" property="og:title" :content="`${list.name} | وصفاتنا`" />
+      <meta head-key="og:description" property="og:description" :content="listDescription" />
+      <meta head-key="og:image" property="og:image" :content="listImage" />
+      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
+      <meta head-key="twitter:title" name="twitter:title" :content="`${list.name} | وصفاتنا`" />
+      <meta head-key="twitter:description" name="twitter:description" :content="listDescription" />
+      <meta head-key="twitter:image" name="twitter:image" :content="listImage" />
+    </Head>
 
     <div class="container mx-auto py-8 px-4 md:px-6">
       <!-- Header -->
@@ -53,6 +72,8 @@ const initials = (name: string) => name.charAt(0).toUpperCase();
               v-if="list.cover_image"
               :src="list.cover_image"
               :alt="list.name"
+              loading="lazy"
+              decoding="async"
               class="object-cover w-full h-full"
             />
             <div v-else class="text-4xl">

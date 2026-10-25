@@ -164,6 +164,7 @@ class Recipe extends Model
         return static::where('name', $this->name)
             ->where('id', '!=', $this->id)
             ->where('status', 'approved')
+            ->with(['city:id,name,slug', 'user:id,name,avatar', 'anonymousAuthor:id,name', 'tags:id,name,slug'])
             ->limit($limit)
             ->get();
     }
@@ -177,6 +178,8 @@ class Recipe extends Model
         $ingredientIds = $this->ingredients()->pluck('ingredients.id');
 
         return self::where('id', '!=', $this->id)
+            ->where('status', 'approved')
+            ->with(['city:id,name,slug', 'user:id,name,avatar', 'anonymousAuthor:id,name', 'tags:id,name,slug'])
             ->whereHas('ingredients', function ($query) use ($ingredientIds) {
                 $query->whereIn('ingredients.id', $ingredientIds);
             })

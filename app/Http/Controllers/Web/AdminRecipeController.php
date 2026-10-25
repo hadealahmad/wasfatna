@@ -16,8 +16,7 @@ class AdminRecipeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100);
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
         $query = Recipe::with(['city', 'user', 'anonymousAuthor', 'approver', 'tags'])
             ->withCount('tags');
@@ -119,7 +118,7 @@ class AdminRecipeController extends Controller
     public function bulkTag(Request $request): RedirectResponse
     {
         $request->validate([
-            'ids' => 'required|array',
+            'ids' => 'required|array|max:20',
             'ids.*' => 'exists:recipes,id',
         ]);
 
@@ -156,7 +155,8 @@ class AdminRecipeController extends Controller
                 NO markdown. JSON only.
                 ';
 
-                $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                $response = Http::timeout(15)
+                    ->withHeaders(['Content-Type' => 'application/json'])
                     ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                         'contents' => [
                             ['parts' => [['text' => $prompt]]],
@@ -177,8 +177,6 @@ class AdminRecipeController extends Controller
                 } else {
                     $errors[] = "Failed ID {$recipe->id}: ".$response->status();
                 }
-
-                sleep(1);
             } catch (\Exception $e) {
                 $errors[] = "Error ID {$recipe->id}: ".$e->getMessage();
             }

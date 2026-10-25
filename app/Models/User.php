@@ -19,7 +19,6 @@ class User extends Authenticatable
         'password',
         'google_id',
         'avatar',
-        'email_verified_at',
     ];
 
     protected $appends = ['avatar_url'];
@@ -41,6 +40,10 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'google_id',
+        'email',
+        'is_banned',
+        'ban_reason',
+        'deletion_requested',
     ];
 
     protected function casts(): array
@@ -68,7 +71,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || $this->email === 'hade.alahmad1@gmail.com';
+        return $this->role === 'admin';
     }
 
     /**

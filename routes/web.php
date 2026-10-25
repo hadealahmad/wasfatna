@@ -22,6 +22,7 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\RandomizerController;
 use App\Http\Controllers\Web\RecipeController;
 use App\Http\Controllers\Web\SearchController;
+use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -41,7 +42,8 @@ if (app()->environment('local')) {
     });
 }
 
-// LLM Machine-Readable Endpoints
+// Sitemap & LLM Machine-Readable Endpoints
+Route::get('/sitemap.xml', [\App\Http\Controllers\Web\SitemapController::class, 'index'])->name('sitemap');
 Route::get('/llms.txt', [LlmsController::class, 'index'])->name('llms.index');
 Route::get('/llms-full.txt', [LlmsController::class, 'full'])->name('llms.full');
 

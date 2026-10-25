@@ -37,7 +37,13 @@ const props = defineProps<{
     <PublicLayout>
         <Head>
             <title>تصفح خطط الوجبات</title>
-            <meta name="description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
+            <meta head-key="description" name="description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
+            <meta head-key="og:title" property="og:title" content="تصفح خطط الوجبات | وصفاتنا" />
+            <meta head-key="og:description" property="og:description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
+            <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+            <meta head-key="twitter:title" name="twitter:title" content="تصفح خطط الوجبات | وصفاتنا" />
+            <meta head-key="twitter:description" name="twitter:description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
+            <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
         </Head>
 
         <div class="container mx-auto py-12 px-4 md:px-6">

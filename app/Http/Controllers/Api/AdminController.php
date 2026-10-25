@@ -7,6 +7,7 @@ use App\Models\AnonymousAuthor;
 use App\Models\City;
 use App\Models\Ingredient;
 use App\Models\Recipe;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,8 +42,7 @@ class AdminController extends Controller
      */
     public function pendingRecipes(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100); // Cap at 100
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
         $recipes = Recipe::query()
             ->where(function ($q) {
@@ -68,8 +68,7 @@ class AdminController extends Controller
      */
     public function allRecipes(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100);
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
         $query = Recipe::with(['city', 'user', 'anonymousAuthor', 'approver', 'tags'])
             ->withCount('tags');
@@ -81,10 +80,6 @@ class AdminController extends Controller
             $query->where(function ($q) use ($statuses) {
                 $q->whereIn('status', $statuses);
 
-                // Special case for "awaiting_approval" if we treat it as a status,
-                // but usually it's status=pending or needs_reapproval=true.
-                // If the frontend sends 'pending', it matches status=pending.
-                // If we want to include needs_reapproval when filtering for pending:
                 if (in_array('pending', $statuses)) {
                     $q->orWhere('needs_reapproval', true);
                 }
@@ -204,7 +199,6 @@ class AdminController extends Controller
         try {
             switch ($action) {
                 case 'delete':
-                    // check permission for delete? Admin only probably.
                     if (! $request->user()->isAdmin()) {
                         return response()->json(['error' => 'غير مصرح لك بحذف الوصفات'], 403);
                     }
@@ -258,8 +252,7 @@ class AdminController extends Controller
      */
     public function users(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100);
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
         $query = User::withCount('recipes');
 
@@ -285,6 +278,7 @@ class AdminController extends Controller
         }
 
         $users = $query->paginate($perPage);
+        $users->getCollection()->each->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
 
         return response()->json([
             'users' => $users->through(fn ($u) => $this->formatAdminUser($u)),
@@ -306,6 +300,8 @@ class AdminController extends Controller
             ->withCount('recipes')
             ->latest('deletion_requested_at')
             ->get();
+
+        $users->each->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
 
         return response()->json([
             'users' => $users->map(fn ($u) => [
@@ -373,9 +369,8 @@ class AdminController extends Controller
             return response()->json(['error' => 'غير مصرح'], 403);
         }
 
-        // Cannot demote superadmin
-        if ($user->email === 'hade.alahmad1@gmail.com' && $request->role !== 'admin') {
-            return response()->json(['error' => 'لا يمكن تقليل صلاحيات المشرف الرئيسي'], 403);
+        if ($user->id === $request->user()->id || $user->isAdmin()) {
+            return response()->json(['error' => 'لا يمكن تقليل صلاحيات المشرف'], 403);
         }
 
         $request->validate([
@@ -384,9 +379,12 @@ class AdminController extends Controller
 
         $user->forceFill(['role' => $request->role])->save();
 
+        $freshUser = $user->fresh();
+        $freshUser->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return response()->json([
             'message' => 'تم تحديث صلاحيات المستخدم',
-            'user' => $this->formatAdminUser($user->fresh()),
+            'user' => $this->formatAdminUser($freshUser),
         ]);
     }
 
@@ -417,9 +415,12 @@ class AdminController extends Controller
         // Revoke all tokens
         $user->tokens()->delete();
 
+        $freshUser = $user->fresh();
+        $freshUser->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return response()->json([
             'message' => 'تم حظر المستخدم',
-            'user' => $this->formatAdminUser($user->fresh()),
+            'user' => $this->formatAdminUser($freshUser),
         ]);
     }
 
@@ -438,9 +439,12 @@ class AdminController extends Controller
             'banned_at' => null,
         ])->save();
 
+        $freshUser = $user->fresh();
+        $freshUser->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return response()->json([
             'message' => 'تم إلغاء حظر المستخدم',
-            'user' => $this->formatAdminUser($user->fresh()),
+            'user' => $this->formatAdminUser($freshUser),
         ]);
     }
 
@@ -485,13 +489,9 @@ class AdminController extends Controller
     /**
      * List all cities for admin.
      */
-    /**
-     * List all cities for admin.
-     */
     public function cities(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100);
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
 
         $query = City::withCount(['approvedRecipes as recipes_count']);
 
@@ -504,7 +504,7 @@ class AdminController extends Controller
 
         $sortColumn = $request->input('sort_by', 'name');
         $sortDirection = $request->input('sort_dir', 'asc');
-        $allowedSorts = ['name', 'recipes_count', 'slug']; // Description not usually sorted, but can be added
+        $allowedSorts = ['name', 'recipes_count', 'slug'];
 
         if (in_array($sortColumn, $allowedSorts)) {
             $query->orderBy($sortColumn, $sortDirection);
@@ -704,6 +704,10 @@ class AdminController extends Controller
 
     private function formatAdminRecipe(Recipe $recipe): array
     {
+        if ($recipe->user) {
+            $recipe->user->makeVisible(['email']);
+        }
+
         return [
             'id' => $recipe->id,
             'name' => $recipe->name,
@@ -733,6 +737,8 @@ class AdminController extends Controller
 
     private function formatAdminUser(User $user): array
     {
+        $user->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return [
             'id' => $user->id,
             'name' => $user->name,

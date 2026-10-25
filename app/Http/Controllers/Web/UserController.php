@@ -12,11 +12,15 @@ class UserController extends Controller
 {
     public function show(User $user)
     {
-        $user->loadCount(['recipes', 'approvedRecipes']); // Example counts
+        $user->loadCount(['recipes', 'approvedRecipes']);
 
         $recipes = Recipe::where('user_id', $user->id)
             ->where('status', 'approved')
-            ->with(['city', 'tags'])
+            ->select([
+                'id', 'name', 'slug', 'image_path', 'time_needed', 'difficulty',
+                'city_id', 'user_id', 'anonymous_author_id', 'is_anonymous', 'status', 'created_at',
+            ])
+            ->with(['city:id,name,slug', 'user:id,name,avatar', 'anonymousAuthor:id,name', 'tags:id,name,slug'])
             ->latest()
             ->paginate(12);
 

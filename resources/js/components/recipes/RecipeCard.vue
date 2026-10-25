@@ -1,158 +1,119 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import Card from '@/components/ui/Card.vue';
-import CardContent from '@/components/ui/CardContent.vue';
-import Badge from '@/components/ui/Badge.vue';
-import Button from '@/components/ui/Button.vue';
-import { MapPin, Clock, User, Utensils, Heart } from 'lucide-vue-next';
+import { Card, CardContent, CardHeader, Badge } from '@/components/ui';
+import { Clock, MapPin, Tag as TagIcon } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import AddToFavoritesModal from '@/components/features/lists/AddToFavoritesModal.vue';
-
-interface Recipe {
-  id: number;
-  name: string;
-  slug: string;
-  image_url: string | null;
-  city: { id: number; name: string; slug: string } | null;
-  city_slug: string | null;
-  time_needed: any;
-  difficulty: string;
-  author_name: string;
-  tags: Array<{ id: number; name: string; slug: string }>;
-}
+import type { Recipe } from '@/types';
 
 const props = defineProps<{
   recipe: Recipe;
 }>();
 
-const getDifficultyColor = (difficulty: string) => {
-  const colors: Record<string, string> = {
-    'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'سهلة': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'متوسطة': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    'صعبة': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-    'صعبة جداً': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  };
-  return colors[difficulty] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
+const difficultyColors: Record<string, string> = {
+  'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  'سهلة': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  'متوسطة': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  'صعبة': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  'صعبة جداً': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
 };
 
-const formatTimeNeeded = (time: any) => {
-  if (!time) return null;
-  
-  const translations: Record<string, string> = {
-    prep: 'تحضير',
-    cook: 'طبخ',
-    ready: 'جاهز'
-  };
-
-  if (typeof time === 'string') {
-    if (time.startsWith('{') || time.startsWith('[')) {
-      try {
-        const parsed = JSON.parse(time);
-        return formatTimeNeeded(parsed);
-      } catch (e) {}
-    }
-    return time;
-  }
-
-  if (Array.isArray(time)) return time.join(' - ');
-
+const formatTimeNeeded = (time: any): string => {
+  if (!time) return 'غير محدد';
+  if (typeof time === 'string') return time;
+  if (typeof time === 'number') return `${time} دقيقة`;
+  if (Array.isArray(time)) return time.join('، ');
   if (typeof time === 'object') {
     if (time.raw) return time.raw;
+    const prep = parseInt(time.prep) || 0;
+    const cook = parseInt(time.cook) || 0;
+    const total = prep + cook;
+    if (total > 0) return `${total} دقيقة`;
     
-    const parts: string[] = [];
-    
-    if (time.prep || time.cook) {
-      const prep = parseInt(time.prep) || 0;
-      const cook = parseInt(time.cook) || 0;
-      if (prep) parts.push(`تحضير: ${prep}د`);
-      if (cook) parts.push(`طبخ: ${cook}د`);
-    } else {
-      Object.entries(time).forEach(([key, value]) => {
-        if (!value) return;
-        if (!isNaN(Number(key))) {
-          parts.push(String(value));
-        } else {
-          const label = translations[key] || key;
-          parts.push(`${label}: ${value}`);
-        }
-      });
-    }
-    
-    return parts.length > 0 ? parts.join(' - ') : null;
+    // Fallback for arbitrary stages (like { "مرحلة 1": "15 د" })
+    const values = Object.values(time).filter(Boolean);
+    if (values.length > 0) return values.join(' + ');
   }
-  
-  return null;
+  return 'غير محدد';
 };
 </script>
 
 <template>
-  <div class="relative group h-full">
-    <Link :href="`/recipes/${recipe.slug}`" class="block h-full">
-      <Card class="overflow-hidden h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer py-0 gap-0 border-border/50 bg-card">
-        <!-- Image Container -->
-        <div class="relative aspect-[4/3] overflow-hidden bg-muted">
-          <img
-            v-if="recipe.image_url"
-            :src="recipe.image_url"
-            :alt="recipe.name"
-            class="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-          />
-          <div v-else class="w-full h-full flex items-center justify-center bg-muted/50 text-muted-foreground">
-            <Utensils class="w-12 h-12 opacity-20" />
-          </div>
-
-          <!-- Difficulty Badge -->
-          <Badge
-            :class="cn('absolute top-3 left-3 shadow-sm border-none', getDifficultyColor(recipe.difficulty))"
-          >
-            {{ recipe.difficulty }}
-          </Badge>
+  <Link :href="`/recipes/${recipe.slug}`" class="block h-full">
+    <Card class="h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer flex flex-col">
+      <!-- Image -->
+      <div class="relative aspect-video bg-muted overflow-hidden shrink-0">
+        <img
+          v-if="recipe.image_url"
+          :src="recipe.image_url"
+          :alt="recipe.name"
+          loading="lazy"
+          decoding="async"
+          width="640"
+          height="360"
+          class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+        />
+        <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950">
+          <span class="text-5xl">🍽️</span>
         </div>
 
-        <!-- Content -->
-        <CardContent class="p-4">
-          <!-- Recipe Name -->
-          <h3 class="font-bold text-lg mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-            {{ recipe.name }}
-          </h3>
-
-          <!-- Meta Info -->
-          <div class="flex flex-col gap-2 text-sm text-muted-foreground">
-            <!-- City -->
-            <div v-if="recipe.city" class="flex items-start gap-2">
-              <MapPin class="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span>{{ recipe.city.name || recipe.city }}</span>
-            </div>
-
-            <!-- Time -->
-            <div v-if="formatTimeNeeded(recipe.time_needed)" class="flex items-start gap-2">
-              <Clock class="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <span>{{ formatTimeNeeded(recipe.time_needed) }}</span>
-            </div>
-
-            <!-- Author -->
-            <div class="flex items-center gap-2">
-              <User class="w-4 h-4 text-primary shrink-0" />
-              <span>{{ recipe.author_name }}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-
-    <!-- Favorite Button with Modal -->
-    <div class="absolute top-2 right-2 z-10">
-      <AddToFavoritesModal :recipe-id="recipe.id">
-        <Button
-          variant="secondary"
-          size="icon"
-          class="h-8 w-8 rounded-full bg-white/90 hover:bg-white text-muted-foreground hover:text-red-500 shadow-sm backdrop-blur-sm transition-colors"
+        <!-- Difficulty Badge -->
+        <Badge
+          :class="cn(
+            'absolute top-3 left-3',
+            difficultyColors[recipe.difficulty] || difficultyColors['متوسطة']
+          )"
         >
-          <Heart class="w-4 h-4" />
-        </Button>
-      </AddToFavoritesModal>
-    </div>
-  </div>
-</template>
+          {{ recipe.difficulty }}
+        </Badge>
 
+        <!-- Favorite Action -->
+        <div class="absolute top-3 right-3 z-10" @click.prevent.stop>
+            <AddToFavoritesModal :recipe-id="recipe.id" variant="icon" />
+        </div>
+      </div>
+
+      <CardHeader class="pb-2">
+        <h3 class="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+          {{ recipe.name }}
+        </h3>
+      </CardHeader>
+
+      <CardContent class="space-y-3 flex-1 flex flex-col justify-between">
+        <div class="space-y-2">
+          <!-- Meta Info -->
+          <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+            <span v-if="recipe.city" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
+              <MapPin class="w-3 h-3 text-primary" />
+              {{ recipe.city }}
+            </span>
+            <span v-if="recipe.time_needed" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
+              <Clock class="w-3 h-3 text-primary" />
+              <span class="truncate max-w-[120px]">{{ formatTimeNeeded(recipe.time_needed) }}</span>
+            </span>
+          </div>
+
+          <!-- Tags -->
+          <div v-if="recipe.tags && recipe.tags.length > 0" class="flex flex-wrap gap-1">
+            <Badge 
+              v-for="tag in recipe.tags.slice(0, 3)" 
+              :key="tag.id" 
+              variant="secondary" 
+              class="text-[10px] px-1.5 py-0 h-5 font-normal bg-secondary/50"
+            >
+              {{ tag.name }}
+            </Badge>
+            <span v-if="recipe.tags.length > 3" class="text-[10px] text-muted-foreground self-center">
+              +{{ recipe.tags.length - 3 }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Author -->
+        <p class="text-xs text-muted-foreground pt-2 border-t border-border/50">
+          بواسطة <span class="text-foreground font-medium">{{ recipe.author_name }}</span>
+        </p>
+      </CardContent>
+    </Card>
+  </Link>
+</template>

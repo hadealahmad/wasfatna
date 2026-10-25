@@ -7,6 +7,7 @@ use App\Models\Recipe;
 use App\Models\RecipeList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ListController extends Controller
@@ -26,7 +27,7 @@ class ListController extends Controller
             ->get();
 
         if ($recipeId) {
-            $listIdsWithRecipe = \DB::table('list_items')
+            $listIdsWithRecipe = DB::table('list_items')
                 ->where('recipe_id', $recipeId)
                 ->pluck('list_id')
                 ->flip();
@@ -50,14 +51,15 @@ class ListController extends Controller
             'is_public' => 'boolean',
         ]);
 
+        $wantsPublic = $request->boolean('is_public');
+
         $list = RecipeList::create([
             'user_id' => Auth::id(),
             'name' => $validated['name'],
             'slug' => Str::slug($validated['name']).'-'.Str::random(6),
             'description' => $validated['description'] ?? null,
-            // 'cover_image' => TODO: Handle image upload
-            'is_public' => $validated['is_public'] ?? false,
-            'status' => 'draft',
+            'is_public' => false,
+            'status' => $wantsPublic ? 'review' : 'draft',
         ]);
 
         return response()->json($list, 201);
@@ -68,18 +70,26 @@ class ListController extends Controller
      */
     public function show($id)
     {
-        $list = RecipeList::with(['recipes' => function ($query) {
-            $query->with(['ingredients', 'user', 'city', 'tags']);
-        }])->with('user')->findOrFail($id);
+        $list = RecipeList::with('user')->findOrFail($id);
 
-        // Check visibility
-        if (! $list->is_public && $list->user_id !== Auth::id()) {
-            // Check if user is admin/moderator
-            $user = Auth::user();
-            if (! $user || ! ($user->role === 'admin' || $user->role === 'moderator')) {
+        $user = Auth::guard('sanctum')->user() ?? Auth::user();
+        $isOwner = $user && $user->id === $list->user_id;
+        $isModerator = $user && $user->canApproveRecipes();
+
+        if (! $isOwner && ! $isModerator) {
+            if (! $list->is_public || $list->status !== 'approved') {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
         }
+
+        $list->load([
+            'recipes' => function ($query) use ($isOwner, $isModerator) {
+                if (! $isOwner && ! $isModerator) {
+                    $query->where('recipes.status', 'approved');
+                }
+                $query->with(['ingredients', 'user', 'anonymousAuthor', 'city', 'tags']);
+            },
+        ]);
 
         // Transform recipes to match expected frontend structure (RecipeCard)
         $formattedRecipes = $list->recipes->map(fn ($recipe) => $this->formatRecipe($recipe));
@@ -95,12 +105,6 @@ class ListController extends Controller
     {
         $list = RecipeList::where('user_id', Auth::id())->findOrFail($id);
 
-        if ($list->is_default) {
-            // Cannot change name/public status of default list easily?
-            // Requirement: default list is not deletable or shareable (public).
-            // So we enforce is_public = false for default list in validation or logic.
-        }
-
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -111,7 +115,7 @@ class ListController extends Controller
                 'mimes:jpg,jpeg,png,webp,gif',
                 'max:2048',
             ],
-            'request_publish' => 'boolean', // Accept "true" string too if needed, but boolean validation usually handles 1/0/true/false
+            'request_publish' => 'boolean',
         ]);
 
         if ($list->is_default && isset($validated['is_public']) && $validated['is_public']) {
@@ -119,27 +123,38 @@ class ListController extends Controller
         }
 
         // Handle publish request
-        if ($request->has('request_publish')) {
-            // Logic check
+        if ($request->boolean('request_publish')) {
             if ($list->recipes()->count() <= 1) {
                 return response()->json(['message' => 'List must have more than 1 item to be published.'], 422);
             }
-            if (! $list->cover_image && ! $request->hasFile('cover_image')) {
-                // return response()->json(['message' => 'List must have a cover image to be published.'], 422);
-                // We can relax this requirements or return error.
-                // Let's ensure user knows they need an image if they don't have one.
-            }
             $list->status = 'review';
+            $list->is_public = false;
         }
 
-        $list->update($request->only(['name', 'description', 'is_public']));
+        $updateData = $request->only(['name', 'description']);
+        $isModerator = Auth::user()?->canApproveRecipes() ?? false;
 
-        // Handle Image Upload if present (simplified)
+        if ($request->has('is_public')) {
+            if ($request->boolean('is_public')) {
+                if ($list->status === 'approved' || $isModerator) {
+                    $updateData['is_public'] = true;
+                } else {
+                    $updateData['is_public'] = false;
+                    $list->status = 'review';
+                }
+            } else {
+                $updateData['is_public'] = false;
+            }
+        }
+
+        $list->fill($updateData);
+
         if ($request->hasFile('cover_image')) {
             $path = $request->file('cover_image')->store('lists', 'public');
-            $list->cover_image = 'storage/'.$path; // Fixed path prefix
-            $list->save();
+            $list->cover_image = 'storage/'.$path;
         }
+
+        $list->save();
 
         return response()->json($list);
     }
@@ -171,7 +186,11 @@ class ListController extends Controller
             'recipe_id' => 'required|exists:recipes,id',
         ]);
 
-        $list->recipes()->syncWithoutDetaching([$request->recipe_id]);
+        $recipe = Recipe::where('id', $request->recipe_id)
+            ->where(fn ($q) => $q->where('status', 'approved')->orWhere('user_id', Auth::id()))
+            ->firstOrFail();
+
+        $list->recipes()->syncWithoutDetaching([$recipe->id]);
 
         return response()->json(['message' => 'Recipe added to list.']);
     }
@@ -203,9 +222,13 @@ class ListController extends Controller
             'recipe_id' => 'required|exists:recipes,id',
         ]);
 
-        $result = $list->recipes()->toggle($request->recipe_id);
+        $recipe = Recipe::where('id', $request->recipe_id)
+            ->where(fn ($q) => $q->where('status', 'approved')->orWhere('user_id', Auth::id()))
+            ->firstOrFail();
 
-        $attached = in_array($request->recipe_id, $result['attached']);
+        $result = $list->recipes()->toggle($recipe->id);
+
+        $attached = in_array($recipe->id, $result['attached']);
 
         return response()->json([
             'message' => $attached ? 'Recipe added.' : 'Recipe removed.',
@@ -216,14 +239,19 @@ class ListController extends Controller
     public function publicIndex(Request $request)
     {
         $lists = RecipeList::query()
-            ->public()
-            ->approved()
-            ->with('user') // Counts only — full recipe payloads are not needed for the index
-            ->withCount('recipes')
+            ->where('is_public', true)
+            ->where('status', 'approved')
+            ->with('user')
+            ->withCount(['recipes' => fn ($q) => $q->where('recipes.status', 'approved')])
             ->latest()
             ->paginate(12);
 
         return response()->json($lists);
+    }
+
+    public function publicLists(Request $request)
+    {
+        return $this->publicIndex($request);
     }
 
     /**
@@ -244,7 +272,7 @@ class ListController extends Controller
             'difficulty' => $recipe->difficulty,
             'author_name' => $recipe->author_name,
             'tags' => $recipe->tags->map(fn ($t) => ['id' => $t->id, 'name' => $t->name, 'slug' => $t->slug]),
-            'created_at' => $recipe->created_at, // useful for sorting if needed
+            'created_at' => $recipe->created_at,
         ];
     }
 }

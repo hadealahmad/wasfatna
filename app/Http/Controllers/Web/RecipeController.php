@@ -7,6 +7,7 @@ use App\Models\Recipe;
 use App\Models\City;
 use App\Models\Tag;
 use App\Models\User;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,7 @@ class RecipeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Recipe::with(['user', 'anonymousAuthor', 'city', 'tags', 'ingredients'])
+        $query = Recipe::with(['city', 'user', 'anonymousAuthor', 'tags'])
             ->where('status', 'approved')
             ->latest();
 
@@ -80,7 +81,7 @@ class RecipeController extends Controller
 
     public function show($slug)
     {
-        $query = Recipe::with(['user', 'city', 'tags', 'ingredients'])
+        $query = Recipe::with(['user', 'anonymousAuthor', 'city', 'tags', 'ingredients'])
             ->where('slug', $slug);
 
         // Admins and moderators can view any recipe, others only approved
@@ -91,17 +92,18 @@ class RecipeController extends Controller
 
         $recipe = $query->firstOrFail();
             
-        // Similar recipes logic (simple implementation for now)
+        // Similar recipes logic
         $similarRecipes = Recipe::where('id', '!=', $recipe->id)
             ->where('status', 'approved')
+            ->with(['city:id,name,slug', 'user:id,name,avatar', 'anonymousAuthor:id,name', 'tags:id,name,slug'])
             ->where(function($q) use ($recipe) {
                 if ($recipe->city_id) {
                     $q->orWhere('city_id', $recipe->city_id);
                 }
-                // Add tag matching logic if needed
             })
             ->limit(3)
-            ->get();
+            ->get()
+            ->map(fn($r) => $this->formatRecipeCard($r));
 
         return Inertia::render('Recipes/Show', [
             'recipe' => $recipe,
@@ -124,7 +126,7 @@ class RecipeController extends Controller
         return Inertia::render('Recipes/Create', $data);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, ImageService $imageService)
     {
         // Decode JSON strings from FormData
         $ingredients = $request->ingredients;
@@ -194,8 +196,11 @@ class RecipeController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('recipes', 'public');
-            $recipe->image_path = $path;
+            $result = $imageService->processAndStore($request->file('image'), 'recipes');
+            if (!$result['success']) {
+                return back()->withErrors(['image' => $result['error']]);
+            }
+            $recipe->image_path = $result['path'];
         }
 
         $recipe->save();
@@ -256,10 +261,7 @@ class RecipeController extends Controller
             ->where('status', 'approved')
             ->firstOrFail();
 
-        // Find all recipes with the same name, excluding the one we just found (optional, but variations page usually lists all including original or others?)
-        // The prompt says "variations", implying alternative ways.
-        // Let's include all recipes with the same name.
-        $recipes = Recipe::with(['user', 'city', 'tags'])
+        $recipes = Recipe::with(['city', 'user', 'anonymousAuthor', 'tags'])
             ->where('name', $recipe->name)
             ->where('status', 'approved')
             ->latest()

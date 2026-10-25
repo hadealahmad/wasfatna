@@ -1,6 +1,6 @@
-# {{ config('app.name', 'وصفاتنا') }} - Syrian Recipes Database
+# وصفاتنا (Wasfatna) - قاعدة بيانات الوصفات السورية (Syrian Recipes Database)
 
-> {{ config('app.name', 'وصفاتنا') }} is a community database of authentic Syrian recipes categorized by cities and tags.
+> وصفاتنا (Wasfatna) is a community database of authentic Syrian recipes categorized by cities and tags.
 
 ## Core Section & Indexes
 - [الرئيسية]({{ $baseUrl }}/): الصفحة الرئيسية ومجتمع الطبخ السوري

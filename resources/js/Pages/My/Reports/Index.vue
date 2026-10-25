@@ -112,7 +112,7 @@ const getReportableLink = (report: any) => {
              <div v-if="reports.meta?.last_page > 1" class="mt-8 flex justify-center gap-2">
                  <template v-for="(link, key) in reports.meta.links" :key="key">
                     <component
-                        :is="link.url ? 'Link' : 'span'"
+                        :is="link.url ? Link : 'span'"
                         :href="link.url"
                         v-if="link.url || link.label === '...'"
                         class="px-3 py-1 border rounded-md text-sm transition-colors"

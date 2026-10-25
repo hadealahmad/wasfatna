@@ -33,6 +33,7 @@ jobs:
           rsync -avz --delete \
             --exclude='.git' \
             --exclude='.env' \
+            --exclude='production.env' \
             --exclude='storage/logs/*' \
             --exclude='storage/framework/cache/*' \
             --exclude='storage/framework/sessions/*' \

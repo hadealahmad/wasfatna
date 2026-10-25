@@ -26,7 +26,7 @@ watch(
 
 <template>
   <div class="min-h-screen bg-background font-sans antialiased flex flex-col" dir="rtl">
-    <Head :title="title ? `${title} | وصفاتنا` : 'وصفاتنا - مجتمع الطبخ السوري'" />
+    <Head v-if="title" :title="title" />
     
     <Toaster 
       position="top-center" 

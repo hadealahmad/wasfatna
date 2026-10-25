@@ -7,6 +7,7 @@ use App\Models\Recipe;
 use App\Models\City;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,15 +15,9 @@ class HomeController extends Controller
 {
     public function index(Request $request): Response
     {
-        $page = $request->input('page', 1);
-
         $recipesQuery = Recipe::approved()
             ->with(['city', 'user', 'anonymousAuthor', 'tags']);
-            
-        // Basic filtering if needed on homepage?
-        // (Usually homepage is handled by separate search page in some UIs, 
-        // but looking at old code it had SearchFilters on home too)
-        
+
         if ($request->filled('search')) {
             $search = $request->search;
             $recipesQuery->where(function ($q) use ($search) {
@@ -57,13 +52,13 @@ class HomeController extends Controller
         
         $recipes = $recipesQuery->latest()->paginate($perPage)->withQueryString();
 
-        $cities = City::withCount('recipes')
+        $cities = City::withCount(['recipes' => fn($q) => $q->where('status', 'approved')])
             ->orderBy('recipes_count', 'desc')
             ->limit(8)
             ->get();
 
-        $allCities = City::select('id', 'name', 'slug')->get();
-        $allTags = Tag::select('id', 'name', 'slug')->get();
+        $allCities = Cache::remember('all_cities_select', 600, fn () => City::select('id', 'name', 'slug')->get());
+        $allTags = Cache::remember('all_tags_select', 600, fn () => Tag::select('id', 'name', 'slug')->get());
 
         return Inertia::render('Welcome', [
             'recipes' => $recipes->through(fn($r) => $this->formatRecipeCard($r)),

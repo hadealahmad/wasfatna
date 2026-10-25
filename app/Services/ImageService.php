@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class ImageService
 {
     /**
-     * Maximum file size in bytes (1MB).
+     * Maximum file size in bytes (10MB).
      */
     private const MAX_SIZE = 10485760; // 10MB
 
@@ -24,14 +24,6 @@ class ImageService
         'image/gif',
     ];
 
-    /**
-     * Process and store an uploaded image.
-     * Strips metadata, compresses, and converts to WebP if needed.
-     *
-     * @param UploadedFile $file
-     * @param string $directory
-     * @return array{path: string, success: bool, error?: string}
-     */
     /**
      * Process and store an uploaded image.
      * Strips metadata, compresses, and converts to WebP if needed.
@@ -80,9 +72,6 @@ class ImageService
             ];
         }
 
-        // Basic validation for local files could be added here (size, mime) if needed
-        // For now, relies on processImage taking care of encoding
-
         return $this->processImage($filePath, $directory);
     }
 
@@ -94,34 +83,26 @@ class ImageService
         try {
             // Load image and strip metadata (EXIF, etc.)
             $image = Image::read($sourcePath);
-            
-            // Remove all metadata by encoding without profile
-            // Intervention Image v3 automatically strips metadata
-            
+
+            // Always scale down large images before encoding
+            $image->scaleDown(width: 1200, height: 1200);
+
             // Generate unique filename
             $filename = Str::uuid() . '.webp';
             $path = $directory . '/' . $filename;
 
-            // Encode as WebP with quality optimization
-            $encoded = $image->toWebp(quality: 85);
+            // Encode once as WebP with quality optimization
+            $encoded = $image->toWebp(quality: 82);
+            $encodedString = $encoded->toString();
 
-            // Check if encoded size is acceptable
-            $encodedSize = strlen($encoded->toString());
-            
-            if ($encodedSize > self::MAX_SIZE) {
-                // Try lower quality
+            // Only re-encode at lower quality if still exceeding MAX_SIZE
+            if (strlen($encodedString) > self::MAX_SIZE) {
                 $encoded = $image->toWebp(quality: 70);
-                $encodedSize = strlen($encoded->toString());
-                
-                if ($encodedSize > self::MAX_SIZE) {
-                    // Resize image
-                    $image->scale(width: 1200);
-                    $encoded = $image->toWebp(quality: 70);
-                }
+                $encodedString = $encoded->toString();
             }
 
             // Store the image
-            Storage::disk('public')->put($path, $encoded->toString());
+            Storage::disk('public')->put($path, $encodedString);
 
             return [
                 'success' => true,

@@ -1,4 +1,4 @@
-# {{ config('app.name', 'وصفاتنا') }} - Full Recipe Catalog
+# وصفاتنا (Wasfatna) - Full Recipe Catalog
 
 > Full aggregated Markdown database of authentic Syrian recipes.
 
@@ -9,11 +9,42 @@
 
 > {{ $recipe->description ?? 'طريقة عمل ' . $recipe->name . ' من المطبخ السوري' }}
 
+@php
+    $timeDisplay = null;
+    if (!empty($recipe->time_needed)) {
+        if (is_array($recipe->time_needed)) {
+            $parts = [];
+            if (!empty($recipe->time_needed['prep'])) {
+                $parts[] = 'تحضير: ' . $recipe->time_needed['prep'] . ' دقيقة';
+            }
+            if (!empty($recipe->time_needed['cook'])) {
+                $parts[] = 'طبخ: ' . $recipe->time_needed['cook'] . ' دقيقة';
+            }
+            if (!empty($recipe->time_needed['raw'])) {
+                $parts[] = $recipe->time_needed['raw'];
+            }
+            if (empty($parts)) {
+                foreach ($recipe->time_needed as $k => $v) {
+                    if ($v) $parts[] = (is_string($k) ? "$k: " : '') . $v;
+                }
+            }
+            $timeDisplay = implode(' | ', $parts);
+        } else {
+            $timeDisplay = (string) $recipe->time_needed;
+        }
+    }
+@endphp
 - **المدينة / المنطقة**: {{ $recipe->city?->name ?? 'غير محدد' }}
 - **مستوى الصعوبة**: {{ $recipe->difficulty }}
+@if($timeDisplay)
+- **الوقت اللازم**: {{ $timeDisplay }}
+@endif
 - **عدد الوجبات**: {{ $recipe->servings ?? 'غير محدد' }}
 - **كاتب الوصفة**: {{ $recipe->author_name }}
 - **الوسوم**: {{ $recipe->tags->pluck('name')->implode(', ') }}
+@if($recipe->image_url)
+- **الصورة**: {{ $recipe->image_url }}
+@endif
 - **الرابط الأصلي**: {{ $baseUrl }}/recipes/{{ $recipe->slug }}
 
 ## المكونات
@@ -34,21 +65,30 @@
 @endforeach
 @endforeach
 
+@if($recipe->steps && is_array($recipe->steps))
 ## طريقة التحضير
-@php
-    $steps = $recipe->steps;
-@endphp
-@if(is_array($steps))
-@foreach($steps as $stepGroup)
-@if(is_array($stepGroup) && isset($stepGroup['items']))
+
+@foreach($recipe->steps as $groupKey => $stepGroup)
+@if(is_array($stepGroup) && isset($stepGroup['items']) && is_array($stepGroup['items']))
 @if(!empty($stepGroup['name']))
 ### {{ $stepGroup['name'] }}
 @endif
-@foreach($stepGroup['items'] as $index => $stepItem)
-{{ $index + 1 }}. {{ is_array($stepItem) ? ($stepItem['text'] ?? $stepItem['name'] ?? '') : $stepItem }}
+@foreach($stepGroup['items'] as $index => $step)
+{{ $index + 1 }}. {{ is_array($step) ? ($step['text'] ?? $step['name'] ?? '') : $step }}
 @endforeach
+
+@elseif(is_array($stepGroup))
+@if(is_string($groupKey) && $groupKey !== '')
+### {{ $groupKey }}
+@endif
+@foreach(array_values($stepGroup) as $index => $step)
+@if(is_string($step))
+{{ $index + 1 }}. {{ $step }}
+@endif
+@endforeach
+
 @elseif(is_string($stepGroup))
-1. {{ $stepGroup }}
+{{ $loop->iteration }}. {{ $stepGroup }}
 @endif
 @endforeach
 @endif

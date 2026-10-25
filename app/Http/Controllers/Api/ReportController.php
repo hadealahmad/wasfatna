@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Report;
 use App\Models\Recipe;
 use App\Models\RecipeList;
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
 {
@@ -18,15 +17,15 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         try {
-
-
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 \Illuminate\Support\Facades\Log::error('ReportController: User not logged in');
+
                 return response()->json(['message' => 'Unauthenticated'], 401);
             }
 
-            if (!Auth::user()->canApproveRecipes()) {
+            if (! Auth::user()->canApproveRecipes()) {
                 \Illuminate\Support\Facades\Log::warning('ReportController: Unauthorized access attempt', ['user_id' => Auth::id()]);
+
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
 
@@ -44,8 +43,9 @@ class ReportController extends Controller
 
             return response()->json($reports);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('ReportController Index Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('ReportController Index Error: '.$e->getMessage());
             \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
+
             return response()->json(['message' => 'Server Error', 'error' => $e->getMessage()], 500);
         }
     }
@@ -68,18 +68,25 @@ class ReportController extends Controller
             default => null,
         };
 
-        if (!$modelClass) {
+        if (! $modelClass) {
             return response()->json(['message' => 'Invalid reportable type'], 422);
         }
 
-        $reportable = $modelClass::find($validated['reportable_id']);
+        $target = $modelClass::find($validated['reportable_id']);
 
-        if (!$reportable) {
+        if (! $target) {
             return response()->json(['message' => 'Content not found'], 404);
         }
 
-        \Illuminate\Support\Facades\Log::info("Report store: ", $validated);
-        \Illuminate\Support\Facades\Log::info("Model Class: " . $modelClass);
+        if ($validated['reportable_type'] === 'recipe') {
+            if ($target->status !== 'approved' && $target->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Content not found'], 404);
+            }
+        } elseif ($validated['reportable_type'] === 'list') {
+            if (! ($target->is_public && $target->status === 'approved') && $target->user_id !== Auth::id()) {
+                return response()->json(['message' => 'Content not found'], 404);
+            }
+        }
 
         $report = new Report();
         $report->user_id = Auth::id();
@@ -90,12 +97,9 @@ class ReportController extends Controller
             'message' => $validated['message'],
             'status' => 'pending',
         ]);
-        // Force manual override just in case fill failed
         $report->reportable_type = $modelClass;
         $report->reportable_id = $validated['reportable_id'];
-        
-        \Illuminate\Support\Facades\Log::info("Report before save: ", $report->toArray());
-        
+
         $report->save();
 
         return response()->json($report, 201);
@@ -106,9 +110,8 @@ class ReportController extends Controller
      */
     public function show(Report $report)
     {
-        // Check if admin or owner
-        if (Auth::id() !== $report->user_id && !Auth::user()->canApproveRecipes()) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+        if (Auth::id() !== $report->user_id && ! Auth::user()->canApproveRecipes()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         return response()->json($report->load(['user', 'reportable']));
@@ -124,6 +127,17 @@ class ReportController extends Controller
             ->latest()
             ->paginate(20);
 
+        $reports->getCollection()->transform(function ($r) {
+            $data = $r->toArray();
+            $data['reportable'] = $r->reportable ? [
+                'id' => $r->reportable->id,
+                'name' => $r->reportable->name,
+                'slug' => $r->reportable->slug ?? null,
+            ] : null;
+
+            return $data;
+        });
+
         return response()->json($reports);
     }
 
@@ -132,8 +146,8 @@ class ReportController extends Controller
      */
     public function update(Request $request, Report $report)
     {
-        if (!Auth::user()->canApproveRecipes()) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+        if (! Auth::user()->canApproveRecipes()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $validated = $request->validate([
@@ -152,22 +166,22 @@ class ReportController extends Controller
      */
     public function destroy(Report $report)
     {
-        if (!Auth::user()->canDeleteRecipes()) { // Assuming delete permission is similar
-             return response()->json(['message' => 'Unauthorized'], 403);
+        if (! Auth::user()->canDeleteRecipes()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $report->delete();
 
         return response()->json(['message' => 'Report deleted']);
     }
-    
+
     /**
      * Bulk action (Admin).
      */
     public function bulkAction(Request $request)
     {
-        if (!Auth::user()->canApproveRecipes()) {
-             return response()->json(['message' => 'Unauthorized'], 403);
+        if (! Auth::user()->canApproveRecipes()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $validated = $request->validate([
@@ -176,9 +190,9 @@ class ReportController extends Controller
             'action' => 'required|string|in:delete,status_update',
             'status' => 'required_if:action,status_update|in:pending,fixed,rejected',
         ]);
-        
+
         if ($validated['action'] === 'delete') {
-            if (!Auth::user()->canDeleteRecipes()) {
+            if (! Auth::user()->canDeleteRecipes()) {
                 return response()->json(['message' => 'Unauthorized to delete'], 403);
             }
             Report::whereIn('id', $validated['ids'])->delete();

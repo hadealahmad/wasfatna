@@ -14,7 +14,7 @@ class AdminUserController extends Controller
     public function index(Request $request): Response
     {
         $perPage = $request->input('per_page', 20);
-        $perPage = min($perPage, 100);
+        $perPage = min(max((int) $perPage, 1), 100);
 
         $query = User::withCount('recipes');
 
@@ -40,11 +40,17 @@ class AdminUserController extends Controller
         }
 
         $users = $query->paginate($perPage)->withQueryString();
+        $users->getCollection()->each->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
 
         return Inertia::render('Dashboard/Users/Index', [
             'users' => $users->through(fn ($u) => $this->formatAdminUser($u)),
             'filters' => $request->only(['role', 'search', 'sort_by', 'sort_dir', 'per_page']),
         ]);
+    }
+
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        return $this->bulkActions($request);
     }
 
     public function bulkActions(Request $request): RedirectResponse
@@ -53,7 +59,7 @@ class AdminUserController extends Controller
             'ids' => 'required|array',
             'ids.*' => 'exists:users,id',
             'action' => 'required|in:delete,ban,unban,change_role',
-            'role' => 'required_if:action,change_role|string',
+            'role' => 'required_if:action,change_role|string|in:admin,moderator,user',
             'reason' => 'required_if:action,ban|string|max:500',
         ]);
 
@@ -157,6 +163,8 @@ class AdminUserController extends Controller
 
     private function formatAdminUser(User $user): array
     {
+        $user->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return [
             'id' => $user->id,
             'name' => $user->name,

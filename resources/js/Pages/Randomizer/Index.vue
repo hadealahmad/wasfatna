@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Button from '@/components/ui/Button.vue';
 import Card from '@/components/ui/Card.vue';
@@ -10,9 +10,7 @@ import CardTitle from '@/components/ui/CardTitle.vue';
 import CardDescription from '@/components/ui/CardDescription.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import DialogContent from '@/components/ui/DialogContent.vue';
-import DialogHeader from '@/components/ui/DialogHeader.vue';
-import DialogTitle from '@/components/ui/DialogTitle.vue';
-import { Dices, Sparkles, ChefHat, RotateCcw, ArrowLeft, Loader2 } from 'lucide-vue-next';
+import { Sparkles, ChefHat, RotateCcw, ArrowLeft, Loader2 } from 'lucide-vue-next';
 import IngredientSelector from '@/components/randomizer/IngredientSelector.vue';
 import RecipeSpinner from '@/components/randomizer/RecipeSpinner.vue';
 
@@ -114,7 +112,17 @@ const spinAgain = () => {
 
 <template>
   <PublicLayout>
-    <Head title="شو طابخين اليوم؟" />
+    <Head>
+      <title>شو طابخين اليوم؟</title>
+      <meta name="robots" content="noindex, follow" head-key="robots" />
+      <meta head-key="description" name="description" content="محتار شو تطبخ اليوم؟ استبعد المكونات اللي ما بدك ياها وخلينا نختارلك وصفة سورية شهية بشكل عشوائي!" />
+      <meta head-key="og:title" property="og:title" content="شو طابخين اليوم؟ | وصفاتنا" />
+      <meta head-key="og:description" property="og:description" content="محتار شو تطبخ اليوم؟ استبعد المكونات اللي ما بدك ياها وخلينا نختارلك وصفة سورية شهية بشكل عشوائي!" />
+      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+      <meta head-key="twitter:title" name="twitter:title" content="شو طابخين اليوم؟ | وصفاتنا" />
+      <meta head-key="twitter:description" name="twitter:description" content="محتار شو تطبخ اليوم؟ استبعد المكونات اللي ما بدك ياها وخلينا نختارلك وصفة سورية شهية بشكل عشوائي!" />
+      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
+    </Head>
     
     <div class="container mx-auto max-w-5xl py-8 md:py-12 px-4" dir="rtl">
       <div class="mb-6 md:mb-8 text-center">
@@ -206,6 +214,8 @@ const spinAgain = () => {
                 v-if="winner.image_url" 
                 :src="winner.image_url" 
                 :alt="winner.name" 
+                loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover"
               />
               <div v-else class="flex h-full items-center justify-center">

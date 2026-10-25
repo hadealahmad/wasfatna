@@ -788,7 +788,7 @@ const submit = async () => {
                     <Label class="text-base mb-2 block">صورة الوصفة</Label>
                     <div class="mt-2">
                         <div v-if="imagePreview" class="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border bg-background">
-                            <img :src="imagePreview" alt="معاينة" class="object-cover w-full h-full" />
+                            <img :src="imagePreview" alt="معاينة" loading="lazy" decoding="async" class="object-cover w-full h-full" />
                             <Button
                                 type="button"
                                 variant="destructive"

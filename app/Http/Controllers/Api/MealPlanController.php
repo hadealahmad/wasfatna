@@ -9,6 +9,7 @@ use App\Models\Recipe;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class MealPlanController extends Controller
 {
@@ -35,9 +36,19 @@ class MealPlanController extends Controller
             return response()->json(['message' => 'يجب إضافة وصفة أو عنوان مخصص'], 422);
         }
 
+        if (! empty($validated['recipe_id'])) {
+            $recipeAllowed = Recipe::where('id', $validated['recipe_id'])
+                ->where(fn ($q) => $q->where('status', 'approved')->orWhere('user_id', Auth::id()))
+                ->exists();
+
+            if (! $recipeAllowed) {
+                return response()->json(['message' => 'الوصفة غير متاحة'], 404);
+            }
+        }
+
         // Lock the parent plan row to serialize concurrent entry inserts
         // (prevents duplicate `order` values from read-max-then-insert races)
-        $entry = \DB::transaction(function () use ($mealPlan, $validated) {
+        $entry = DB::transaction(function () use ($mealPlan, $validated) {
             $mealPlan->lockForUpdate()->first();
 
             $maxOrder = $mealPlan->entries()->where('date', $validated['date'])->max('order') ?? -1;
@@ -158,40 +169,60 @@ class MealPlanController extends Controller
 
         $start = $mealPlan->start_date->copy();
         $end = $mealPlan->end_date->copy();
+        $startDate = $start->format('Y-m-d');
+        $endDate = $end->format('Y-m-d');
+
+        $existingEntries = $mealPlan->entries()
+            ->whereBetween('date', [$startDate, $endDate])
+            ->get();
+
+        $existingByTypeDates = $existingEntries
+            ->where('meal_type', $mealType)
+            ->map(fn ($e) => $e->date instanceof \Carbon\CarbonInterface ? $e->date->format('Y-m-d') : substr((string) $e->date, 0, 10))
+            ->flip();
+
         // Guard against unbounded loops if plan dates were mutated inconsistently
         $maxIterations = 400;
         $added = 0;
         $recipeIndex = 0;
+        $now = now();
+        $newEntries = [];
 
-        while ($start->lte($end) && $maxIterations-- > 0) {
-            $dateStr = $start->format('Y-m-d');
+        $cursor = $start->copy();
+        while ($cursor->lte($end) && $maxIterations-- > 0) {
+            $dateStr = $cursor->format('Y-m-d');
 
-            $existing = $mealPlan->entries()
-                ->where('date', $dateStr)
-                ->where('meal_type', $mealType)
-                ->exists();
-
-            if (! $existing || $overwrite) {
-                if ($overwrite) {
-                    $mealPlan->entries()
-                        ->where('date', $dateStr)
-                        ->where('meal_type', $mealType)
-                        ->delete();
-                }
-
-                $mealPlan->entries()->create([
+            if (! $existingByTypeDates->has($dateStr) || $overwrite) {
+                $newEntries[] = [
+                    'meal_plan_id' => $mealPlan->id,
                     'date' => $dateStr,
                     'recipe_id' => $recipes[$recipeIndex % count($recipes)],
                     'meal_type' => $mealType,
                     'order' => 0,
-                ]);
+                    'is_done' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
 
                 $recipeIndex++;
                 $added++;
             }
 
-            $start->addDay();
+            $cursor->addDay();
         }
+
+        DB::transaction(function () use ($mealPlan, $startDate, $endDate, $mealType, $overwrite, $newEntries) {
+            if ($overwrite) {
+                $mealPlan->entries()
+                    ->whereBetween('date', [$startDate, $endDate])
+                    ->where('meal_type', $mealType)
+                    ->delete();
+            }
+
+            if (! empty($newEntries)) {
+                MealPlanEntry::insert($newEntries);
+            }
+        });
 
         return response()->json([
             'message' => "تمت إضافة {$added} وصفة",

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Badge from '@/components/ui/Badge.vue';
@@ -16,6 +16,10 @@ const props = defineProps<{
 }>();
 
 const copied = ref(false);
+
+const planDescription = computed(() =>
+    props.plan.description || `خطة وجبات "${props.plan.name}" لمدة ${props.plan.days_count} يوم على منصة وصفاتنا - مجتمع الطبخ السوري.`
+);
 
 const copyLink = async () => {
     try {
@@ -36,7 +40,17 @@ const shareWhatsApp = () => {
 
 <template>
     <PublicLayout>
-        <Head :title="`خطة وجبات - ${plan.name}`" />
+        <Head>
+            <title>خطة وجبات - {{ plan.name }}</title>
+            <meta head-key="description" name="description" :content="planDescription" />
+            <meta head-key="og:title" property="og:title" :content="`خطة وجبات - ${plan.name} | وصفاتنا`" />
+            <meta head-key="og:description" property="og:description" :content="planDescription" />
+            <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+            <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
+            <meta head-key="twitter:title" name="twitter:title" :content="`خطة وجبات - ${plan.name} | وصفاتنا`" />
+            <meta head-key="twitter:description" name="twitter:description" :content="planDescription" />
+            <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
+        </Head>
 
         <div class="container mx-auto py-6 px-4 md:px-6 max-w-5xl">
             <!-- Header -->

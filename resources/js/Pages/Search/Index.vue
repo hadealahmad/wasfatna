@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3';
-import { ref, watch, computed } from 'vue';
+import { ref, computed } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
@@ -88,8 +88,15 @@ const handlePerPageChange = (perPage: number) => {
 <template>
     <PublicLayout>
         <Head>
-            <title>نتائج البحث - وصفاتنا</title>
-            <meta name="description" content="ابحث في وصفاتنا عن وصفتك المفضلة" />
+            <title>نتائج البحث</title>
+            <meta name="robots" content="noindex, follow" head-key="robots" />
+            <meta head-key="description" name="description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
+            <meta head-key="og:title" property="og:title" content="نتائج البحث | وصفاتنا" />
+            <meta head-key="og:description" property="og:description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
+            <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+            <meta head-key="twitter:title" name="twitter:title" content="نتائج البحث | وصفاتنا" />
+            <meta head-key="twitter:description" name="twitter:description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
+            <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
         </Head>
 
         <div class="container mx-auto py-8 px-4 md:px-6">

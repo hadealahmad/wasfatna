@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
-import PaginationControls from '@/components/ui/PaginationControls.vue';
 
 const props = defineProps<{
     profile: {
@@ -24,10 +23,13 @@ const props = defineProps<{
     <PublicLayout>
         <Head>
             <title>وصفات {{ profile.name }}</title>
-            <meta name="description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta property="og:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
-            <meta property="og:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta property="og:image" :content="profile.avatar_url || '/og-image.webp'" />
+            <meta head-key="description" name="description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
+            <meta head-key="og:title" property="og:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
+            <meta head-key="og:description" property="og:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
+            <meta head-key="og:image" property="og:image" :content="profile.avatar_url || 'https://food.syrian.zone/og-image.webp'" />
+            <meta head-key="twitter:title" name="twitter:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
+            <meta head-key="twitter:description" property="twitter:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
+            <meta head-key="twitter:image" name="twitter:image" :content="profile.avatar_url || 'https://food.syrian.zone/og-image.webp'" />
         </Head>
 
         <div>
@@ -62,7 +64,7 @@ const props = defineProps<{
                 <div v-if="recipes.meta?.last_page > 1" class="mt-12 flex justify-center gap-2">
                     <template v-for="(link, key) in recipes.meta.links" :key="key">
                         <component
-                            :is="link.url ? 'Link' : 'span'"
+                            :is="link.url ? Link : 'span'"
                             :href="link.url"
                             v-if="link.url || link.label === '...'"
                             class="px-4 py-2 border rounded-md text-sm"

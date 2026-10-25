@@ -18,7 +18,8 @@ class TagController extends Controller
             $query->where('name', 'LIKE', "%{$request->query('query')}%");
         }
 
-        $tags = $query->orderBy('name')->take(50)->get();
+        $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
+        $tags = $query->orderBy('name')->take($perPage)->get();
 
         return response()->json($tags);
     }
@@ -39,12 +40,12 @@ class TagController extends Controller
         $allowedSorts = ['name', 'recipes_count', 'created_at'];
 
         if (in_array($sortColumn, $allowedSorts)) {
-             $query->orderBy($sortColumn, $sortDirection);
+            $query->orderBy($sortColumn, $sortDirection);
         } else {
-             $query->orderBy('recipes_count', 'desc');
+            $query->orderBy('recipes_count', 'desc');
         }
 
-        $perPage = $request->input('per_page', 20);
+        $perPage = min(max((int) $request->input('per_page', 20), 1), 100);
         $tags = $query->paginate($perPage);
 
         return response()->json([
@@ -80,7 +81,7 @@ class TagController extends Controller
     public function update(Request $request, \App\Models\Tag $tag): \Illuminate\Http\JsonResponse
     {
         $request->validate([
-            'name' => 'required|string|max:50|unique:tags,name,' . $tag->id,
+            'name' => 'required|string|max:50|unique:tags,name,'.$tag->id,
         ]);
 
         $tag->update([
@@ -95,8 +96,6 @@ class TagController extends Controller
      */
     public function destroy(\App\Models\Tag $tag): \Illuminate\Http\JsonResponse
     {
-        // Pivot table should handle cascade or we can detach.
-        // Assuming cascade on delete for pivot, but to be safe:
         $tag->recipes()->detach();
         $tag->delete();
 

@@ -17,8 +17,13 @@ defineProps<{
   <PublicLayout>
     <Head>
       <title>قوائم الوصفات العامة</title>
-      <meta name="description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
-      <meta property="og:title" content="قوائم الوصفات العامة | وصفاتنا" />
+      <meta head-key="description" name="description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
+      <meta head-key="og:title" property="og:title" content="قوائم الوصفات العامة | وصفاتنا" />
+      <meta head-key="og:description" property="og:description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
+      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
+      <meta head-key="twitter:title" name="twitter:title" content="قوائم الوصفات العامة | وصفاتنا" />
+      <meta head-key="twitter:description" name="twitter:description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
+      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
     </Head>
     
     <div class="container mx-auto py-8 px-4 md:px-6">
@@ -52,6 +57,11 @@ defineProps<{
                         <img 
                             v-if="list.cover_image" 
                             :src="list.cover_image" 
+                            :alt="list.name"
+                            loading="lazy"
+                            decoding="async"
+                            width="640"
+                            height="360"
                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary">
@@ -82,7 +92,7 @@ defineProps<{
       <div v-if="lists.meta?.last_page > 1" class="mt-12 flex justify-center gap-2">
         <template v-for="(link, key) in lists.meta.links" :key="key">
             <component
-                :is="link.url ? 'Link' : 'span'"
+                :is="link.url ? Link : 'span'"
                 :href="link.url"
                 v-if="link.url || link.label === '...'"
                 class="px-3 py-1 border rounded-md text-sm"

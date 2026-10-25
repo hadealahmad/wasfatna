@@ -116,7 +116,7 @@ class RecipeController extends Controller
 
         $variations = Recipe::where('name', $recipe->name)
             ->approved()
-            ->with(['city', 'user', 'anonymousAuthor'])
+            ->with(['city', 'user', 'anonymousAuthor', 'tags'])
             ->get();
 
         return response()->json([

@@ -33,11 +33,11 @@ class WebAuthController extends Controller
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
 
                 if ($existingUser) {
-                    // Only link when the Google account's email is verified,
+                    // Only link when both Google email and existing local email are verified,
                     // otherwise this would allow pre-hijacking the existing account.
                     $emailVerified = $googleUser->user['email_verified'] ?? false;
-                    if (! $emailVerified) {
-                        return redirect()->route('login')->with('error', 'لم يتم تأكيد بريدك الإلكتروني في Google، لا يمكن ربط الحساب.');
+                    if (! $emailVerified || $existingUser->email_verified_at === null) {
+                        return redirect()->route('login')->with('error', 'لم يتم تأكيد بريدك الإلكتروني، لا يمكن ربط الحساب.');
                     }
                     $existingUser->update([
                         'google_id' => $googleUser->getId(),
@@ -45,13 +45,13 @@ class WebAuthController extends Controller
                     ]);
                     $user = $existingUser;
                 } else {
-                    $user = User::create([
+                    $user = new User([
                         'name' => $googleUser->getName(),
                         'email' => $googleUser->getEmail(),
                         'google_id' => $googleUser->getId(),
                         'avatar' => $googleUser->getAvatar(),
-                        'email_verified_at' => now(),
                     ]);
+                    $user->forceFill(['email_verified_at' => now()])->save();
                 }
             }
 

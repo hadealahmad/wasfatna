@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -42,12 +41,12 @@ class AuthController extends Controller
                 $existingUser = User::where('email', $googleUser->getEmail())->first();
 
                 if ($existingUser) {
-                    // Only link when the Google account's email is verified,
+                    // Only link when both Google email and existing local email are verified,
                     // otherwise this would allow pre-hijacking the existing account.
                     $emailVerified = $googleUser->user['email_verified'] ?? false;
-                    if (! $emailVerified) {
+                    if (! $emailVerified || $existingUser->email_verified_at === null) {
                         return response()->json([
-                            'error' => 'لم يتم تأكيد بريدك الإلكتروني في Google، لا يمكن ربط الحساب.',
+                            'error' => 'لم يتم تأكيد بريدك الإلكتروني، لا يمكن ربط الحساب.',
                         ], 403);
                     }
                     // Link Google account to existing user
@@ -58,13 +57,13 @@ class AuthController extends Controller
                     $user = $existingUser;
                 } else {
                     // Create new user
-                    $user = User::create([
+                    $user = new User([
                         'name' => $googleUser->getName(),
                         'email' => $googleUser->getEmail(),
                         'google_id' => $googleUser->getId(),
                         'avatar' => $googleUser->getAvatar(),
-                        'email_verified_at' => now(),
                     ]);
+                    $user->forceFill(['email_verified_at' => now()])->save();
                 }
             } else {
                 // Update avatar if changed
@@ -113,9 +112,20 @@ class AuthController extends Controller
      */
     public function user(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $user->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return response()->json([
-            'user' => $this->formatUser($request->user()),
+            'user' => $this->formatUser($user),
         ]);
+    }
+
+    /**
+     * Alias for user().
+     */
+    public function me(Request $request): JsonResponse
+    {
+        return $this->user($request);
     }
 
     /**
@@ -187,6 +197,8 @@ class AuthController extends Controller
      */
     private function formatUser(User $user): array
     {
+        $user->makeVisible(['email', 'is_banned', 'ban_reason', 'deletion_requested']);
+
         return [
             'id' => $user->id,
             'name' => $user->name,

@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
+import { ref, watch, onMounted, onUnmounted } from 'vue';
 import Card from '@/components/ui/Card.vue';
 import CardContent from '@/components/ui/CardContent.vue';
 import { ChefHat } from 'lucide-vue-next';
 
-export interface Recipe {
+interface Recipe {
     id: number;
     name: string;
     slug: string;
-    image_url: string | null;
-    author?: { name: string };
+    image_url?: string;
     city?: { name: string };
+    author?: { name: string };
 }
 
 const props = defineProps<{
@@ -22,223 +22,153 @@ const emit = defineEmits<{
     (e: 'spinComplete', winner: Recipe): void;
 }>();
 
-const trackRef = ref<HTMLDivElement | null>(null);
-let audioContext: AudioContext | null = null;
-let lastTickIndex = -1;
-let animationFrameId: number | null = null;
-let hasStarted = false;
-
-const winnerIndex = ref<number | null>(null);
-const translateX = ref(0);
+const containerRef = ref<HTMLElement | null>(null);
+const scrollPosition = ref(0);
 const isAnimating = ref(false);
-const showResult = ref(false);
+let animationFrame: number | null = null;
 
-const CARD_WIDTH = 180;
-const CARD_GAP = 12;
-const CARD_TOTAL = CARD_WIDTH + CARD_GAP;
+// Responsive card dimensions
+const getCardDimensions = () => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    return {
+        width: isMobile ? 160 : 220,
+        gap: isMobile ? 12 : 16,
+    };
+};
 
-// Initialize audio context
-const initAudio = () => {
-    if (!audioContext) {
-        try {
-            audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        } catch (e) {
-            console.warn('Audio not available');
-        }
+// Multiply recipes to create long strip for scrolling
+const displayRecipes = ref<Recipe[]>([]);
+
+watch(() => props.recipes, (newRecipes) => {
+    if (newRecipes.length > 0) {
+        // Repeat enough times for smooth long spin
+        displayRecipes.value = [
+            ...newRecipes,
+            ...newRecipes,
+            ...newRecipes,
+            ...newRecipes,
+            ...newRecipes,
+            ...newRecipes,
+        ];
     }
-    return audioContext;
-};
+}, { immediate: true });
 
-// Play tick sound
-const playTick = () => {
-    if (!audioContext) return;
-    try {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.frequency.value = 500 + Math.random() * 300;
-        oscillator.type = 'sine';
-        gainNode.gain.setValueAtTime(0.08, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.05);
-    } catch (e) {}
-};
+// Watch for spinning trigger
+watch(() => props.spinning, (spinning) => {
+    if (spinning && props.recipes.length > 0) {
+        startSpin();
+    }
+});
 
-// Play win sound
-const playWinSound = () => {
-    if (!audioContext) return;
-    try {
-        const frequencies = [523, 659, 784, 1047];
-        frequencies.forEach((freq, i) => {
-            setTimeout(() => {
-                const oscillator = audioContext!.createOscillator();
-                const gainNode = audioContext!.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext!.destination);
-                oscillator.frequency.value = freq;
-                oscillator.type = 'sine';
-                gainNode.gain.setValueAtTime(0.12, audioContext!.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext!.currentTime + 0.4);
-                oscillator.start(audioContext!.currentTime);
-                oscillator.stop(audioContext!.currentTime + 0.4);
-            }, i * 80);
-        });
-    } catch (e) {}
-};
+const startSpin = () => {
+    if (props.recipes.length === 0) return;
 
-// Track animation for tick sounds
-const trackAnimationLoop = () => {
-    if (!trackRef.value || !isAnimating.value) return;
-    
-    try {
-        const transform = getComputedStyle(trackRef.value).transform;
-        if (transform && transform !== 'none') {
-            const matrix = new DOMMatrix(transform);
-            const currentX = Math.abs(matrix.m41);
-            const cardAtCenter = Math.floor(currentX / CARD_TOTAL);
-            
-            if (cardAtCenter !== lastTickIndex && cardAtCenter >= 0) {
-                lastTickIndex = cardAtCenter;
-                playTick();
-            }
-        }
-    } catch (e) {}
-    
-    animationFrameId = requestAnimationFrame(trackAnimationLoop);
-};
+    const { width: CARD_WIDTH, gap: CARD_GAP } = getCardDimensions();
+    const TOTAL_CARD_WIDTH = CARD_WIDTH + CARD_GAP;
 
-// Handle spinning state change
-watch(() => props.spinning, (newSpinning) => {
-    if (newSpinning && props.recipes.length > 0 && !hasStarted) {
-        hasStarted = true;
-        initAudio();
-        
-        // Reset for new spin
-        showResult.value = false;
-        lastTickIndex = -1;
-        
-        // Pick winner
-        const minIndex = Math.max(props.recipes.length - 8, Math.floor(props.recipes.length * 0.7));
-        const maxIndex = props.recipes.length - 3;
-        const targetIndex = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
-        
-        winnerIndex.value = targetIndex;
-        
-        // Calculate position
-        const winnerCenterOffset = (targetIndex * CARD_TOTAL) + (CARD_WIDTH / 2);
-        translateX.value = -winnerCenterOffset;
-        
-        // Start animating
-        isAnimating.value = true;
-        animationFrameId = requestAnimationFrame(trackAnimationLoop);
-        
-        // Complete after 5 seconds
-        setTimeout(() => {
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-                animationFrameId = null;
-            }
-            
+    isAnimating.value = true;
+
+    // Pick a random winner from the middle section (3rd or 4th repeat)
+    const minIndex = props.recipes.length * 2;
+    const maxIndex = props.recipes.length * 4;
+    const winningIndex = Math.floor(Math.random() * (maxIndex - minIndex)) + minIndex;
+    const winningRecipe = displayRecipes.value[winningIndex];
+
+    // Calculate exact position to center the winning card
+    const containerWidth = containerRef.value?.offsetWidth || 600;
+    const centerOffset = (containerWidth / 2) - (CARD_WIDTH / 2);
+    // In RTL, flex starts from right, so we need positive translateX to move content right (showing items further in the list)
+    const targetPosition = (winningIndex * TOTAL_CARD_WIDTH) - centerOffset;
+
+    const startTime = performance.now();
+    const duration = 5000; // 5 seconds spin
+
+    // Reset to start
+    scrollPosition.value = 0;
+
+    const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Ease out quartic for realistic slot machine deceleration
+        const ease = 1 - Math.pow(1 - progress, 4);
+
+        scrollPosition.value = targetPosition * ease;
+
+        if (progress < 1) {
+            animationFrame = requestAnimationFrame(animate);
+        } else {
             isAnimating.value = false;
-            showResult.value = true;
-            playWinSound();
-            
-            if (winnerIndex.value !== null) {
-                emit('spinComplete', props.recipes[winnerIndex.value]);
-            }
-        }, 5000);
-    }
-    
-    if (!newSpinning && hasStarted) {
-        hasStarted = false;
-    }
-});
+            emit('spinComplete', winningRecipe);
+        }
+    };
 
-// Cleanup
-onUnmounted(() => {
-    if (audioContext) {
-        audioContext.close().catch(() => {});
-    }
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-    }
-});
-
-const currentTransform = computed(() => {
-    if (isAnimating.value || showResult.value) {
-        return `translateX(${translateX.value}px)`;
-    }
-    return `translateX(${CARD_TOTAL * 2}px)`;
-});
-
-const getCardClass = (index: number) => {
-    const isWinner = winnerIndex.value === index && (isAnimating.value || showResult.value);
-    if (isWinner && showResult.value) {
-        return 'ring-4 ring-primary scale-110 shadow-2xl z-30';
-    }
-    if (isWinner) {
-        return 'ring-2 ring-primary/50 scale-105';
-    }
-    return 'border-2 border-border';
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = requestAnimationFrame(animate);
 };
+
+onUnmounted(() => {
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+});
 </script>
 
 <template>
-    <div class="relative w-full overflow-hidden rounded-xl border bg-background/80 backdrop-blur py-6" dir="ltr">
-        <!-- Center Selection Indicator -->
-        <div class="absolute left-1/2 top-0 z-20 h-full w-1 -translate-x-1/2 bg-gradient-to-b from-primary via-primary to-primary shadow-lg">
-            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent border-t-primary"></div>
-            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[10px] border-l-transparent border-r-transparent border-b-primary"></div>
+    <div class="relative w-full overflow-hidden py-6 md:py-10 bg-muted/20 rounded-xl border-y-2 border-primary/20">
+        <!-- Center Indicator Arrows -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 z-20 text-primary">
+            <div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[14px] border-t-primary drop-shadow-md"></div>
+        </div>
+        <div class="absolute bottom-0 left-1/2 -translate-x-1/2 z-20 text-primary">
+            <div class="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[14px] border-b-primary drop-shadow-md"></div>
         </div>
 
-        <!-- Edge Fade Gradients -->
-        <div class="absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-background to-transparent pointer-events-none"></div>
-        <div class="absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-background to-transparent pointer-events-none"></div>
+        <!-- Center Highlight Line -->
+        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[168px] md:w-[228px] border-2 border-primary/40 rounded-lg z-10 pointer-events-none bg-primary/5"></div>
 
-        <!-- Scrolling Track Container -->
-        <div class="relative h-[220px] flex items-center justify-center overflow-hidden">
-            <div
-                ref="trackRef"
-                class="absolute flex items-center"
+        <!-- Side Fade Overlays -->
+        <div class="absolute inset-y-0 right-0 w-12 md:w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute inset-y-0 left-0 w-12 md:w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+
+        <!-- Scrolling Track - Using LTR internally for predictable math -->
+        <div ref="containerRef" class="w-full overflow-hidden" dir="ltr">
+            <div 
+                class="flex gap-3 md:gap-4"
                 :style="{
-                    gap: `${CARD_GAP}px`,
-                    left: '50%',
-                    transform: currentTransform,
-                    transition: isAnimating ? 'transform 5s cubic-bezier(0.15, 0.05, 0.05, 1)' : 'none',
+                    transform: `translate3d(-${scrollPosition}px, 0, 0)`,
+                    width: 'max-content',
+                    willChange: isAnimating ? 'transform' : 'auto'
                 }"
             >
-                <Card
-                    v-for="(recipe, index) in recipes"
+                <div 
+                    v-for="(recipe, index) in displayRecipes" 
                     :key="`${recipe.id}-${index}`"
-                    :class="[
-                        'shrink-0 overflow-hidden transition-all duration-500 relative',
-                        getCardClass(index)
-                    ]"
-                    :style="{ width: `${CARD_WIDTH}px` }"
+                    class="flex-shrink-0 w-[160px] md:w-[220px]"
                     dir="rtl"
                 >
-                    <div class="relative h-28 w-full bg-muted">
-                        <img 
-                            v-if="recipe.image_url" 
-                            :src="recipe.image_url" 
-                            :alt="recipe.name"
-                            class="w-full h-full object-cover"
-                        />
-                        <div v-else class="flex h-full items-center justify-center">
-                            <ChefHat class="w-8 h-8 text-muted-foreground/50" />
+                    <Card class="h-[220px] md:h-[260px] overflow-hidden border-2 hover:border-primary/50 transition-colors">
+                        <div class="relative h-28 md:h-36 w-full bg-muted">
+                            <img 
+                                v-if="recipe.image_url" 
+                                :src="recipe.image_url" 
+                                :alt="recipe.name" 
+                                loading="lazy"
+                                decoding="async"
+                                class="w-full h-full object-cover"
+                            />
+                            <div v-else class="flex h-full items-center justify-center text-muted-foreground">
+                                <ChefHat class="h-8 w-8 md:h-12 md:w-12 opacity-20" />
+                            </div>
                         </div>
-                    </div>
-                    <CardContent class="p-2">
-                        <h3 class="truncate font-bold text-sm" :title="recipe.name">
-                            {{ recipe.name }}
-                        </h3>
-                        <p class="truncate text-xs text-muted-foreground">
-                            {{ recipe.city?.name }}
-                        </p>
-                    </CardContent>
-                </Card>
+                        <CardContent class="p-2.5 md:p-3 text-center">
+                            <h3 class="font-bold text-sm md:text-base truncate mb-1" :title="recipe.name">
+                                {{ recipe.name }}
+                            </h3>
+                            <p class="text-xs text-muted-foreground truncate">
+                                {{ recipe.city?.name || 'سوريا' }}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     </div>

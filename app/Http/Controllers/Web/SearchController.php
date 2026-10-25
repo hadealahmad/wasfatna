@@ -7,13 +7,14 @@ use App\Models\Recipe;
 use App\Models\City;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 class SearchController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Recipe::with(['user', 'anonymousAuthor', 'city', 'tags', 'ingredients'])
+        $query = Recipe::with(['city', 'user', 'anonymousAuthor', 'tags'])
             ->where('status', 'approved')
             ->latest();
 
@@ -50,10 +51,13 @@ class SearchController extends Controller
         $perPage = min(max((int) $request->input('per_page', 12), 10), 100);
         $recipes = $query->paginate($perPage)->withQueryString();
 
+        $allCities = Cache::remember('all_cities_select', 600, fn () => City::select('id', 'name', 'slug')->get());
+        $allTags = Cache::remember('all_tags_select', 600, fn () => Tag::select('id', 'name', 'slug')->get());
+
         return Inertia::render('Search/Index', [
             'recipes' => $recipes->through(fn($r) => $this->formatRecipeCard($r)),
-            'cities' => City::select('id', 'name', 'slug')->get(),
-            'tags' => Tag::select('id', 'name', 'slug')->get(),
+            'cities' => $allCities,
+            'tags' => $allTags,
             'filters' => $request->only(['search', 'city', 'tag', 'difficulty', 'per_page']),
         ]);
     }
