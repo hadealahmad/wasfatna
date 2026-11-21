@@ -134,3 +134,16 @@ config, deploys straight from GitHub, and no self-hosted runner is needed.
 Follow-up (separate from the move): production runs with `APP_ENV=local`.
 Switching to `production` changes the session cookie name (`__Host-` prefix),
 which signs everyone out once — do it deliberately, not during the move.
+
+## Cutover completed (2026-11-21)
+
+- Old host put in maintenance mode at 15:17 UTC; final DB dump (25 tables matched,
+  incl. 120 users, 26 sessions) and uploads (211 files / 92,838,410 bytes matched)
+  copied; owner switched the Cloudflare A record to 62.171.131.239 (proxied).
+- Live smoke test on food.syrian.zone passed (all pages 200, images, search,
+  Google OAuth redirect to the unchanged callback).
+- Deploys now: push to `main` → GitHub webhook → Coolify build. The self-hosted
+  `deploy.yml` workflow is removed; the old host keeps its data in maintenance
+  mode as the rollback (point DNS back + `php artisan up`).
+- Backups on the old host: `/home/syrian/backups/food-db-20261121-153754.sql.gz`
+  and `food-db-cutover-20261121-161730.sql.gz`.
