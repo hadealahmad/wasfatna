@@ -147,3 +147,19 @@ which signs everyone out once — do it deliberately, not during the move.
   mode as the rollback (point DNS back + `php artisan up`).
 - Backups on the old host: `/home/syrian/backups/food-db-20261121-153754.sql.gz`
   and `food-db-cutover-20261121-161730.sql.gz`.
+
+## Post-migration clean-up (2026-11-21)
+
+- `APP_ENV` switched from `local` to `production` on Coolify. This also closed a
+  security hole: with `APP_ENV=local` the `/dev-login` route (log in as admin, no
+  password) was reachable in production since at least August. It now returns 404.
+  Access logs from 2026-10-11 onward show no use of it; earlier logs are rotated out.
+  Side effects: sessions use the `__Host-` cookie (everyone signed in again once),
+  HSTS and the strict production CSP are on.
+- Old host: `cooking-runner` service stopped, uninstalled and deregistered from GitHub;
+  the `food.syrian.zone` virtual server is **disabled** in Virtualmin (files and the
+  three databases `cooking_database`, `cooking_db`, `food` still on disk).
+- Archive of all three databases and the site files (with `.env`, storage, logs):
+  `/home/syrian/backups/food-decommission-20261121/` on the old host and
+  `/root/archives/food-decommission-20261121/` on the Coolify host (SHA256SUMS verified).
+- Coolify API token `wasfatna-migration` revoked.
