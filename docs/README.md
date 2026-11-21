@@ -40,7 +40,7 @@ docs/
 ## The Stack at a Glance
 
 - **Backend:** PHP ^8.2, Laravel 12, Sanctum 4, Socialite (Google), Intervention Image, Ziggy
-- **Frontend:** Vue 3.5 + TypeScript, Inertia.js 2 (SSR bundle, optional), Tailwind CSS 4 with SyrianZone-style tokens and 9 themes, Radix Vue/shadcn-style UI, Lucide + project icons
+- **Frontend:** Vue 3.5 + TypeScript, Inertia.js 2 (server-side rendered in production), Tailwind CSS 4 with SyrianZone-style tokens and 9 themes, Radix Vue/shadcn-style UI, Lucide + project icons
 - **Build:** Vite 7 via Bun (`bun run build`); production ships as a Docker image (`Dockerfile`, `docker/`)
 - **Database:** SQLite (local default) / MySQL (production) / PostgreSQL
 - **Tests:** PHPUnit 11 (`composer test`)

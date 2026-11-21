@@ -12,7 +12,7 @@ Wasfatna is a modern Syrian recipe platform built with Laravel 12, Vue 3, and In
 -   🛡️ **Moderation Dashboard**: Recipe/list approval workflows, reports handling, user & role management, bulk import.
 -   🤖 **AI Integration**: Automatically process and format recipes using AI.
 -   📱 **REST API**: Sanctum-token API under `/api` for mobile/external clients; LLM-friendly `/llms.txt` and markdown recipe endpoints.
--   🌗 **Modern UI**: Vue 3 + Radix Vue + Lucide icons, dark mode, SSR-enabled Inertia SPA.
+-   🌗 **Modern UI**: Vue 3 + Radix Vue + Lucide icons, 9 themes, server-side rendered Inertia SPA with per-page SEO.
 
 ## Tech Stack
 

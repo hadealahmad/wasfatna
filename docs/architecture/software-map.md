@@ -77,9 +77,10 @@ cooking/
 │   │   │   ├── reports/         # ReportModal, …
 │   │   │   ├── search/          # GlobalSearch (command palette), SmartFilterSearch
 │   │   │   ├── AppearanceMenu.vue, ProjectIcon.vue, AnalyticsConsentBanner.vue
+│   │   │   ├── SeoHead.vue      # Per-page title/meta/canonical/og/twitter/JSON-LD (used by every public page)
 │   │   │   └── ui/              # shadcn-style primitives (Button, Dialog, Table, …)
 │   │   ├── composables/         # useTheme, useColorScheme (compat), useGlobalSearch
-│   │   └── lib/                 # utils.ts (cn), image-utils.ts, theme.ts, arabic.ts, analyticsConsent.ts
+│   │   └── lib/                 # utils.ts (cn), image-utils.ts, theme.ts, arabic.ts, analyticsConsent.ts, seo.ts
 ├── routes/
 │   ├── web.php                  # Inertia pages + /web-api/* fetch endpoints
 │   ├── api.php                  # Sanctum REST API (/api)
