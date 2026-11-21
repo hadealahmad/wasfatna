@@ -31,7 +31,7 @@ The app listens on **port 8080**. Health check: `GET /up` (Laravel's built-in ro
 |---|---|
 | `queue-worker` | `php artisan queue:work --tries=3 --timeout=300` |
 | `laravel-scheduler` | `php artisan schedule:run` every 60 s |
-| `inertia-ssr` | `node bootstrap/ssr/ssr.js` — **only when `INERTIA_SSR_ENABLED=true`**, otherwise idles |
+| `inertia-ssr` | `node bootstrap/ssr/ssr.js` on 127.0.0.1:13714 — on by default; idles when `INERTIA_SSR_ENABLED=false` |
 
 ### Persistent data
 
@@ -52,7 +52,7 @@ Start from `.env.example`; pass values as container environment variables (no
 | `APP_KEY` | Keep it stable across deploys; changing it invalidates sessions and encrypted values. |
 | `APP_URL` | Public HTTPS URL. |
 | `TRUSTED_PROXIES` | `*` when behind a reverse proxy that terminates TLS, so Laravel sees HTTPS and the real client IP. Empty = trust none. |
-| `INERTIA_SSR_ENABLED` | Image default `false`. Set `true` to run the SSR server and have Laravel use it. |
+| `INERTIA_SSR_ENABLED` | Image default `true`: pages are server-rendered, so crawlers and link previews get per-page titles, meta tags, JSON-LD and content. `false` falls back to client-side rendering with the generic head from `app.blade.php`. |
 | `GA_MEASUREMENT_ID` | Google Analytics id (consent-gated, see `resources/js/lib/analyticsConsent.ts`). Empty disables analytics and the consent banner. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Google sign-in (Socialite). |
 | `DB_*`, `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION`, `FILESYSTEM_DISK=public` | As in `.env.example`. |

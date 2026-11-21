@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { AlertCircle, ArrowRight } from 'lucide-vue-next';
 import AppearanceMenu from '@/components/AppearanceMenu.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import {
   Alert,
   AlertDescription,
@@ -26,7 +27,12 @@ const errorMessage = computed(
 </script>
 
 <template>
-  <Head title="تسجيل الدخول" />
+  <SeoHead
+    title="تسجيل الدخول"
+    description="سجّل دخولك إلى منصة وصفاتنا عبر حساب Google لمشاركة وصفاتك السورية، وحفظ قوائمك المفضلة، وتنظيم خطط وجباتك الأسبوعية بسهولة."
+    canonical="/login"
+    noindex
+  />
 
   <div class="min-h-dvh flex flex-col bg-background font-sans antialiased" dir="rtl">
     <a

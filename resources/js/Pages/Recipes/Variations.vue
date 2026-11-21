@@ -1,36 +1,69 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { ChevronLeft } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
+import { buildBreadcrumbSchema, buildRecipeItemList, resolveCanonicalUrl } from '@/lib/seo';
 
 interface Props {
   dish_name: string;
+  slug?: string;
   recipes: any[];
 }
 
 const props = defineProps<Props>();
+const page = usePage();
 
 const descriptionText = computed(
   () =>
-    `اكتشف ${props.recipes.length} طريقة مختلفة لتحضير طبق ${props.dish_name} من مختلف المدن السورية على منصة وصفاتنا.`,
+    `اكتشف ${props.recipes.length} طريقة مختلفة لتحضير طبق ${props.dish_name} من مختلف المدن والمناطق السورية، وقارن المكونات وخطوات التحضير على منصة وصفاتنا.`,
 );
+
+const canonicalUrl = computed(() =>
+  resolveCanonicalUrl(
+    props.slug ? `/recipes/${props.slug}/variations` : undefined,
+    (page.props.ziggy as { location?: string } | undefined)?.location,
+  ),
+);
+
+const firstImage = computed(() => props.recipes.find((r) => r?.image_url)?.image_url || null);
+
+const variationsJsonLd = computed(() => [
+  {
+    key: 'jsonld-variations-collection',
+    data: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: `طرق تحضير ${props.dish_name}`,
+      description: descriptionText.value,
+      url: canonicalUrl.value,
+      inLanguage: 'ar-SY',
+      mainEntity: buildRecipeItemList(props.recipes || []),
+    },
+  },
+  {
+    key: 'jsonld-variations-breadcrumb',
+    data: buildBreadcrumbSchema([
+      { name: 'الرئيسية', path: '/' },
+      { name: 'الوصفات', path: '/recipes' },
+      { name: `طرق تحضير ${props.dish_name}`, path: canonicalUrl.value },
+    ]),
+  },
+]);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>طرق تحضير {{ dish_name }}</title>
-      <meta head-key="description" name="description" :content="descriptionText" />
-      <meta head-key="og:title" property="og:title" :content="`طرق تحضير ${dish_name} | وصفاتنا`" />
-      <meta head-key="og:description" property="og:description" :content="descriptionText" />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" :content="`طرق تحضير ${dish_name} | وصفاتنا`" />
-      <meta head-key="twitter:description" name="twitter:description" :content="descriptionText" />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      :title="`طرق تحضير ${dish_name}`"
+      :description="descriptionText"
+      :image="firstImage"
+      :canonical="canonicalUrl"
+      :json-ld="variationsJsonLd"
+    />
 
     <div class="container max-w-7xl mx-auto py-8 md:py-12 px-4 md:px-8">
       <nav aria-label="مسار التصفح" class="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground">

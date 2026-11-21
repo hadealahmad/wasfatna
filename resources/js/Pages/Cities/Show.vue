@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import { Badge } from '@/components/ui';
-import { safeJsonLd, formatPaginationLabel } from '@/lib/utils';
+import { buildBreadcrumbSchema, buildRecipeItemList, resolveCanonicalUrl } from '@/lib/seo';
+import { formatPaginationLabel } from '@/lib/utils';
 import { ChevronLeft } from 'lucide-vue-next';
 
 interface City {
@@ -13,6 +15,7 @@ interface City {
     name: string;
     slug: string;
     description: string | null;
+    image_url?: string | null;
 }
 
 const props = defineProps<{
@@ -24,16 +27,26 @@ const props = defineProps<{
     };
 }>();
 
-const cityDescription = computed(() =>
-    props.city.description || `اكتشف أشهر اكلات ووصفات ${props.city.name} الأصيلة من المطبخ السوري التراثي مع المكونات وطريقة التحضير بالتفصيل على منصة وصفاتنا.`
-);
+const recipesCount = computed(() => props.recipes.meta?.total ?? props.recipes.data.length);
+
+const cityDescription = computed(() => {
+    const custom = props.city.description?.trim();
+    if (custom && custom.length >= 100) {
+        return custom;
+    }
+
+    const prefix = custom ? `${custom} — ` : '';
+    return `${prefix}اكتشف ${recipesCount.value} وصفة وأكلة شعبية وتراثية من مطبخ ${props.city.name} الأصيل في سوريا، مع المكونات الدقيقة وخطوات التحضير على منصة وصفاتنا.`;
+});
+
+const cityCanonicalPath = computed(() => `/cities/${props.city.slug}`);
 
 const collectionSchema = computed(() => ({
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     'name': `وصفات وأكلات ${props.city.name} - المطبخ السوري`,
     'description': cityDescription.value,
-    'url': `https://food.syrian.zone/cities/${props.city.slug}`,
+    'url': resolveCanonicalUrl(cityCanonicalPath.value),
     'inLanguage': 'ar-SY',
     'about': {
         '@type': 'Place',
@@ -42,49 +55,33 @@ const collectionSchema = computed(() => ({
             '@type': 'PostalAddress',
             'addressCountry': 'SY'
         }
-    }
+    },
+    'mainEntity': buildRecipeItemList(props.recipes.data || []),
 }));
 
-const breadcrumbSchema = computed(() => ({
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    'itemListElement': [
-        {
-            '@type': 'ListItem',
-            'position': 1,
-            'name': 'الرئيسية',
-            'item': 'https://food.syrian.zone/'
-        },
-        {
-            '@type': 'ListItem',
-            'position': 2,
-            'name': 'المدن والمناطق',
-            'item': 'https://food.syrian.zone/cities'
-        },
-        {
-            '@type': 'ListItem',
-            'position': 3,
-            'name': `وصفات ${props.city.name}`,
-            'item': `https://food.syrian.zone/cities/${props.city.slug}`
-        }
-    ]
-}));
+const breadcrumbSchema = computed(() =>
+    buildBreadcrumbSchema([
+        { name: 'الرئيسية', path: '/' },
+        { name: 'المدن والمناطق', path: '/cities' },
+        { name: `وصفات ${props.city.name}`, path: cityCanonicalPath.value },
+    ]),
+);
+
+const cityJsonLd = computed(() => [
+    { key: 'jsonld-city-collection', data: collectionSchema.value },
+    { key: 'jsonld-city-breadcrumb', data: breadcrumbSchema.value },
+]);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>وصفات {{ city.name }}</title>
-      <meta head-key="description" name="description" :content="cityDescription" />
-      <meta head-key="og:title" property="og:title" :content="`وصفات وأكلات ${city.name} | وصفاتنا`" />
-      <meta head-key="og:description" property="og:description" :content="cityDescription" />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" :content="`وصفات وأكلات ${city.name} | وصفاتنا`" />
-      <meta head-key="twitter:description" name="twitter:description" :content="cityDescription" />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-collection">{{ safeJsonLd(collectionSchema) }}</component>
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-breadcrumb">{{ safeJsonLd(breadcrumbSchema) }}</component>
-    </Head>
+    <SeoHead
+      :title="`وصفات ${city.name}`"
+      :description="cityDescription"
+      :image="city.image_url"
+      :canonical="cityCanonicalPath"
+      :json-ld="cityJsonLd"
+    />
     
     <!-- Hero Section -->
     <section class="border-b border-border bg-background py-10 md:py-16">

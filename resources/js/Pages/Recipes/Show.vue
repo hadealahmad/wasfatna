@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import {
   Check,
   ChefHat,
@@ -15,6 +15,7 @@ import {
   UtensilsCrossed,
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import AddToFavoritesModal from '@/components/features/lists/AddToFavoritesModal.vue';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import RecipeControls from '@/components/recipes/RecipeControls.vue';
@@ -34,7 +35,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { cn, safeJsonLd } from '@/lib/utils';
+import { buildBreadcrumbSchema, resolveCanonicalUrl, resolveOgImageUrl } from '@/lib/seo';
+import { cn } from '@/lib/utils';
 
 interface Recipe {
   id: number;
@@ -325,15 +327,26 @@ const groupedStepsList = computed(() => {
 
 const formattedTime = computed(() => formatTimeNeeded(props.recipe.time_needed));
 
-const metaDescription = computed(
-  () =>
-    props.recipe.description ||
-    `تعلم طريقة عمل ${props.recipe.name} من مطبخ ${props.recipe.city?.name || 'منوع'}. اكتشف المكونات والخطوات بالتفصيل.`,
-);
+const seoTitle = computed(() => {
+  const suffix = ' - طريقة التحضير والمكونات';
+  return props.recipe.name.length + suffix.length <= 50
+    ? `${props.recipe.name}${suffix}`
+    : props.recipe.name;
+});
 
-const ogImageUrl = computed(
-  () => props.recipe.image_url || 'https://food.syrian.zone/og-image.webp',
-);
+const metaDescription = computed(() => {
+  const desc = props.recipe.description?.trim();
+  if (desc && desc.length >= 100) {
+    return desc;
+  }
+
+  const cityPart = props.recipe.city?.name ? ` من مطبخ ${props.recipe.city.name} السوري` : ' من المطبخ السوري الأصيل';
+  const ingPart = totalIngredientsCount.value > 0 ? ` (${totalIngredientsCount.value} مكونات)` : '';
+  const prefix = desc ? `${desc} — ` : '';
+  return `${prefix}تعلّم طريقة عمل ${props.recipe.name}${cityPart} على منصة وصفاتنا. اكتشف المكونات الدقيقة${ingPart} وخطوات التحضير المبسطة بالتفصيل.`;
+});
+
+const recipeCanonicalPath = computed(() => `/recipes/${props.recipe.slug}`);
 
 const jsonLdSchema = computed(() => {
   const allIngredients = groupedIngredientsList.value.flatMap((group) =>
@@ -357,10 +370,10 @@ const jsonLdSchema = computed(() => {
     '@type': 'Recipe',
     name: props.recipe.name,
     inLanguage: 'ar-SY',
-    url: typeof window !== 'undefined' ? window.location.href : 'https://food.syrian.zone/recipes/' + props.recipe.slug,
+    url: resolveCanonicalUrl(recipeCanonicalPath.value),
     datePublished: props.recipe.created_at,
-    image: props.recipe.image_url ? [props.recipe.image_url] : ['https://food.syrian.zone/og-image.webp'],
-    description: props.recipe.description || `طريقة عمل ${props.recipe.name}`,
+    image: [resolveOgImageUrl(props.recipe.image_url)],
+    description: metaDescription.value,
     keywords: props.recipe.tags?.map((t) => t.name).join(', ') || '',
     author: {
       '@type': 'Person',
@@ -375,62 +388,44 @@ const jsonLdSchema = computed(() => {
 });
 
 const breadcrumbSchema = computed(() => {
-  const items: any[] = [
-    {
-      '@type': 'ListItem',
-      position: 1,
-      name: 'الرئيسية',
-      item: 'https://food.syrian.zone/',
-    },
-    {
-      '@type': 'ListItem',
-      position: 2,
-      name: 'الوصفات',
-      item: 'https://food.syrian.zone/recipes',
-    },
+  const entries = [
+    { name: 'الرئيسية', path: '/' },
+    { name: 'الوصفات', path: '/recipes' },
   ];
 
   if (props.recipe.city) {
-    items.push({
-      '@type': 'ListItem',
-      position: items.length + 1,
+    entries.push({
       name: `وصفات ${props.recipe.city.name}`,
-      item: `https://food.syrian.zone/cities/${props.recipe.city.slug || props.recipe.city_slug}`,
+      path: `/cities/${props.recipe.city.slug || props.recipe.city_slug}`,
     });
   }
 
-  items.push({
-    '@type': 'ListItem',
-    position: items.length + 1,
+  entries.push({
     name: props.recipe.name,
-    item: `https://food.syrian.zone/recipes/${props.recipe.slug}`,
+    path: recipeCanonicalPath.value,
   });
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items,
-  };
+  return buildBreadcrumbSchema(entries);
 });
+
+const recipeJsonLd = computed(() => [
+  { key: 'jsonld-recipe', data: jsonLdSchema.value },
+  { key: 'jsonld-breadcrumb', data: breadcrumbSchema.value },
+]);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>{{ recipe.name }} - طريقة التحضير والمكونات</title>
-      <meta head-key="description" name="description" :content="metaDescription" />
-      <meta head-key="og:title" property="og:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
-      <meta head-key="og:description" property="og:description" :content="metaDescription" />
-      <meta head-key="og:image" property="og:image" :content="ogImageUrl" />
-      <meta head-key="og:type" property="og:type" content="article" />
-      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
-      <meta head-key="twitter:title" name="twitter:title" :content="`طريقة عمل ${recipe.name} | وصفاتنا`" />
-      <meta head-key="twitter:description" name="twitter:description" :content="metaDescription" />
-      <meta head-key="twitter:image" name="twitter:image" :content="ogImageUrl" />
+    <SeoHead
+      :title="seoTitle"
+      :description="metaDescription"
+      :image="recipe.image_url"
+      type="article"
+      :canonical="recipeCanonicalPath"
+      :json-ld="recipeJsonLd"
+    >
       <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-recipe">{{ safeJsonLd(jsonLdSchema) }}</component>
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-breadcrumb">{{ safeJsonLd(breadcrumbSchema) }}</component>
-    </Head>
+    </SeoHead>
 
     <div class="container max-w-7xl mx-auto py-6 md:py-10 px-4 md:px-8">
       <!-- Breadcrumb -->

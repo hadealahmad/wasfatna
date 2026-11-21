@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { CalendarDays, Plus, Utensils } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Avatar, AvatarFallback, AvatarImage, Badge, Button, Card, CardContent } from '@/components/ui';
 import PaginationControls from '@/components/ui/PaginationControls.vue';
 import { formatDate } from '@/lib/utils';
@@ -44,16 +45,11 @@ function handlePerPageChange(perPage: number) {
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>تصفح خطط الوجبات</title>
-      <meta head-key="description" name="description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
-      <meta head-key="og:title" property="og:title" content="تصفح خطط الوجبات | وصفاتنا" />
-      <meta head-key="og:description" property="og:description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="تصفح خطط الوجبات | وصفاتنا" />
-      <meta head-key="twitter:description" name="twitter:description" content="تصفح خطط الوجبات المشاركة من مجتمع وصفاتنا. اكتشف أفكار وجبات أسبوعية وخطط رمضانية من مستخدمين آخرين." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="تصفح خطط الوجبات"
+      description="تصفح خطط الوجبات الأسبوعية والرمضانية المشاركة من مجتمع وصفاتنا، واستلهم أفكاراً منظمة لجدولة أطباقك اليومية بسهولة مع العائلة."
+      canonical="/meal-plans/browse"
+    />
 
     <div class="container max-w-7xl mx-auto py-10 md:py-14 px-4 md:px-8">
       <!-- Header -->

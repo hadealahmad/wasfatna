@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
 import { computed, toRef } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SmartFilterSearch from '@/components/search/SmartFilterSearch.vue';
 import {
@@ -62,17 +62,12 @@ const totalResults = computed(() => props.recipes.total ?? props.recipes.data.le
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>نتائج البحث</title>
-      <meta name="robots" content="noindex, follow" head-key="robots" />
-      <meta head-key="description" name="description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
-      <meta head-key="og:title" property="og:title" content="نتائج البحث | وصفاتنا" />
-      <meta head-key="og:description" property="og:description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="نتائج البحث | وصفاتنا" />
-      <meta head-key="twitter:description" name="twitter:description" content="ابحث في وصفاتنا عن وصفتك المفضلة من المطبخ السوري الأصيل حسب الاسم أو المدينة أو المكونات." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="نتائج البحث"
+      description="ابحث في مكتبة وصفاتنا عن أشهى الأكلات السورية حسب اسم الطبق أو المكونات المتوفرة أو المدينة والوسم ومستوى الصعوبة بسرعة وسهولة."
+      canonical="/search"
+      noindex
+    />
 
     <div class="container max-w-7xl mx-auto py-8 md:py-12 px-4 md:px-8">
       <div class="flex items-start gap-3 mb-6">

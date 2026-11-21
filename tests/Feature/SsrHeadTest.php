@@ -2,7 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\City;
+use App\Models\Recipe;
+use App\Models\RecipeList;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Ssr\Gateway;
 use Inertia\Ssr\Response as SsrResponse;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -104,5 +109,94 @@ class SsrHeadTest extends TestCase
         $this->assertSame(1, preg_match_all('/<meta\b[^>]*\bname="description"/i', $html));
         $this->assertSame(1, preg_match_all('/<meta\b[^>]*\bproperty="og:title"/i', $html));
         $this->assertSame(1, preg_match_all('/<link\b[^>]*\brel="canonical"/i', $html));
+        $this->assertStringContainsString('<link inertia="canonical" rel="canonical"', $html);
+        $this->assertStringContainsString('<meta inertia="og:url" property="og:url"', $html);
+    }
+
+    public function test_sitemap_includes_indexable_public_pages_and_excludes_noindex_routes(): void
+    {
+        Cache::forget('sitemap_xml');
+
+        $city = City::create([
+            'name' => 'دمشق',
+            'slug' => 'damascus',
+        ]);
+
+        $author = User::factory()->create();
+        $bannedAuthor = User::factory()->create(['is_banned' => true]);
+        $noRecipeUser = User::factory()->create();
+
+        Recipe::forceCreate([
+            'name' => 'كبة مقلية',
+            'slug' => 'kibbeh-test',
+            'city_id' => $city->id,
+            'user_id' => $author->id,
+            'is_anonymous' => false,
+            'steps' => ['خطوة 1'],
+            'difficulty' => 'متوسطة',
+            'status' => 'approved',
+        ]);
+
+        Recipe::forceCreate([
+            'name' => 'وصفة قيد المراجعة',
+            'slug' => 'pending-recipe',
+            'city_id' => $city->id,
+            'user_id' => $noRecipeUser->id,
+            'is_anonymous' => false,
+            'steps' => ['خطوة 1'],
+            'difficulty' => 'سهلة',
+            'status' => 'pending',
+        ]);
+
+        Recipe::forceCreate([
+            'name' => 'وصفة محظور',
+            'slug' => 'banned-author-recipe',
+            'city_id' => $city->id,
+            'user_id' => $bannedAuthor->id,
+            'is_anonymous' => false,
+            'steps' => ['خطوة 1'],
+            'difficulty' => 'سهلة',
+            'status' => 'approved',
+        ]);
+
+        $publicList = RecipeList::create([
+            'user_id' => $author->id,
+            'name' => 'أكلات شامية',
+            'is_public' => true,
+            'status' => 'approved',
+        ]);
+
+        $privateList = RecipeList::create([
+            'user_id' => $author->id,
+            'name' => 'قائمة خاصة',
+            'is_public' => false,
+            'status' => 'approved',
+        ]);
+
+        $xml = $this->get('/sitemap.xml')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/xml; charset=utf-8')
+            ->getContent();
+
+        $this->assertStringContainsString('/recipes</loc>', $xml);
+        $this->assertStringContainsString('/cities</loc>', $xml);
+        $this->assertStringContainsString('/lists</loc>', $xml);
+        $this->assertStringContainsString('/meal-plans/browse</loc>', $xml);
+        $this->assertStringContainsString('/about</loc>', $xml);
+        $this->assertStringContainsString('/privacy</loc>', $xml);
+        $this->assertStringContainsString('/terms</loc>', $xml);
+        $this->assertStringContainsString('/cities/damascus</loc>', $xml);
+        $this->assertStringContainsString('/recipes/kibbeh-test</loc>', $xml);
+        $this->assertStringContainsString("/lists/{$publicList->id}</loc>", $xml);
+        $this->assertStringContainsString("/users/{$author->id}</loc>", $xml);
+
+        $this->assertStringNotContainsString('/meal-plans</loc>', $xml);
+        $this->assertStringNotContainsString('/randomizer</loc>', $xml);
+        $this->assertStringNotContainsString('/search</loc>', $xml);
+        $this->assertStringNotContainsString('/login</loc>', $xml);
+        $this->assertStringNotContainsString('/recipes/pending-recipe</loc>', $xml);
+        $this->assertStringNotContainsString("/lists/{$privateList->id}</loc>", $xml);
+        $this->assertStringNotContainsString("/users/{$bannedAuthor->id}</loc>", $xml);
+        $this->assertStringNotContainsString("/users/{$noRecipeUser->id}</loc>", $xml);
     }
 }

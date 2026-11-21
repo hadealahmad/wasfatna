@@ -50,7 +50,7 @@ composer dev
 | SSR build | `npm run build:ssr` |
 | Full production build (client + SSR) | `npm run build` |
 
-> `bun run build` always produces the SSR bundle. SSR only runs when `INERTIA_SSR_ENABLED=true` (off in the production image). To test SSR locally: `bun run build && php artisan inertia:start-ssr`.
+> `bun run build` always produces the SSR bundle; production renders every page server-side (`INERTIA_SSR_ENABLED=true`). To test SSR locally: `bun run build`, then `node bootstrap/ssr/ssr.js` (port 13714) next to `php artisan serve`, and curl a page — the per-page `<title>`, meta tags and JSON-LD must be in the raw HTML. Every page's SEO goes through `components/SeoHead.vue` (helpers in `lib/seo.ts`).
 >
 > To test the production container locally, see [deployment-and-updates.md §2](deployment-and-updates.md#2-run-the-production-image-locally).
 

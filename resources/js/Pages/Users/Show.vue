@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Avatar, AvatarFallback, AvatarImage, Badge } from '@/components/ui';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
+import { buildBreadcrumbSchema, resolveCanonicalUrl } from '@/lib/seo';
 import { formatPaginationLabel } from '@/lib/utils';
 
 const props = defineProps<{
@@ -18,20 +21,50 @@ const props = defineProps<{
         meta: any;
     };
 }>();
+
+const userCanonicalPath = computed(() => `/users/${props.profile.id}`);
+
+const userDescription = computed(() => {
+    const count = props.profile.recipes_count ?? props.recipes.meta?.total ?? 0;
+    return `تصفح الملف الشخصي للطاهي ${props.profile.name} على منصة وصفاتنا، واكتشف ${count} وصفة سورية بيتية معتمدة ومجربة بمكوناتها الدقيقة وخطوات تحضيرها.`;
+});
+
+const userJsonLd = computed(() => [
+    {
+        key: 'jsonld-profile',
+        data: {
+            '@context': 'https://schema.org',
+            '@type': 'ProfilePage',
+            url: resolveCanonicalUrl(userCanonicalPath.value),
+            inLanguage: 'ar-SY',
+            mainEntity: {
+                '@type': 'Person',
+                name: props.profile.name,
+                url: resolveCanonicalUrl(userCanonicalPath.value),
+                ...(props.profile.avatar_url ? { image: props.profile.avatar_url } : {}),
+            },
+        },
+    },
+    {
+        key: 'jsonld-user-breadcrumb',
+        data: buildBreadcrumbSchema([
+            { name: 'الرئيسية', path: '/' },
+            { name: props.profile.name, path: userCanonicalPath.value },
+        ]),
+    },
+]);
 </script>
 
 <template>
     <PublicLayout>
-        <Head>
-            <title>وصفات {{ profile.name }}</title>
-            <meta head-key="description" name="description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta head-key="og:title" property="og:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
-            <meta head-key="og:description" property="og:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta head-key="og:image" property="og:image" :content="profile.avatar_url || 'https://food.syrian.zone/og-image.webp'" />
-            <meta head-key="twitter:title" name="twitter:title" :content="`وصفات ${profile.name} | وصفاتنا`" />
-            <meta head-key="twitter:description" property="twitter:description" :content="`اكتشف ${recipes.meta?.total || 0} وصفة شاركها ${profile.name} مع مجتمع وصفاتنا.`" />
-            <meta head-key="twitter:image" name="twitter:image" :content="profile.avatar_url || 'https://food.syrian.zone/og-image.webp'" />
-        </Head>
+        <SeoHead
+            :title="`وصفات ${profile.name}`"
+            :description="userDescription"
+            :image="profile.avatar_url"
+            type="profile"
+            :canonical="userCanonicalPath"
+            :json-ld="userJsonLd"
+        />
 
         <div>
             <!-- Profile Header -->

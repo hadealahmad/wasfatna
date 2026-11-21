@@ -18,6 +18,22 @@ class City extends Model
         'image_path',
     ];
 
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! array_key_exists('image_path', $this->attributes) || ! $this->attributes['image_path']) {
+            return null;
+        }
+
+        $path = (string) $this->attributes['image_path'];
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+
+        return asset('storage/'.$path);
+    }
+
     protected static function booted(): void
     {
         static::creating(function (City $city) {

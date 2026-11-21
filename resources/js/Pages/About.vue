@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import {
   ChefHat,
   Code2,
@@ -13,6 +14,8 @@ import {
   Utensils,
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import SeoHead from '@/components/SeoHead.vue';
+import { buildBreadcrumbSchema, SITE_URL } from '@/lib/seo';
 import {
   Avatar,
   AvatarFallback,
@@ -96,32 +99,46 @@ function formatContributionTitle(login: string, count: number): string {
 function getInitial(name: string): string {
   return name.trim().charAt(0) || 'و';
 }
+
+const aboutDescription =
+  'تعرّف على منصة وصفاتنا مفتوحة المصدر لحفظ تراث المطبخ السوري، ورسالتها المجتمعية، وفريق التطوير، وأبرز الطهاة المساهمين في إثراء الأرشيف.';
+
+const aboutJsonLd = computed(() => [
+  {
+    key: 'jsonld-about',
+    data: {
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      name: 'عن وصفاتنا',
+      url: `${SITE_URL}/about`,
+      inLanguage: 'ar-SY',
+      description: aboutDescription,
+      mainEntity: {
+        '@type': 'Organization',
+        name: 'وصفاتنا',
+        url: SITE_URL,
+        logo: `${SITE_URL}/logo-light.svg`,
+      },
+    },
+  },
+  {
+    key: 'jsonld-about-breadcrumb',
+    data: buildBreadcrumbSchema([
+      { name: 'الرئيسية', path: '/' },
+      { name: 'عن وصفاتنا', path: '/about' },
+    ]),
+  },
+]);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>عن وصفاتنا</title>
-      <meta
-        head-key="description"
-        name="description"
-        content="تعرّف على منصة وصفاتنا لحفظ المطبخ السوري ورسالتها، ومجتمع الطهاة المساهمين، والفريق المطور، والتقنيات مفتوحة المصدر."
-      />
-      <meta head-key="og:title" property="og:title" content="عن وصفاتنا | وصفاتنا" />
-      <meta
-        head-key="og:description"
-        property="og:description"
-        content="تعرّف على منصة وصفاتنا لحفظ المطبخ السوري ورسالتها، ومجتمع الطهاة المساهمين، والفريق المطور، والتقنيات مفتوحة المصدر."
-      />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="عن وصفاتنا | وصفاتنا" />
-      <meta
-        head-key="twitter:description"
-        name="twitter:description"
-        content="تعرّف على منصة وصفاتنا لحفظ المطبخ السوري ورسالتها، ومجتمع الطهاة المساهمين، والفريق المطور، والتقنيات مفتوحة المصدر."
-      />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="عن وصفاتنا"
+      :description="aboutDescription"
+      canonical="/about"
+      :json-ld="aboutJsonLd"
+    />
 
     <div class="container mx-auto max-w-4xl px-4 py-12 text-foreground">
       <header class="mb-10 space-y-4 text-center">

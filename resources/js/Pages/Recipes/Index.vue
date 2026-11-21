@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
 import { computed, toRef } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SmartFilterSearch from '@/components/search/SmartFilterSearch.vue';
@@ -62,20 +62,21 @@ const {
 });
 
 const totalResults = computed(() => props.recipes.total ?? props.recipes.data.length);
+
+const metaDescription = computed(() =>
+  totalResults.value > 0
+    ? `تصفح ${totalResults.value} وصفة سورية مجربة ومضمونة من مختلف المطابخ والمدن السورية، مع المكونات الدقيقة وخطوات التحضير الواضحة على منصة وصفاتنا.`
+    : 'تصفح مئات الوصفات السورية المجربة والمضمونة من مختلف المطابخ والمدن السورية، مع المكونات الدقيقة وخطوات التحضير الواضحة على منصة وصفاتنا.',
+);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>تصفح جميع الوصفات</title>
-      <meta head-key="description" name="description" content="تصفح مئات الوصفات المجربة والمضمونة من مختلف المطابخ السورية. ابحث عن وصفتك المفضلة وسجل إعجابك بها." />
-      <meta head-key="og:title" property="og:title" content="تصفح جميع الوصفات | وصفاتنا" />
-      <meta head-key="og:description" property="og:description" content="تصفح مئات الوصفات المجربة والمضمونة من مختلف المطابخ السورية." />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="تصفح جميع الوصفات | وصفاتنا" />
-      <meta head-key="twitter:description" name="twitter:description" content="تصفح مئات الوصفات المجربة والمضمونة من مختلف المطابخ السورية." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="تصفح جميع الوصفات"
+      :description="metaDescription"
+      canonical="/recipes"
+    />
 
     <div class="container max-w-7xl mx-auto py-10 md:py-14 px-4 md:px-8">
       <!-- Header -->

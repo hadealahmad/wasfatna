@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import {
   Baby,
@@ -18,6 +18,7 @@ import {
   Users,
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import {
   Badge,
   Button,
@@ -122,28 +123,11 @@ const storageEntries: StorageEntry[] = [
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>سياسة الخصوصية</title>
-      <meta
-        head-key="description"
-        name="description"
-        content="سياسة الخصوصية لمنصة وصفاتنا: البيانات التي نجمعها، وملفات الارتباط والتخزين المحلي، وحقوقك في إدارة بياناتك وحذف حسابك."
-      />
-      <meta head-key="og:title" property="og:title" content="سياسة الخصوصية | وصفاتنا" />
-      <meta
-        head-key="og:description"
-        property="og:description"
-        content="سياسة الخصوصية لمنصة وصفاتنا: البيانات التي نجمعها، وملفات الارتباط والتخزين المحلي، وحقوقك في إدارة بياناتك وحذف حسابك."
-      />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="سياسة الخصوصية | وصفاتنا" />
-      <meta
-        head-key="twitter:description"
-        name="twitter:description"
-        content="سياسة الخصوصية لمنصة وصفاتنا: البيانات التي نجمعها، وملفات الارتباط والتخزين المحلي، وحقوقك في إدارة بياناتك وحذف حسابك."
-      />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="سياسة الخصوصية"
+      description="اطلع على سياسة الخصوصية في منصة وصفاتنا: البيانات التي نجمعها، استخدام ملفات الارتباط والتخزين المحلي، وحقوقك الكاملة في إدارة بياناتك."
+      canonical="/privacy"
+    />
 
     <div class="container mx-auto max-w-4xl px-4 py-12 text-foreground">
       <header class="mb-10 space-y-4 text-center">

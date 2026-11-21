@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import {
   AlertTriangle,
   BookOpen,
@@ -14,6 +14,7 @@ import {
   UserCheck,
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import {
   Card,
   CardContent,
@@ -26,28 +27,11 @@ import {
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>الشروط والأحكام</title>
-      <meta
-        head-key="description"
-        name="description"
-        content="الشروط والأحكام الخاصة باستخدام منصة وصفاتنا لمشاركة الوصفات السورية وتصفحها."
-      />
-      <meta head-key="og:title" property="og:title" content="الشروط والأحكام | وصفاتنا" />
-      <meta
-        head-key="og:description"
-        property="og:description"
-        content="الشروط والأحكام الخاصة باستخدام منصة وصفاتنا لمشاركة الوصفات السورية وتصفحها."
-      />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="الشروط والأحكام | وصفاتنا" />
-      <meta
-        head-key="twitter:description"
-        name="twitter:description"
-        content="الشروط والأحكام الخاصة باستخدام منصة وصفاتنا لمشاركة الوصفات السورية وتصفحها."
-      />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="الشروط والأحكام"
+      description="اطلع على الشروط والأحكام الخاصة باستخدام منصة وصفاتنا لمشاركة الوصفات السورية، وحقوق المحتوى، وقواعد النشر، وإجراءات المراجعة والبلاغات."
+      canonical="/terms"
+    />
 
     <div class="container mx-auto max-w-4xl px-4 py-12 text-foreground">
       <header class="mb-10 space-y-4 text-center">

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { BookOpen, User } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Badge, Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui';
 import { formatPaginationLabel } from '@/lib/utils';
 
@@ -17,16 +18,11 @@ defineProps<{
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>قوائم الوصفات العامة</title>
-      <meta head-key="description" name="description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
-      <meta head-key="og:title" property="og:title" content="قوائم الوصفات العامة | وصفاتنا" />
-      <meta head-key="og:description" property="og:description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="قوائم الوصفات العامة | وصفاتنا" />
-      <meta head-key="twitter:description" name="twitter:description" content="استكشف قوائم الوصفات التي شاركها مجتمعنا. من قوائم العزائم إلى قوائم الحلويات السهلة." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="قوائم الوصفات العامة"
+      description="استكشف قوائم الوصفات العامة التي شاركها مجتمع وصفاتنا، من قوائم العزائم والأطباق الرئيسية إلى قوائم الحلويات والمقبلات السورية السهلة."
+      canonical="/lists"
+    />
 
     <div class="container max-w-7xl mx-auto py-10 md:py-14 px-4 md:px-8">
       <!-- Header -->

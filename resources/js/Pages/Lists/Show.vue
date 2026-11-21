@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { Check, ChevronLeft, Globe, Lock, Share2 } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import ListActions from '@/components/features/lists/ListActions.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import ReportModal from '@/components/reports/ReportModal.vue';
 import { Avatar, AvatarFallback, AvatarImage, Badge, Button } from '@/components/ui';
+import { buildBreadcrumbSchema, buildRecipeItemList, resolveCanonicalUrl } from '@/lib/seo';
 
 interface User {
   id: number;
@@ -45,13 +47,51 @@ const copied = ref(false);
 
 const initials = (name: string) => name.charAt(0).toUpperCase();
 
-const listDescription = computed(
-  () =>
-    props.list.description ||
-    `قائمة وصفات "${props.list.name}" من إعداد ${props.list.user?.name || 'مستخدم وصفاتنا'} وتضم ${props.list.recipes?.length || 0} وصفة على منصة وصفاتنا.`,
-);
+const listDescription = computed(() => {
+  const custom = props.list.description?.trim();
+  if (custom && custom.length >= 100) {
+    return custom;
+  }
 
-const listImage = computed(() => props.list.cover_image || 'https://food.syrian.zone/og-image.webp');
+  const prefix = custom ? `${custom} — ` : '';
+  const author = props.list.user?.name || 'مجتمع وصفاتنا';
+  const count = props.list.recipes?.length || 0;
+  return `${prefix}قائمة وصفات «${props.list.name}» من إعداد ${author}، وتضم ${count} وصفة سورية منتقاة مع المكونات وخطوات التحضير على وصفاتنا.`;
+});
+
+const listCanonicalPath = computed(() => `/lists/${props.list.id}`);
+
+const listJsonLd = computed(() => [
+  {
+    key: 'jsonld-list-collection',
+    data: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: props.list.name,
+      description: listDescription.value,
+      url: resolveCanonicalUrl(listCanonicalPath.value),
+      inLanguage: 'ar-SY',
+      ...(props.list.user?.name
+        ? {
+            author: {
+              '@type': 'Person',
+              name: props.list.user.name,
+              url: resolveCanonicalUrl(`/users/${props.list.user.id}`),
+            },
+          }
+        : {}),
+      mainEntity: buildRecipeItemList(props.list.recipes || []),
+    },
+  },
+  {
+    key: 'jsonld-list-breadcrumb',
+    data: buildBreadcrumbSchema([
+      { name: 'الرئيسية', path: '/' },
+      { name: 'قوائم الوصفات', path: '/lists' },
+      { name: props.list.name, path: listCanonicalPath.value },
+    ]),
+  },
+]);
 
 async function handleShare(): Promise<void> {
   try {
@@ -69,17 +109,13 @@ async function handleShare(): Promise<void> {
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>{{ list.name }}</title>
-      <meta head-key="description" name="description" :content="listDescription" />
-      <meta head-key="og:title" property="og:title" :content="`${list.name} | وصفاتنا`" />
-      <meta head-key="og:description" property="og:description" :content="listDescription" />
-      <meta head-key="og:image" property="og:image" :content="listImage" />
-      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
-      <meta head-key="twitter:title" name="twitter:title" :content="`${list.name} | وصفاتنا`" />
-      <meta head-key="twitter:description" name="twitter:description" :content="listDescription" />
-      <meta head-key="twitter:image" name="twitter:image" :content="listImage" />
-    </Head>
+    <SeoHead
+      :title="list.name"
+      :description="listDescription"
+      :image="list.cover_image"
+      :canonical="listCanonicalPath"
+      :json-ld="listJsonLd"
+    />
 
     <div class="container max-w-7xl mx-auto py-8 px-4 md:px-8">
       <nav aria-label="مسار التصفح" class="flex items-center gap-1.5 mb-5 text-sm text-muted-foreground">

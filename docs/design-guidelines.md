@@ -113,10 +113,21 @@ path only. The privacy page documents the stored key (`wasfatna-analytics-consen
 
 - Keep the manual chunk groups in `vite.config.js` (`vendor-vue`, `vendor-ui`,
   `vendor-draggable`); give new large libraries their own chunk.
-- An SSR bundle (`ssr.ts`) is always built; whether it runs is controlled by
-  `INERTIA_SSR_ENABLED` (see `guides/deployment-and-updates.md`). Components must
-  stay SSR-safe either way: no `window`/`document`/`localStorage` at setup top
-  level — read them in `onMounted` (see `useAnalyticsConsent()` for the pattern).
+- Production renders every page with SSR (`ssr.ts`). Components must be SSR-safe:
+  no `window`/`document`/`localStorage`/`matchMedia` at setup top level — read them
+  in `onMounted` (see `useAnalyticsConsent()`), and the first client render must
+  match the server HTML (no hydration mismatches).
+- Use `route()` injected by ZiggyVue (works on the server too); Ziggy is shared as
+  the `ziggy` prop for SSR.
+
+## 12. SEO
+
+- Every public page sets its head through `components/SeoHead.vue` (title,
+  description, canonical, robots, og:*, twitter:*, JSON-LD); helpers in `lib/seo.ts`
+  (`formatSeoTitle`, `resolveCanonicalUrl`, breadcrumb/item-list builders, `safeJsonLd`
+  escaping). `app.blade.php` only prints generic defaults for tags a page doesn't set.
+- Private or utility pages use `noindex` (`/randomizer`, `/search`, `/login`, shared
+  meal plans). Index-worthy public pages must also be in `SitemapController`.
 
 ## 11. Backend conventions
 

@@ -142,7 +142,7 @@
             <meta inertia="robots" name="robots" content="index, follow">
         @endunless
         @unless ($ssrHasCanonical)
-            <link rel="canonical" href="{{ url()->current() }}">
+            <link inertia="canonical" rel="canonical" href="{{ url()->current() }}">
         @endunless
         <link rel="alternate" type="text/markdown" href="{{ url('/llms.txt') }}" title="LLMs Index">
 
@@ -153,7 +153,7 @@
         <meta property="og:site_name" content="وصفاتنا">
         <meta property="og:locale" content="ar_SY">
         @unless ($ssrHasMeta('property', 'og:url'))
-            <meta property="og:url" content="{{ url()->current() }}">
+            <meta inertia="og:url" property="og:url" content="{{ url()->current() }}">
         @endunless
         @unless ($ssrHasMeta('property', 'og:title'))
             <meta inertia="og:title" property="og:title" content="وصفاتنا">

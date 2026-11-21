@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import {
   ArrowLeft,
   Clock,
@@ -21,6 +21,7 @@ import {
 import { toast } from 'vue-sonner';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import IngredientSelector, {
   type IngredientOption,
 } from '@/components/randomizer/IngredientSelector.vue';
@@ -231,33 +232,21 @@ function onSpinComplete(wonRecipe: RandomizerRecipe): void {
 }
 
 const rarityLegend = Object.values(RARITY_TIERS);
+
+const randomizerDescription = computed(() => {
+  const count = props.totalRecipes > 0 ? `${props.totalRecipes} وصفة` : 'مئات الوصفات';
+  return `محتار شو تطبخ اليوم؟ خصّص صندوق الوصفات العشوائي في وصفاتنا، استبعد المكونات التي لا تفضلها، واختر طبقك القادم من بين ${count} سورية.`;
+});
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>شو نطبخ اليوم؟</title>
-      <meta name="robots" content="noindex, follow" head-key="robots" />
-      <meta
-        head-key="description"
-        name="description"
-        content="محتار شو تطبخ اليوم؟ خصّص صندوق الوصفات واستبعد المكونات التي لا تفضلها، ثم افتح الصندوق لتكتشف وصفتك السورية القادمة!"
-      />
-      <meta head-key="og:title" property="og:title" content="شو نطبخ اليوم؟ | وصفاتنا" />
-      <meta
-        head-key="og:description"
-        property="og:description"
-        content="محتار شو تطبخ اليوم؟ افتح صندوق وصفاتنا العشوائي واكتشف طبقك القادم."
-      />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="شو نطبخ اليوم؟ | وصفاتنا" />
-      <meta
-        head-key="twitter:description"
-        name="twitter:description"
-        content="محتار شو تطبخ اليوم؟ افتح صندوق وصفاتنا العشوائي واكتشف طبقك القادم."
-      />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="شو نطبخ اليوم؟"
+      :description="randomizerDescription"
+      canonical="/randomizer"
+      noindex
+    />
 
     <div class="container max-w-5xl mx-auto py-8 md:py-12 px-4 md:px-6 space-y-8" dir="rtl">
       <!-- Screen-reader live region -->

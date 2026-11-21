@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Dices, MapPin } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
 import { Button } from '@/components/ui';
 import PaginationControls from '@/components/ui/PaginationControls.vue';
-import { safeJsonLd } from '@/lib/utils';
+import { SITE_URL } from '@/lib/seo';
 
 interface Recipe {
   id: number;
@@ -61,18 +62,21 @@ const sectionShortcuts = [
   { href: '/search', label: 'البحث المتقدم', description: 'تصفية دقيقة', icon: 'search' },
 ] as const;
 
+const homeDescription =
+  'اكتشف أشهى الوصفات السورية الأصيلة من مختلف المدن والمحافظات. تصفح المكونات وطرق التحضير خطوة بخطوة، وشارك وصفاتك مع مجتمع الطبخ السوري.';
+
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'وصفاتنا - مجتمع الطبخ السوري',
   alternateName: 'Wasfatna',
-  url: 'https://food.syrian.zone',
+  url: SITE_URL,
   inLanguage: 'ar-SY',
   potentialAction: {
     '@type': 'SearchAction',
     target: {
       '@type': 'EntryPoint',
-      urlTemplate: 'https://food.syrian.zone/search?search={search_term_string}',
+      urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
     },
     'query-input': 'required name=search_term_string',
   },
@@ -82,10 +86,15 @@ const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'وصفاتنا',
-  url: 'https://food.syrian.zone',
-  logo: 'https://food.syrian.zone/logo-light.svg',
+  url: SITE_URL,
+  logo: `${SITE_URL}/logo-light.svg`,
   description: 'مجتمع الطبخ السوري الأول لتوثيق ومشاركة أشهى الوصفات والأكلات التراثية من جميع المدن والمناطق السورية.',
 };
+
+const homeJsonLd = [
+  { key: 'jsonld-website', data: websiteSchema },
+  { key: 'jsonld-organization', data: organizationSchema },
+];
 
 function handlePageChange(page: number) {
   router.get('/', { ...props.filters, page }, { preserveState: true, preserveScroll: false });
@@ -98,21 +107,14 @@ function handlePerPageChange(perPage: number) {
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>وصفاتنا - مجتمع الطبخ السوري</title>
-      <meta head-key="description" name="description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
-      <meta head-key="keywords" name="keywords" content="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية, حلويات سورية, مقبلات سورية" />
-      <meta head-key="og:title" property="og:title" content="وصفاتنا - مجتمع الطبخ السوري" />
-      <meta head-key="og:description" property="og:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
-      <meta head-key="og:type" property="og:type" content="website" />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:card" name="twitter:card" content="summary_large_image" />
-      <meta head-key="twitter:title" name="twitter:title" content="وصفاتنا - مجتمع الطبخ السوري" />
-      <meta head-key="twitter:description" name="twitter:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-website">{{ safeJsonLd(websiteSchema) }}</component>
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-organization">{{ safeJsonLd(organizationSchema) }}</component>
-    </Head>
+    <SeoHead
+      is-home
+      title="وصفاتنا - مجتمع الطبخ السوري"
+      :description="homeDescription"
+      keywords="وصفات سورية, طبخ سوري, أكلات سورية, مطبخ سوري, طعام عربي, وصفات عربية, حلويات سورية, مقبلات سورية"
+      canonical="/"
+      :json-ld="homeJsonLd"
+    />
 
     <!-- Hero Section -->
     <section class="relative overflow-hidden border-b border-border bg-background py-14 md:py-24">

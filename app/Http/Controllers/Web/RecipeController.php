@@ -276,6 +276,7 @@ class RecipeController extends Controller
 
         return Inertia::render('Recipes/Variations', [
             'dish_name' => $recipe->name,
+            'slug' => $recipe->slug,
             'recipes' => $recipes,
         ]);
     }

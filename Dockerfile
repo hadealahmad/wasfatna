@@ -31,7 +31,7 @@ ENV PHP_FPM_PM=ondemand \
     NGINX_CLIENT_MAX_BODY_SIZE=24M \
     NGINX_FASTCGI_READ_TIMEOUT=65s \
     NGINX_WEBROOT=/var/www/html/public \
-    INERTIA_SSR_ENABLED=false
+    INERTIA_SSR_ENABLED=true
 
 USER root
 

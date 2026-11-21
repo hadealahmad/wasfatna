@@ -1,27 +1,29 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
 import { MapPin } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import ProjectIcon from '@/components/ProjectIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Button } from '@/components/ui';
 
-defineProps<{
+const props = defineProps<{
   cities: any[];
 }>();
+
+const metaDescription = computed(
+  () =>
+    `استكشف المطبخ المحلي لكل مدينة ومحافظة سورية وتعرّف على أشهر أطباقها التراثية والبيتية. تصفح ${props.cities.length} مدينة ومنطقة على منصة وصفاتنا.`,
+);
 </script>
 
 <template>
   <PublicLayout>
-    <Head>
-      <title>المدن والمناطق</title>
-      <meta head-key="description" name="description" content="استكشف المطبخ المحلي لكل مدينة سورية وتعرف على أشهر أطباقها. تصفح الوصفات حسب المنطقة." />
-      <meta head-key="og:title" property="og:title" content="المدن والمناطق | وصفاتنا" />
-      <meta head-key="og:description" property="og:description" content="استكشف المطبخ المحلي لكل مدينة سورية وتعرف على أشهر أطباقها." />
-      <meta head-key="og:image" property="og:image" content="https://food.syrian.zone/og-image.webp" />
-      <meta head-key="twitter:title" name="twitter:title" content="المدن والمناطق | وصفاتنا" />
-      <meta head-key="twitter:description" name="twitter:description" content="استكشف المطبخ المحلي لكل مدينة سورية وتعرف على أشهر أطباقها." />
-      <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-    </Head>
+    <SeoHead
+      title="المدن والمناطق"
+      :description="metaDescription"
+      canonical="/cities"
+    />
 
     <div class="container max-w-7xl mx-auto py-10 md:py-16 px-4 md:px-8">
       <div class="flex flex-col items-center gap-3 text-center mb-10">
