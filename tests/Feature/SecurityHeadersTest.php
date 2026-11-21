@@ -55,16 +55,23 @@ class SecurityHeadersTest extends TestCase
         $this->assertNotSame($nonce, $secondMatches[1] ?? '');
     }
 
-    public function test_gtag_is_omitted_on_sensitive_routes_and_present_on_public_routes(): void
+    public function test_analytics_is_consent_gated_and_omitted_on_sensitive_routes(): void
     {
+        config(['services.google_analytics.id' => 'G-TEST123']);
+
+        // Public pages expose only the measurement id; gtag.js itself is never
+        // in the HTML — resources/js/lib/analyticsConsent.ts loads it after consent.
         $publicResponse = $this->get('/');
         $publicResponse->assertStatus(200);
-        $this->assertStringContainsString('https://www.googletagmanager.com/gtag/js', $publicResponse->getContent());
-        $this->assertStringContainsString('fetchpriority="low"', $publicResponse->getContent());
+        $this->assertStringContainsString('window.GA_ID = "G-TEST123"', $publicResponse->getContent());
+        $this->assertStringNotContainsString('https://www.googletagmanager.com/gtag/js', $publicResponse->getContent());
 
         $loginResponse = $this->get('/login');
         $loginResponse->assertStatus(200);
-        $this->assertStringNotContainsString('https://www.googletagmanager.com/gtag/js', $loginResponse->getContent());
+        $this->assertStringNotContainsString('window.GA_ID', $loginResponse->getContent());
+
+        config(['services.google_analytics.id' => null]);
+        $this->assertStringNotContainsString('window.GA_ID', $this->get('/')->getContent());
     }
 
     public function test_fetch_metadata_blocks_cross_site_state_changing_requests(): void

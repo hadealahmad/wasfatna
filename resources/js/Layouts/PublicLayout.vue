@@ -4,6 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { FileText, Globe, Info, Shield } from 'lucide-vue-next';
 import { Toaster, toast } from 'vue-sonner';
 import PublicHeader from '@/components/layout/PublicHeader.vue';
+import AnalyticsConsentBanner from '@/components/AnalyticsConsentBanner.vue';
 import { useColorScheme } from '@/composables/useColorScheme';
 import { useGlobalSearchShortcut } from '@/composables/useGlobalSearch';
 
@@ -101,5 +102,7 @@ watch(
         </p>
       </div>
     </footer>
+
+    <AnalyticsConsentBanner />
   </div>
 </template>

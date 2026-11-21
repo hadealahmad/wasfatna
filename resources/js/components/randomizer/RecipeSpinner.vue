@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref, watch } from 'vue';
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { MapPin, UtensilsCrossed } from 'lucide-vue-next';
 import Badge from '@/components/ui/Badge.vue';
 import { cn } from '@/lib/utils';
@@ -122,6 +122,14 @@ watch(
     }
   },
 );
+
+// The parent mounts this reel only once the phase is already 'spinning', so the
+// watcher above never sees a false→true change; start the spin on mount too.
+onMounted(async () => {
+  if (!props.spinning || props.recipes.length === 0) return;
+  await nextTick();
+  startSpin();
+});
 
 function startSpin(): void {
   if (props.recipes.length === 0 || displayRecipes.value.length === 0) return;

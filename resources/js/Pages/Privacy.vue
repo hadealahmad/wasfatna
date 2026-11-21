@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 import {
   Baby,
   BarChart3,
@@ -9,6 +11,7 @@ import {
   Globe,
   Lock,
   Mail,
+  RotateCcw,
   Scale,
   Shield,
   Trash2,
@@ -17,6 +20,7 @@ import {
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import {
   Badge,
+  Button,
   Card,
   CardContent,
   CardDescription,
@@ -30,11 +34,42 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui';
+import {
+  deniedByPrivacySignal,
+  resetConsent,
+  useAnalyticsConsent,
+} from '@/lib/analyticsConsent';
 
 interface StorageEntry {
   key: string;
   kind: 'ملف ارتباط' | 'تخزين محلي';
   purpose: string;
+}
+
+const { consent, measurementId } = useAnalyticsConsent();
+const isDeniedByGpc = ref(false);
+
+onMounted(() => {
+  isDeniedByGpc.value = deniedByPrivacySignal();
+});
+
+const consentStatusLabel = computed(() => {
+  if (isDeniedByGpc.value) return 'مرفوض تلقائياً بسبب إشارة GPC';
+  if (consent.value === 'granted') return 'موافَق';
+  if (consent.value === 'denied') return 'مرفوض';
+  return 'لم تختر بعد';
+});
+
+const consentStatusVariant = computed<'success' | 'secondary' | 'outline'>(() => {
+  if (isDeniedByGpc.value) return 'secondary';
+  if (consent.value === 'granted') return 'success';
+  if (consent.value === 'denied') return 'secondary';
+  return 'outline';
+});
+
+function handleResetAnalyticsConsent(): void {
+  resetConsent();
+  toast.info('تم مسح اختيارك؛ يمكنك الآن تحديد تفضيلك من شريط الإحصاءات أسفل الصفحة.');
 }
 
 const storageEntries: StorageEntry[] = [
@@ -58,7 +93,13 @@ const storageEntries: StorageEntry[] = [
     key: '_ga و _ga_*',
     kind: 'ملف ارتباط',
     purpose:
-      'تضعهما أداة Google Analytics على الصفحات العامة فقط لقياس الزيارات الإجمالية، ولا تُحمَّلان في صفحات تسجيل الدخول أو الإعدادات أو لوحة التحكم أو خطط الوجبات المشاركة.',
+      'تضعهما أداة Google Analytics على الصفحات العامة فقط وبعد موافقتك الصريحة لقياس الزيارات الإجمالية، ولا يُنشآن قبل الموافقة أو عند تفعيل إشارة GPC، ولا يعملان في صفحات تسجيل الدخول أو الإعدادات أو لوحة التحكم أو صفحاتك الشخصية أو خطط الوجبات المشاركة.',
+  },
+  {
+    key: 'wasfatna-analytics-consent',
+    kind: 'تخزين محلي',
+    purpose:
+      'يحفظ اختيارك بشأن إحصاءات الزيارات (granted عند الموافقة أو denied عند الرفض) محلياً على جهازك حتى لا يظهر شريط الموافقة في كل زيارة.',
   },
   {
     key: 'wasfatna-theme',
@@ -259,7 +300,8 @@ const storageEntries: StorageEntry[] = [
               </li>
               <li>
                 <strong class="text-foreground">اختيارك المباشر:</strong> تسجيل الدخول اختياري بالكامل، وأنت من يقرر
-                إرسال وصفة أو تحويل قائمة أو خطة وجبات إلى عامة، أو تعديل اسمك المعروض وصورتك.
+                إرسال وصفة أو تحويل قائمة أو خطة وجبات إلى عامة، أو تعديل اسمك المعروض وصورتك، أو الموافقة على إحصاءات
+                الزيارات ورفضها.
               </li>
               <li>
                 <strong class="text-foreground">حماية المنصة والمجتمع:</strong> نعالج بيانات الجلسة ومعدل الطلبات
@@ -322,33 +364,91 @@ const storageEntries: StorageEntry[] = [
                 <span>إحصاءات الزيارات (Google Analytics)</span>
               </h2>
             </CardTitle>
+            <CardDescription>لا تُحمَّل الإحصاءات ولا يُرسَل أي شيء إلى Google قبل موافقتك الصريحة</CardDescription>
           </CardHeader>
           <CardContent class="space-y-4 text-sm leading-relaxed text-muted-foreground">
-            <p>
-              نستخدم <strong class="text-foreground" dir="ltr">Google Analytics (gtag.js)</strong> على الصفحات العامة
-              للمنصة (مع ضبط <span dir="ltr" class="font-mono text-foreground">referrerpolicy="no-referrer"</span>)
-              لفهم عدد الزيارات الإجمالية ومعرفة الوصفات والأقسام الأكثر إفادة للزوار.
-            </p>
-            <p>
-              تُستثنى الصفحات الخاصة والحساسة استثناءً كاملاً من تحميل هذه الأداة، فلا يعمل أي نص برمجي للتحليلات في
-              صفحات تسجيل الدخول (<span dir="ltr">/login</span>)، وإعدادات الحساب (<span dir="ltr">/settings</span>)،
-              ولوحة التحكم (<span dir="ltr">/dashboard</span>)، وخطط الوجبات المشاركة بروابطها الخاصة
-              (<span dir="ltr">/meal-plans/shared</span>).
-            </p>
-            <p>
-              لا يوفّر الموقع حالياً مفتاح موافقة داخلي لإيقاف التحليلات؛ لذا إن كنت تفضّل عدم احتساب زيارتك في
-              الصفحات العامة، يمكنك تعطيل <span dir="ltr">Google Analytics</span> عبر إعدادات الخصوصية في متصفحك أو
-              إضافات حظر التتبع أو أداة التعطيل الرسمية من
-              <a
-                href="https://policies.google.com/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="font-semibold text-primary underline-offset-4 hover:underline"
+            <div class="space-y-4">
+              <div class="border-s-2 border-primary/50 ps-4">
+                <h3 class="text-sm font-bold text-foreground">الموافقة أولاً واحترام إشارة الخصوصية (GPC)</h3>
+                <p class="mt-1 text-xs leading-relaxed">
+                  لا يُحمَّل نص <strong class="text-foreground" dir="ltr">Google Analytics (gtag.js)</strong> ولا
+                  يُرسَل أي طلب إلى خوادم <span dir="ltr">Google</span> ولا تُنشأ ملفات ارتباطه قبل أن تنقر على
+                  «موافق» في شريط الإشعار؛ فإذا اخترت «رفض» أو لم تجب بعد، تبقى الإحصاءات متوقفة بالكامل. كما نحترم
+                  إشارة التحكم العالمي بالخصوصية (<span dir="ltr">Global Privacy Control — GPC</span>): إذا كان
+                  متصفحك يرسل هذه الإشارة، نعاملها تلقائياً كرفض صريح فلا يظهر شريط الموافقة ولا تُحمَّل الأداة
+                  إطلاقاً.
+                </p>
+              </div>
+
+              <div class="border-s-2 border-primary/50 ps-4">
+                <h3 class="text-sm font-bold text-foreground">ما نقيسه وكيف نحمي تفاصيل التصفح</h3>
+                <p class="mt-1 text-xs leading-relaxed">
+                  بعد موافقتك فقط، نستخدم <span dir="ltr">Google Analytics</span> (مع ضبط
+                  <span dir="ltr" class="font-mono text-foreground">referrerpolicy="no-referrer"</span>) لقياس عدد
+                  الزيارات الإجمالية ومعرفة الوصفات والأقسام الأكثر إفادة للزوار. وتُرسَل مسارات الصفحات وحدها دون
+                  سلاسل الاستعلام (ما يأتي بعد علامة «<span dir="ltr">?</span>») ودون أجزاء الرابط (ما يأتي بعد علامة
+                  «<span dir="ltr">#</span>»)، بحيث لا تُرسَل عبارات البحث أو معاملات التصفية إلى
+                  <span dir="ltr">Google</span>.
+                </p>
+              </div>
+
+              <div class="border-s-2 border-primary/50 ps-4">
+                <h3 class="text-sm font-bold text-foreground">الصفحات المستثناة من القياس</h3>
+                <p class="mt-1 text-xs leading-relaxed">
+                  تُستثنى الصفحات الخاصة وصفحات الحساب استثناءً كاملاً، فلا يُمرَّر معرّف القياس ولا تُسجَّل أي زيارات
+                  في صفحات تسجيل الدخول (<span dir="ltr">/login</span>)، وإعدادات الحساب
+                  (<span dir="ltr">/settings</span>)، ولوحة التحكم (<span dir="ltr">/dashboard</span>)، وصفحاتك الشخصية
+                  (<span dir="ltr">/my</span>)، وخطط الوجبات المشاركة بروابطها الخاصة
+                  (<span dir="ltr">/meal-plans/shared</span>).
+                </p>
+              </div>
+
+              <div class="border-s-2 border-primary/50 ps-4">
+                <h3 class="text-sm font-bold text-foreground">سحب الموافقة وتغيير اختيارك</h3>
+                <p class="mt-1 text-xs leading-relaxed">
+                  يمكنك سحب موافقتك أو تغيير اختيارك في أي وقت من الزر أدناه لإعادة عرض شريط الموافقة. وعند الرفض أو
+                  إعادة الضبط، يُفعَّل مفتاح التعطيل الرسمي من <span dir="ltr">Google</span>
+                  (<span dir="ltr" class="font-mono text-foreground">ga-disable-*</span>) لإيقاف إرسال أي بيانات فوراً
+                  في الجلسة الحالية. ولمزيد من التفاصيل حول كيفية معالجة <span dir="ltr">Google</span> للبيانات، راجع
+                  <a
+                    href="https://policies.google.com/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
+                    سياسة خصوصية Google
+                  </a>
+                  .
+                </p>
+              </div>
+            </div>
+
+            <div
+              v-if="measurementId"
+              class="flex flex-col gap-3 rounded-xl border border-border/60 bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-semibold text-foreground">حالة اختيارك الحالي:</span>
+                  <Badge :variant="consentStatusVariant">{{ consentStatusLabel }}</Badge>
+                </div>
+                <p v-if="isDeniedByGpc" class="text-xs text-muted-foreground">
+                  متصفحك يرسل إشارة الخصوصية (GPC)، لذا تبقى إحصاءات الزيارات متوقفة تلقائياً.
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                class="shrink-0"
+                :disabled="isDeniedByGpc"
+                @click="handleResetAnalyticsConsent"
               >
-                سياسة خصوصية Google
-              </a>
-              .
-            </p>
+                <RotateCcw aria-hidden="true" class="h-4 w-4" />
+                <span>تغيير اختيارك بشأن الإحصاءات</span>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -370,7 +470,7 @@ const storageEntries: StorageEntry[] = [
               </li>
               <li>
                 <strong class="text-foreground" dir="ltr">Google Analytics:</strong> لقياس الزيارات الإجمالية على
-                الصفحات العامة فقط، وفق التفصيل أعلاه.
+                الصفحات العامة فقط وبعد موافقتك الصريحة، وفق التفصيل أعلاه.
               </li>
               <li>
                 <strong class="text-foreground" dir="ltr">Google Gemini API (للإشراف الداخلي فقط):</strong> قد

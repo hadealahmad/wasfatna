@@ -3,7 +3,8 @@ import 'vue-sonner/style.css';
 import './bootstrap';
 
 import { createApp, h, DefineComponent } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
+import { loadAnalytics, trackPageView } from './lib/analyticsConsent';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue } from 'ziggy-js';
 
@@ -22,4 +23,14 @@ createInertiaApp({
     progress: {
         color: 'hsl(var(--primary))',
     },
+});
+
+// Analytics: lib/analyticsConsent.ts owns the decision and the loading.
+// loadAnalytics() is a no-op unless the visitor already agreed, and
+// trackPageView() sends nothing until then (the initial page view is queued
+// when gtag.js loads).
+loadAnalytics();
+
+router.on('navigate', (event) => {
+    trackPageView(event.detail.page.url);
 });

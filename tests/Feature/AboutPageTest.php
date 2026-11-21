@@ -158,6 +158,7 @@ class AboutPageTest extends TestCase
 
         $this->get('/privacy')
             ->assertOk()
+            ->assertDontSee('googletagmanager.com/gtag/js', false)
             ->assertInertia(fn (Assert $page) => $page->component('Privacy'));
     }
 

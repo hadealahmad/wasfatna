@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<{
   showSearchButton: true
 });
 
-const search = ref(props.initialFilters?.search || '');
+const searchQuery = ref(props.initialFilters?.search || '');
 const city = ref(props.initialFilters?.city || '');
 const tag = ref(props.initialFilters?.tag || '');
 const difficulty = ref(props.initialFilters?.difficulty || '');
@@ -64,7 +64,7 @@ const emit = defineEmits<{
 
 const handleSearch = () => {
   const params: any = {};
-  if (search.value) params.search = search.value;
+  if (searchQuery.value) params.search = searchQuery.value;
   if (city.value && city.value !== 'all') params.city = city.value;
   if (tag.value && tag.value !== 'all') params.tag = tag.value;
   if (difficulty.value && difficulty.value !== 'all') params.difficulty = difficulty.value;
@@ -115,7 +115,7 @@ const getSelectedTagName = () => {
         <label for="recipe-search-input" class="sr-only">البحث عن وصفة</label>
         <Input
           id="recipe-search-input"
-          v-model="search"
+          v-model="searchQuery"
           type="search"
           name="search"
           enterkeyhint="search"

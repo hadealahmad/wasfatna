@@ -41,6 +41,13 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    // Read at runtime and exposed to the page as window.GA_ID only; gtag.js is
+    // loaded by resources/js/lib/analyticsConsent.ts after the visitor agrees.
+    // Leave GA_MEASUREMENT_ID empty to turn analytics (and the banner) off.
+    'google_analytics' => [
+        'id' => env('GA_MEASUREMENT_ID', 'G-JKT27FY67J'),
+    ],
+
     'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
 
 ];

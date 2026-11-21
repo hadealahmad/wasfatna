@@ -153,15 +153,11 @@
     <body class="font-sans antialiased">
         @inertia
 
-        @unless(request()->is('login', 'settings', 'dashboard*', 'meal-plans/shared*'))
-            <!-- Google tag (gtag.js) -->
-            <script async fetchpriority="low" referrerpolicy="no-referrer" nonce="{{ $cspNonce ?? '' }}" src="https://www.googletagmanager.com/gtag/js?id=G-JKT27FY67J"></script>
-            <script nonce="{{ $cspNonce ?? '' }}">
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-JKT27FY67J');
-            </script>
-        @endunless
+        {{-- Analytics is consent-gated: only the measurement id is exposed here.
+             resources/js/lib/analyticsConsent.ts is the one place that fetches
+             gtag.js, and only after the visitor agrees in the consent banner. --}}
+        @if (config('services.google_analytics.id') && ! request()->is('login', 'settings', 'dashboard*', 'meal-plans/shared*', 'my*'))
+            <script nonce="{{ $cspNonce ?? '' }}">window.GA_ID = @json(config('services.google_analytics.id'));</script>
+        @endif
     </body>
 </html>
