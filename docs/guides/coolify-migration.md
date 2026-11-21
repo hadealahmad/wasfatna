@@ -98,3 +98,39 @@ config, deploys straight from GitHub, and no self-hosted runner is needed.
 - Cloudflare DNS access for `syrian.zone` (or making the DNS change yourself
   at cutover).
 - A cutover time.
+
+## Rehearsal results (2026-11-21)
+
+- Coolify project `wasfatna` (`tpt9wkigjvtmwjyixncsdvgy`), MySQL 8.4 `wasfatna-mysql`
+  (`fgxappb8efqhrz4fblorjxjj`, internal only), app `wasfatna-app`
+  (`ja69lnzq7sc4zt6btnltevsa`) on branch `feature/coolify-migration`, staging URL
+  `https://wasfatna.62.171.131.239.sslip.io` (Let's Encrypt).
+- Env: 54 variables, taken from the old `.env` with Laravel's first-value-wins
+  rule; effective production values kept (`APP_ENV=local`, `FILESYSTEM_DISK=public`,
+  database session/cache/queue). DB_* point at the Coolify MySQL; `TRUSTED_PROXIES=*`,
+  `LOG_CHANNEL=stderr`; `APP_URL` = staging URL and `GA_MEASUREMENT_ID` empty until cutover.
+- Database: all 25 tables match row-for-row (120 users, 97 recipes, 53 lists,
+  12 meal plans, 349 meal-plan entries, 19 sessions…).
+- Uploads: 211 files / 92,838,410 bytes on both sides, owned by www-data (33).
+- Container healthy; queue worker and scheduler running under s6; SSR idle.
+- Cloudflare SSL mode is **Full** (origin reached on 443, self-signed accepted), so
+  no certificate change is needed at cutover and no Flexible-mode redirect loop.
+
+## Cutover runbook
+
+1. Old host: `php artisan down` (as `syrian`).
+2. Stream a final dump into the Coolify MySQL; compare per-table row counts.
+3. Re-copy `storage/app/public` into the volume; compare file count and bytes.
+4. Coolify: `APP_URL=https://food.syrian.zone`, remove the empty `GA_MEASUREMENT_ID`
+   (falls back to the production id), add `https://food.syrian.zone` to domains,
+   redeploy, wait for healthy; test the new origin with `--resolve`.
+5. **Owner:** in Cloudflare set the `food.syrian.zone` A record to `62.171.131.239`
+   (proxied); remove or update any AAAA record that points at the old host.
+6. Smoke test on the real domain (Google sign-in, recipe, image upload, report).
+7. Later: merge `feature/coolify-migration` → `main`, point the app at `main`
+   with auto-deploy, remove the self-hosted workflow and stop `cooking-runner`;
+   old host stays in maintenance mode as the rollback for 1–2 weeks.
+
+Follow-up (separate from the move): production runs with `APP_ENV=local`.
+Switching to `production` changes the session cookie name (`__Host-` prefix),
+which signs everyone out once — do it deliberately, not during the move.
