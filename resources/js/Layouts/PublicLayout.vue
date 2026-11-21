@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import PublicHeader from '@/components/layout/PublicHeader.vue';
-import { Toaster, toast } from 'vue-sonner';
 import { watch } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { FileText, Globe, Shield } from 'lucide-vue-next';
+import { Toaster, toast } from 'vue-sonner';
+import PublicHeader from '@/components/layout/PublicHeader.vue';
 import { useColorScheme } from '@/composables/useColorScheme';
+import { useGlobalSearchShortcut } from '@/composables/useGlobalSearch';
 
 defineProps<{
   title?: string;
 }>();
 
+// Register Ctrl/Cmd+K and "/" global search shortcuts once at the root layout.
+useGlobalSearchShortcut();
+
 const { toasterTheme } = useColorScheme();
+const currentYear = new Date().getFullYear();
 
 // Surface backend flash messages (e.g. middleware redirects) as toasts
 const page = usePage();
@@ -19,7 +25,7 @@ watch(
     if (flash?.error) toast.error(flash.error);
     if (flash?.success) toast.success(flash.success);
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 );
 </script>
 
@@ -41,10 +47,11 @@ watch(
       closeButton
       :toastOptions="{
         style: {
-          direction: 'rtl'
-        }
+          direction: 'rtl',
+        },
       }"
     />
+
     <PublicHeader />
 
     <main id="main-content" tabindex="-1" class="flex-1 focus:outline-none">
@@ -52,19 +59,41 @@ watch(
     </main>
 
     <footer
-      class="cv-auto-section border-t py-8 bg-muted/20 mt-auto"
+      class="cv-auto-section border-t border-border bg-card/50 py-8 mt-auto"
       style="contain-intrinsic-block-size: auto 10rem;"
     >
-      <div class="container mx-auto px-4 text-center text-sm text-muted-foreground">
-        <p class="mb-2">
-          © 2024 وصفاتنا. جميع الحقوق محفوظة. | تم التطوير بواسطة
-          <a href="https://hadealahmad.com/" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">هادي الأحمد</a>
-        </p>
-        <div class="flex justify-center gap-4">
-          <Link href="/privacy" class="hover:text-primary transition-colors">سياسة الخصوصية</Link>
-          <span aria-hidden="true">|</span>
-          <Link href="/terms" class="hover:text-primary transition-colors">الشروط والأحكام</Link>
+      <div class="container max-w-7xl mx-auto px-4 md:px-8 flex flex-col items-center gap-3 text-center">
+        <div class="flex items-center gap-2 text-sm">
+          <span class="font-medium tracking-wide text-primary">SYRIAN.ZONE</span>
+          <span class="text-xs text-muted-foreground" aria-hidden="true">/</span>
+          <span class="font-bold text-foreground">وصفاتنا</span>
         </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+          <Link href="/privacy" class="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <Shield aria-hidden="true" class="h-4 w-4" />
+            <span>سياسة الخصوصية</span>
+          </Link>
+          <span aria-hidden="true">•</span>
+          <Link href="/terms" class="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <FileText aria-hidden="true" class="h-4 w-4" />
+            <span>الشروط والأحكام</span>
+          </Link>
+          <span aria-hidden="true">•</span>
+          <a
+            href="https://hadealahmad.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-1.5 hover:text-primary transition-colors"
+          >
+            <Globe aria-hidden="true" class="h-4 w-4" />
+            <span>هادي الأحمد</span>
+          </a>
+        </div>
+
+        <p class="text-xs text-muted-foreground">
+          © {{ currentYear }} وصفاتنا · مجتمع الطبخ السوري
+        </p>
       </div>
     </footer>
   </div>

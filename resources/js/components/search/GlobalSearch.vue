@@ -530,7 +530,7 @@ function onInputKeyDown(e: KeyboardEvent): void {
       type="button"
       variant="outline"
       :aria-label="triggerAriaLabel"
-      class="hidden md:inline-flex h-9 min-w-52 lg:min-w-64 items-center justify-between gap-3 rounded-xl border-border/80 bg-muted/40 px-3 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+      class="hidden md:inline-flex h-9 min-w-44 xl:min-w-60 items-center justify-between gap-3 rounded-xl border-border/80 bg-muted/40 px-3 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
       @click="open()"
     >
       <span class="flex items-center gap-2 truncate">
