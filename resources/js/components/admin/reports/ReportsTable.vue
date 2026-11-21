@@ -24,7 +24,7 @@ import {
     PaginationControls,
     Label
 } from '@/components/ui';
-import { MoreHorizontal, Trash, MessageSquare, CheckCircle, XCircle, ExternalLink } from 'lucide-vue-next';
+import { MoreHorizontal, Trash, MessageSquare, CheckCircle, XCircle, ExternalLink, User } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import { formatRelativeTime } from '@/lib/utils';
 import type { AdminReport, Pagination } from '@/types';
@@ -170,9 +170,9 @@ const getReportableLink = (report: AdminReport) => {
 
 <template>
     <div>
-        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex items-center justify-between">
+        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex flex-wrap items-center justify-between gap-3">
             <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }} عنصر</span>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" @click="handleBulkStatus('fixed')" :disabled="isLoading">
                     <CheckCircle class="me-2 w-4 h-4" aria-hidden="true" /> تم الحل
                 </Button>
@@ -230,7 +230,9 @@ const getReportableLink = (report: AdminReport) => {
                                     <div v-if="report.user.avatar" class="w-8 h-8 rounded-full overflow-hidden">
                                         <img :src="report.user.avatar" alt="" width="32" height="32" loading="lazy" decoding="async" class="w-full h-full object-cover" />
                                     </div>
-                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs" aria-hidden="true">👤</div>
+                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                        <User class="h-4 w-4" aria-hidden="true" />
+                                    </div>
                                     <div class="flex flex-col">
                                         <span class="text-sm font-medium">{{ report.user.name }}</span>
                                         <span class="text-xs text-muted-foreground">{{ report.user.email }}</span>
@@ -298,7 +300,7 @@ const getReportableLink = (report: AdminReport) => {
                 </DialogHeader>
 
                 <div v-if="selectedReport" class="grid gap-6 py-4">
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                         <div>
                             <span class="text-sm font-medium text-muted-foreground block">المرسل:</span>
                             <div class="font-medium">{{ selectedReport.user.name }}</div>

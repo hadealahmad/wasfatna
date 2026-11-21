@@ -112,7 +112,7 @@ const handleImport = () => {
             <h2 class="text-2xl font-bold tracking-tight text-start">الإعدادات</h2>
 
             <Tabs default-value="general" class="w-full">
-                <TabsList class="flex flex-row-reverse">
+                <TabsList class="flex flex-wrap">
                     <TabsTrigger value="general">عام</TabsTrigger>
                     <TabsTrigger value="ai">إعدادات AI</TabsTrigger>
                     <TabsTrigger value="import">استيراد وصفات</TabsTrigger>
@@ -262,9 +262,3 @@ const handleImport = () => {
         </div>
     </DashboardLayout>
 </template>
-
-<style scoped>
-.dir-ltr {
-    direction: ltr;
-}
-</style>

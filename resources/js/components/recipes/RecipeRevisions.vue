@@ -8,6 +8,7 @@ import {
     Button, Badge
 } from '@/components/ui';
 import { History, RotateCcw, Eye, Loader2 } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 interface Revision {
     id: number;
@@ -83,9 +84,9 @@ const handleRestore = async () => {
             tags: content.tags?.map((t: any) => t.name)
         };
         
-        const response = await axios.put(`/api/recipes/${props.recipeId}`, payload);
+        await axios.put(`/api/recipes/${props.recipeId}`, payload);
         
-        alert('تم استعادة النسخة بنجاح');
+        toast.success('تم استعادة النسخة بنجاح');
         isOpen.value = false;
         isPreviewOpen.value = false;
         router.reload();
@@ -94,7 +95,7 @@ const handleRestore = async () => {
             console.error('Update failed:', error.response?.data);
         }
         console.error('Restore failed', error);
-        alert('فشل الاستعادة');
+        toast.error('فشلت استعادة النسخة');
     } finally {
         isRestoring.value = false;
     }

@@ -102,7 +102,7 @@ const typeLabels: Record<string, string> = {
                 <Dialog v-model:open="createOpen">
                     <DialogTrigger asChild>
                         <Button class="gap-2">
-                            <Plus class="w-4 h-4" />
+                            <Plus class="w-4 h-4" aria-hidden="true" />
                             قالب جديد
                         </Button>
                     </DialogTrigger>
@@ -120,7 +120,7 @@ const typeLabels: Record<string, string> = {
                                 <Label for="create-preset-description">الوصف (اختياري)</Label>
                                 <Textarea id="create-preset-description" v-model="createForm.description" placeholder="وصف القالب..." rows="2" />
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-2">
                                     <Label for="create-preset-start">تاريخ البداية</Label>
                                     <Input id="create-preset-start" type="date" v-model="createForm.start_date" required />
@@ -159,7 +159,8 @@ const typeLabels: Record<string, string> = {
                 </Dialog>
             </div>
 
-            <Table>
+            <div class="rounded-md border">
+            <Table aria-label="جدول قوالب خطط الوجبات">
                 <TableHeader>
                     <TableRow>
                         <TableHead class="text-start">الاسم</TableHead>
@@ -206,6 +207,7 @@ const typeLabels: Record<string, string> = {
                     </TableRow>
                 </TableBody>
             </Table>
+            </div>
         </div>
 
         <!-- Edit Dialog -->

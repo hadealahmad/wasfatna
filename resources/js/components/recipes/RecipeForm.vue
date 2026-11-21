@@ -20,7 +20,7 @@ import {
     Checkbox,
     FilterChip
 } from '@/components/ui';
-import { Plus, Trash, X, Eye, GripVertical } from 'lucide-vue-next';
+import { Plus, Trash, X, Eye, GripVertical, Sparkles, ImagePlus } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
 
 const RecipePreview = defineAsyncComponent(() => import('@/components/recipes/RecipePreview.vue'));
@@ -705,7 +705,7 @@ const submit = async () => {
                 <div v-if="isAdmin" class="bg-muted/50 border rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-lg" aria-hidden="true">✨</span>
+                            <Sparkles class="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
                             <h3 class="font-semibold">مساعد الذكاء الاصطناعي</h3>
                         </div>
                         <p class="text-sm text-muted-foreground">
@@ -869,7 +869,7 @@ const submit = async () => {
                             </Button>
                         </div>
                         <label v-else for="recipe-image-input" class="flex flex-col items-center justify-center w-full max-w-md h-52 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors bg-background focus-within:ring-2 focus-within:ring-ring" :class="{ 'border-destructive': !!errors.image }">
-                            <span class="text-4xl mb-4" aria-hidden="true">📷</span>
+                            <ImagePlus class="h-10 w-10 text-muted-foreground mb-3" aria-hidden="true" />
                             <span class="text-base text-muted-foreground font-medium">اضغط لاختيار صورة</span>
                             <span class="text-sm text-muted-foreground mt-2">(الحد الأقصى 1 ميغابايت)</span>
                             <input

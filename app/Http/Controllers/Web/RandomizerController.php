@@ -3,34 +3,53 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ingredient; // Assuming you have an Ingredient model
+use App\Models\City;
+use App\Models\Ingredient;
 use App\Models\Recipe;
-use Illuminate\Http\Request;
+use App\Models\Tag;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class RandomizerController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        // Fetch ingredients for the exclusion filter
-        // Ideally we only want ingredients that are actually used in recipes
-        // For now, let's just fetch all or top ingredients
-        $ingredients = \DB::table('ingredients')
-            ->select('id', 'name')
-            ->distinct()
-            ->get(); 
-            // Warning: If 'ingredients' table behaves differently (e.g. pivoting), adjust.
-            // If ingredients are stored as JSON in recipes, we might need a different approach.
-            // Let's assume there is an ingredients table for now or we might need to extract them.
-            
-        // If ingredients are just JSON in recipes table, we might skip passing ingredients list 
-        // or hardcode common ones, or use tags instead. 
-        // The frontend uses `IngredientSelector`.
-        
-        // Let's check `Recipe` model structure later. For now, empty list or tags.
-        
+        $approvedScope = fn ($q) => $q->where('status', 'approved');
+
+        $cities = City::query()
+            ->select(['id', 'name', 'slug'])
+            ->whereHas('recipes', $approvedScope)
+            ->withCount(['recipes' => $approvedScope])
+            ->orderByDesc('recipes_count')
+            ->get();
+
+        $tags = Tag::query()
+            ->select(['id', 'name', 'slug'])
+            ->whereHas('recipes', $approvedScope)
+            ->withCount(['recipes' => $approvedScope])
+            ->orderByDesc('recipes_count')
+            ->limit(24)
+            ->get();
+
+        $popularIngredients = Ingredient::query()
+            ->select(['id', 'name'])
+            ->whereHas('recipes', $approvedScope)
+            ->withCount(['recipes' => $approvedScope])
+            ->orderByDesc('recipes_count')
+            ->limit(14)
+            ->get()
+            ->map(fn ($i) => [
+                'id' => $i->id,
+                'name' => $i->name,
+            ]);
+
+        $totalRecipes = Recipe::where('status', 'approved')->count();
+
         return Inertia::render('Randomizer/Index', [
-            // 'ingredients' => $ingredients, 
+            'cities' => $cities,
+            'tags' => $tags,
+            'popularIngredients' => $popularIngredients,
+            'totalRecipes' => $totalRecipes,
         ]);
     }
 }

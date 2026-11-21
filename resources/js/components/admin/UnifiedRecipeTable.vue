@@ -29,7 +29,7 @@ import {
     Textarea,
     PaginationControls
 } from '@/components/ui';
-import { MoreHorizontal, Edit, Trash, Eye, EyeOff, Sparkles } from 'lucide-vue-next';
+import { MoreHorizontal, Edit, Trash, Eye, EyeOff, Sparkles, UtensilsCrossed } from 'lucide-vue-next';
 import { formatRelativeTime } from '@/lib/utils';
 import { toast } from 'vue-sonner';
 import type { AdminRecipe, Pagination } from '@/types';
@@ -199,9 +199,9 @@ const getStatusLabel = (status: string) => {
 
 <template>
     <div>
-        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex items-center justify-between">
+        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex flex-wrap items-center justify-between gap-3">
             <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }} عنصر</span>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <Button size="sm" @click="handleBulkAction('publish')" :disabled="isLoading">
                     نشر
                 </Button>
@@ -283,7 +283,9 @@ const getStatusLabel = (status: string) => {
                             </TableCell>
                             <TableCell>
                                 <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" width="40" height="40" loading="lazy" decoding="async" class="w-10 h-10 rounded object-cover" />
-                                <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg" aria-hidden="true">🍽️</div>
+                                <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                    <UtensilsCrossed class="h-4 w-4" aria-hidden="true" />
+                                </div>
                             </TableCell>
                             <TableCell>
                                 <div class="flex flex-col">

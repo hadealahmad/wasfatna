@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft } from 'lucide-vue-next';
 
 const form = useForm({
     name: '',
@@ -33,13 +33,16 @@ const submit = () => {
     <MyDashboardLayout>
         <Head title="قائمة جديدة" />
         
-        <div class="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
-            <Link :href="route('my.lists.index')" class="hover:text-primary">قوائمي</Link>
-            <ChevronRight class="w-4 h-4" />
+        <nav aria-label="مسار التصفح" class="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground">
+            <Link :href="route('my.lists.index')" class="hover:text-primary transition-colors">قوائمي</Link>
+            <ChevronLeft class="w-4 h-4 shrink-0" aria-hidden="true" />
             <span class="text-foreground font-medium">قائمة جديدة</span>
-        </div>
+        </nav>
 
-        <h1 class="text-2xl font-bold mb-6">إنشاء قائمة جديدة</h1>
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold tracking-tight">إنشاء قائمة جديدة</h1>
+            <p class="text-sm text-muted-foreground mt-1">أضف تفاصيل القائمة واختر ما إذا كنت تود مشاركتها مع المجتمع</p>
+        </div>
 
         <Card>
             <CardContent class="pt-6">
@@ -62,9 +65,9 @@ const submit = () => {
                         <p v-if="form.errors.cover_image" class="text-sm text-destructive">{{ form.errors.cover_image }}</p>
                     </div>
 
-                    <div class="flex items-center space-x-2 flex-row-reverse space-x-reverse justify-end">
-                        <Label for="is-public" class="cursor-pointer">قائمة عامة (يمكن للجميع رؤيتها)</Label>
+                    <div class="flex items-center gap-3">
                         <Switch id="is-public" :checked="form.is_public" @update:checked="form.is_public = $event" />
+                        <Label for="is-public" class="cursor-pointer">قائمة عامة (يمكن للجميع رؤيتها)</Label>
                     </div>
 
                     <div class="flex justify-end gap-4 pt-4">

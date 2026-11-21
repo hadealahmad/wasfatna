@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import RecipeCard from './RecipeCard.vue';
-import { Utensils } from 'lucide-vue-next';
 
 interface Recipe {
   id: number;
@@ -21,7 +21,7 @@ interface Props {
   eagerFirstRow?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   emptyMessage: 'لا توجد وصفات',
   eagerFirstRow: true,
 });
@@ -29,12 +29,16 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <div>
-    <div v-if="recipes.length === 0" class="flex flex-col items-center justify-center py-20 text-center bg-muted/20 rounded-2xl border-2 border-dashed border-border/50">
-      <Utensils class="w-16 h-16 mb-4 text-muted-foreground/20" aria-hidden="true" />
-      <p class="text-xl text-muted-foreground font-medium">{{ emptyMessage }}</p>
+    <div
+      v-if="recipes.length === 0"
+      class="flex flex-col items-center justify-center gap-3 py-16 px-4 text-center bg-muted/20 rounded-2xl border-2 border-dashed border-border/70"
+    >
+      <ProjectIcon name="recipes" class="w-14 h-14 opacity-85" />
+      <p class="text-lg sm:text-xl text-muted-foreground font-medium max-w-md">{{ emptyMessage }}</p>
+      <slot name="empty-action" />
     </div>
 
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <RecipeCard
         v-for="(recipe, index) in recipes"
         :key="recipe.id"

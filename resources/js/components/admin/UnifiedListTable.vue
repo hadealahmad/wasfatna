@@ -18,6 +18,7 @@ import {
     PaginationControls
 } from '@/components/ui';
 import { MoreHorizontal, Trash, CheckCircle, EyeOff, XCircle } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Pagination } from '@/types';
 
@@ -78,6 +79,10 @@ const handleBulkAction = (action: 'delete' | 'approve' | 'reject' | 'unpublish')
     }, {
         onSuccess: () => {
             selectedIds.value = [];
+            toast.success('تم تنفيذ الإجراء بنجاح');
+        },
+        onError: () => {
+            toast.error('فشل تنفيذ الإجراء');
         },
         onFinish: () => {
             isLoading.value = false;
@@ -90,6 +95,8 @@ const handleDelete = (list: List) => {
 
     isLoading.value = true;
     router.delete(route('dashboard.lists.destroy', list.id), {
+        onSuccess: () => toast.success('تم حذف القائمة'),
+        onError: () => toast.error('فشل حذف القائمة'),
         onFinish: () => {
             isLoading.value = false;
         }
@@ -102,6 +109,8 @@ const handleUpdateStatus = (list: List, status: string) => {
         _method: 'PUT',
         status
     }, {
+        onSuccess: () => toast.success('تم تحديث حالة القائمة'),
+        onError: () => toast.error('فشل تحديث حالة القائمة'),
         onFinish: () => {
             isLoading.value = false;
         }
@@ -111,9 +120,9 @@ const handleUpdateStatus = (list: List, status: string) => {
 
 <template>
     <div>
-        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex items-center justify-between">
+        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex flex-wrap items-center justify-between gap-3">
             <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }} عنصر</span>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <Button size="sm" @click="handleBulkAction('approve')" :disabled="isLoading">
                     موافقة
                 </Button>
@@ -190,10 +199,10 @@ const handleUpdateStatus = (list: List, status: string) => {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <div class="flex items-center gap-2 justify-end">
+                                <div class="flex items-center gap-2 justify-start">
+                                    <img v-if="list.user?.avatar" :src="list.user.avatar" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover shrink-0" />
+                                    <div v-else class="w-6 h-6 rounded-full bg-muted shrink-0" aria-hidden="true" />
                                     <span class="text-sm">{{ list.user?.name }}</span>
-                                    <img v-if="list.user?.avatar" :src="list.user.avatar" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover" />
-                                    <div v-else class="w-6 h-6 rounded-full bg-muted" aria-hidden="true" />
                                 </div>
                             </TableCell>
                             <TableCell>

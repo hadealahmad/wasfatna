@@ -168,7 +168,7 @@ const jsonExample = `[
                 <Card>
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
-                            <FileJson class="h-5 w-5" />
+                            <FileJson class="h-5 w-5" aria-hidden="true" />
                             رفع ملف JSON
                         </CardTitle>
                         <CardDescription>
@@ -176,21 +176,22 @@ const jsonExample = `[
                         </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-4">
                             <input
                                 ref="fileInputRef"
                                 type="file"
                                 accept=".json,application/json"
                                 @change="handleFileSelect"
-                                class="hidden"
+                                class="sr-only"
                                 id="json-file-input"
                             />
                             <Button
+                                type="button"
                                 variant="outline"
                                 @click="fileInputRef?.click()"
                                 class="gap-2"
                             >
-                                <Upload class="h-4 w-4" />
+                                <Upload class="h-4 w-4" aria-hidden="true" />
                                 اختر ملف
                             </Button>
                             <span v-if="fileName" class="text-sm text-muted-foreground">

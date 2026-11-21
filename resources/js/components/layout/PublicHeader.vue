@@ -11,6 +11,7 @@ import {
   FileText,
   Flag,
   Grip,
+  Info,
   LayoutDashboard,
   LogOut,
   MapPin,
@@ -18,10 +19,10 @@ import {
   Search,
   Shield,
   User as UserIcon,
-  Utensils,
   X,
 } from 'lucide-vue-next';
 import AppearanceMenu from '@/components/AppearanceMenu.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import UserNav from '@/components/layout/UserNav.vue';
 import GlobalSearch from '@/components/search/GlobalSearch.vue';
 import Avatar from '@/components/ui/Avatar.vue';
@@ -74,15 +75,16 @@ const primaryNavItems = [
 ] as const;
 
 const allSectionTiles = [
-  { href: '/recipes', label: 'جميع الوصفات', icon: Utensils },
-  { href: '/cities', label: 'المدن', icon: MapPin },
-  { href: '/lists', label: 'القوائم', icon: BookHeart },
-  { href: '/meal-plans/browse', label: 'خطط الوجبات', icon: CalendarDays },
-  { href: '/randomizer', label: 'شو نطبخ؟', icon: Dices },
-  { href: '/search', label: 'البحث المتقدم', icon: Search },
+  { href: '/recipes', label: 'جميع الوصفات', projectIcon: 'recipes' },
+  { href: '/cities', label: 'المدن', projectIcon: 'cities' },
+  { href: '/lists', label: 'القوائم', projectIcon: 'lists' },
+  { href: '/meal-plans/browse', label: 'خطط الوجبات', projectIcon: 'meal_plans' },
+  { href: '/randomizer', label: 'شو نطبخ؟', projectIcon: 'randomizer' },
+  { href: '/search', label: 'البحث المتقدم', projectIcon: 'search' },
 ] as const;
 
 const footerLinks = [
+  { href: '/about', label: 'عن وصفاتنا', icon: Info },
   { href: '/privacy', label: 'سياسة الخصوصية', icon: Shield },
   { href: '/terms', label: 'الشروط والأحكام', icon: FileText },
 ] as const;
@@ -260,15 +262,12 @@ onUnmounted(() => {
                         class="group flex h-full select-none flex-col items-center gap-2 rounded-lg px-1 py-2.5 text-center no-underline outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                         @click="isMobileMenuOpen = false"
                       >
-                        <component
-                          :is="item.icon"
-                          aria-hidden="true"
+                        <ProjectIcon
+                          :name="item.projectIcon"
                           :class="
                             cn(
-                              'h-9 w-9 shrink-0 transition-all group-hover:scale-110',
-                              isNavActive(item.href)
-                                ? 'text-primary'
-                                : 'text-foreground group-hover:text-primary',
+                              'h-9 w-9 shrink-0 motion-safe:transition-transform group-hover:scale-110',
+                              isNavActive(item.href) && 'scale-105',
                             )
                           "
                         />
@@ -390,7 +389,7 @@ onUnmounted(() => {
               <div>
                 <Separator class="my-2" />
                 <div
-                  class="grid grid-cols-2 gap-x-4 gap-y-3 px-2 pt-2 pb-2 text-xs text-muted-foreground"
+                  class="flex flex-wrap items-center justify-center gap-x-5 gap-y-3 px-2 pt-2 pb-2 text-xs text-muted-foreground"
                 >
                   <Link
                     v-for="link in footerLinks"
@@ -487,15 +486,12 @@ onUnmounted(() => {
                     class="group flex h-full select-none flex-col items-center gap-2 rounded-lg px-1 py-2.5 text-center no-underline outline-none hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                     @click="moreOpen = false"
                   >
-                    <component
-                      :is="item.icon"
-                      aria-hidden="true"
+                    <ProjectIcon
+                      :name="item.projectIcon"
                       :class="
                         cn(
-                          'h-9 w-9 shrink-0 transition-all group-hover:scale-110',
-                          isNavActive(item.href)
-                            ? 'text-primary'
-                            : 'text-foreground group-hover:text-primary',
+                          'h-9 w-9 shrink-0 motion-safe:transition-transform group-hover:scale-110',
+                          isNavActive(item.href) && 'scale-105',
                         )
                       "
                     />

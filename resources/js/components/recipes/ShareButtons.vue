@@ -2,6 +2,7 @@
 import { ref, onUnmounted } from 'vue';
 import { Button } from '@/components/ui';
 import { Share2, Printer, Check } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 const copied = ref(false);
 const copyStatus = ref('');
@@ -19,6 +20,7 @@ const handleCopyLink = async () => {
         copied.value = true;
         copyError.value = '';
         copyStatus.value = 'تم نسخ الرابط';
+        toast.success('تم نسخ رابط الوصفة');
         copyTimeout = setTimeout(() => {
             copied.value = false;
             copyStatus.value = '';
@@ -29,6 +31,7 @@ const handleCopyLink = async () => {
         copied.value = false;
         copyError.value = 'تعذر نسخ الرابط، يرجى نسخه يدوياً';
         copyStatus.value = '';
+        toast.error('تعذر نسخ الرابط');
     }
 };
 

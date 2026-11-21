@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import Button from '@/components/ui/Button.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import ListCard from '@/components/features/lists/ListCard.vue';
 import CreateListDialog from '@/components/features/lists/CreateListDialog.vue';
 import { computed } from 'vue';
@@ -19,9 +19,17 @@ const customLists = computed(() => props.lists.filter(l => !l.is_default));
     <PublicLayout>
         <Head title="قوائمي" />
         
-        <div class="container mx-auto py-8 px-4 md:px-6">
-            <div class="flex items-center justify-between mb-8">
-                <h1 class="text-3xl font-bold">قوائمي</h1>
+        <div class="container max-w-7xl mx-auto py-8 px-4 md:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div class="flex items-center gap-3">
+                    <div class="inline-flex items-center justify-center rounded-xl border border-border/70 bg-card p-2 shadow-2xs shrink-0">
+                        <ProjectIcon name="lists" class="h-8 w-8" />
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">قوائمي</h1>
+                        <p class="text-sm text-muted-foreground mt-0.5">احفظ وصفاتك المفضلة ونظّمها في قوائم خاصة أو عامة</p>
+                    </div>
+                </div>
                 <CreateListDialog />
             </div>
 
@@ -47,8 +55,13 @@ const customLists = computed(() => props.lists.filter(l => !l.is_default));
             </div>
 
             <!-- Empty State -->
-            <div v-if="lists.length === 0 && !defaultList" class="text-center py-12 border rounded-xl bg-muted/20">
-                <p class="text-muted-foreground">لم تقم بإنشاء أي قوائم بعد.</p>
+            <div v-if="lists.length === 0 && !defaultList" class="flex flex-col items-center justify-center gap-3 text-center py-16 px-4 border-2 border-dashed rounded-2xl bg-muted/20">
+                <ProjectIcon name="lists" class="h-14 w-14 opacity-85" />
+                <p class="text-lg font-semibold text-foreground">لم تقم بإنشاء أي قوائم بعد</p>
+                <p class="text-sm text-muted-foreground max-w-md">أنشئ قائمة جديدة لحفظ وصفاتك المفضلة والرجوع إليها بسهولة.</p>
+                <div class="pt-2">
+                    <CreateListDialog />
+                </div>
             </div>
         </div>
     </PublicLayout>

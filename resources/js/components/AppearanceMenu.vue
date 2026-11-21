@@ -6,7 +6,7 @@ import Popover from '@/components/ui/Popover.vue';
 import PopoverContent from '@/components/ui/PopoverContent.vue';
 import PopoverTrigger from '@/components/ui/PopoverTrigger.vue';
 import { useTheme } from '@/composables/useTheme';
-import { FONT_OPTIONS, THEME_REGISTRY, type FontPreference } from '@/lib/theme';
+import { DEFAULT_THEME, FONT_OPTIONS, THEME_REGISTRY, type FontPreference } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -67,7 +67,12 @@ function handleFontChange(nextFont: FontPreference): void {
     </PopoverTrigger>
     <PopoverContent class="w-56 p-1" align="end">
       <div class="px-2 py-1.5" dir="rtl">
-        <p :id="themeLabelId" class="text-xs text-muted-foreground mb-2">المظهر</p>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <p :id="themeLabelId" class="text-xs text-muted-foreground">المظهر</p>
+          <span v-if="activeTheme" class="text-[11px] text-muted-foreground truncate">
+            {{ activeTheme.nameAr }}<template v-if="activeTheme.id === DEFAULT_THEME"> · الافتراضي</template>
+          </span>
+        </div>
         <div role="group" :aria-labelledby="themeLabelId">
           <div v-if="heritageThemes.length > 0" class="flex items-center gap-2 mb-3">
             <button
@@ -116,9 +121,9 @@ function handleFontChange(nextFont: FontPreference): void {
               v-for="t in circleThemes"
               :key="t.id"
               type="button"
-              :aria-label="t.nameAr"
+              :aria-label="t.id === DEFAULT_THEME ? `${t.nameAr} (الافتراضي)` : t.nameAr"
               :aria-pressed="themePreference === t.id"
-              :title="t.nameAr"
+              :title="t.id === DEFAULT_THEME ? `${t.nameAr} (الافتراضي)` : t.nameAr"
               class="w-6 h-6 inline-flex items-center justify-center rounded-full shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               @click="handleThemeChange(t.id)"
             >

@@ -1,7 +1,8 @@
 {
   "theme": {
     "key": "wasfatna-theme",
-    "system": "system"
+    "system": "system",
+    "default": "dark-blue"
   },
   "font": {
     "key": "wasfatna-font",

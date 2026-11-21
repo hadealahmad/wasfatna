@@ -73,7 +73,7 @@ const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
                 </div>
 
                 <!-- Recipe Count -->
-                <div class="absolute bottom-3 start-3 bg-black/60 text-white px-2 py-1 rounded text-xs backdrop-blur-sm tabular-nums">
+                <div class="absolute bottom-3 start-3 bg-background/85 text-foreground border border-border/60 px-2 py-0.5 rounded-md text-xs font-medium backdrop-blur-sm tabular-nums shadow-2xs">
                     {{ list.recipes_count || 0 }} وصفة
                 </div>
             </div>

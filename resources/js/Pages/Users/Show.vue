@@ -62,7 +62,7 @@ const props = defineProps<{
                 />
 
                 <!-- Pagination -->
-                <div v-if="recipes.meta?.last_page > 1" class="mt-12 flex justify-center gap-2">
+                <div v-if="recipes.meta?.last_page > 1" class="mt-10 flex flex-wrap justify-center gap-2">
                     <template v-for="(link, key) in recipes.meta.links" :key="key">
                         <component
                             :is="link.url ? Link : 'span'"

@@ -53,8 +53,11 @@ const getReportableLink = (report: any) => {
     <PublicLayout>
         <Head title="بلاغاتي" />
         
-        <div class="container mx-auto py-8 px-4 md:px-6">
-            <h1 class="text-3xl font-bold mb-8">بلاغاتي</h1>
+        <div class="container max-w-5xl mx-auto py-8 px-4 md:px-8">
+            <div class="mb-8 space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">بلاغاتي</h1>
+                <p class="text-sm text-muted-foreground">متابعة حالة البلاغات والملاحظات التي أرسلتها لفريق الإشراف</p>
+            </div>
 
             <div v-if="reports.data.length === 0" class="text-center py-16 bg-muted/30 rounded-lg border border-dashed">
                 <MessageSquare class="w-12 h-12 mx-auto text-muted-foreground mb-4" aria-hidden="true" />
@@ -109,7 +112,7 @@ const getReportableLink = (report: any) => {
             </div>
 
             <!-- Pagination -->
-             <div v-if="reports.meta?.last_page > 1" class="mt-8 flex justify-center gap-2">
+             <div v-if="reports.meta?.last_page > 1" class="mt-8 flex flex-wrap justify-center gap-2">
                  <template v-for="(link, key) in reports.meta.links" :key="key">
                     <component
                         :is="link.url ? Link : 'span'"

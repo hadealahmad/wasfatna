@@ -6,7 +6,7 @@ import {
     Button, Input, Label, Textarea, Card, CardContent,
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui';
-import { ChevronRight } from 'lucide-vue-next';
+import { ChevronLeft } from 'lucide-vue-next';
 
 interface Preset {
     id: number;
@@ -55,11 +55,11 @@ const submit = () => {
     <MyDashboardLayout>
         <Head title="خطة وجبات جديدة" />
 
-        <div class="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
-            <Link :href="route('my.meal-plans.index')" class="hover:text-primary">خطط الوجبات</Link>
-            <ChevronRight class="w-4 h-4" />
+        <nav aria-label="مسار التصفح" class="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground">
+            <Link :href="route('my.meal-plans.index')" class="hover:text-primary transition-colors">خطط الوجبات</Link>
+            <ChevronLeft class="w-4 h-4 shrink-0" aria-hidden="true" />
             <span class="text-foreground font-medium">خطة جديدة</span>
-        </div>
+        </nav>
 
         <h1 class="text-2xl font-bold mb-6">إنشاء خطة وجبات جديدة</h1>
 
@@ -93,7 +93,7 @@ const submit = () => {
                         <p v-if="form.errors.description" class="text-sm text-destructive">{{ form.errors.description }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="start_date">تاريخ البداية</Label>
                             <Input id="start_date" type="date" v-model="form.start_date" required />

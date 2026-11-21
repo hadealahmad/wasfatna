@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import { cn } from '@/lib/utils';
 
 const page = usePage();
@@ -122,9 +123,14 @@ function isActive(item: DashboardNavItem): boolean {
 <template>
   <PublicLayout>
     <div class="container max-w-7xl mx-auto py-8 px-4 md:px-8 lg:px-6 xl:px-8">
-      <div class="mb-8 space-y-1">
-        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">لوحة التحكم</h1>
-        <p class="text-sm text-muted-foreground">إدارة الوصفات والقوائم والمستخدمين وإعدادات المنصة</p>
+      <div class="mb-8 flex items-center gap-3">
+        <div class="inline-flex items-center justify-center rounded-xl border border-border/70 bg-card p-2 shadow-2xs shrink-0">
+          <ProjectIcon name="dashboard" class="h-8 w-8" />
+        </div>
+        <div class="space-y-0.5">
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">لوحة التحكم</h1>
+          <p class="text-sm text-muted-foreground">إدارة الوصفات والقوائم والمستخدمين وإعدادات المنصة</p>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6">

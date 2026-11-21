@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import { computed, toRef } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SmartFilterSearch from '@/components/search/SmartFilterSearch.vue';
 import {
@@ -73,8 +74,18 @@ const totalResults = computed(() => props.recipes.total ?? props.recipes.data.le
       <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
     </Head>
 
-    <div class="container mx-auto py-8 px-4 md:px-6">
-      <h1 class="text-3xl font-bold mb-6">نتائج البحث</h1>
+    <div class="container max-w-7xl mx-auto py-8 md:py-12 px-4 md:px-8">
+      <div class="flex items-start gap-3 mb-6">
+        <div class="inline-flex items-center justify-center rounded-xl border border-border/70 bg-card p-2.5 shadow-2xs shrink-0">
+          <ProjectIcon name="search" class="h-8 w-8" />
+        </div>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">نتائج البحث</h1>
+          <p class="text-sm text-muted-foreground mt-0.5">
+            ابحث بالاسم أو المكون أو صفّ حسب المدينة والوسم ومستوى الصعوبة
+          </p>
+        </div>
+      </div>
 
       <!-- Smart Filter Search + Quick Difficulty Chips -->
       <div class="mb-8 space-y-3 rounded-2xl border border-border/70 bg-muted/30 p-4">

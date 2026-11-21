@@ -76,9 +76,9 @@ const errorMessage = computed(
             />
           </Link>
           <div class="space-y-1.5">
-            <CardTitle class="text-2xl font-bold tracking-tight text-foreground">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground leading-none">
               تسجيل الدخول إلى وصفاتنا
-            </CardTitle>
+            </h1>
             <CardDescription class="text-sm text-muted-foreground">
               سجّل دخولك بحساب Google لمشاركة وصفاتك، حفظ قوائمك المفضلة، وتنظيم خطط وجباتك.
             </CardDescription>

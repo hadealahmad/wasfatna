@@ -2,10 +2,11 @@
 import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import { Badge } from '@/components/ui';
 import { safeJsonLd, formatPaginationLabel } from '@/lib/utils';
-import { MapPin } from 'lucide-vue-next';
+import { ChevronLeft } from 'lucide-vue-next';
 
 interface City {
     id: number;
@@ -86,32 +87,40 @@ const breadcrumbSchema = computed(() => ({
     </Head>
     
     <!-- Hero Section -->
-    <section class="border-b bg-background py-16 md:py-24">
-      <div class="container mx-auto px-4 md:px-6 text-center">
-        <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6 text-primary">
-          <MapPin class="w-10 h-10" aria-hidden="true" />
+    <section class="border-b border-border bg-background py-10 md:py-16">
+      <div class="container max-w-7xl mx-auto px-4 md:px-8">
+        <nav aria-label="مسار التصفح" class="flex items-center justify-center gap-1.5 mb-6 text-sm text-muted-foreground">
+          <Link href="/cities" class="hover:text-primary transition-colors">المدن والمناطق</Link>
+          <ChevronLeft class="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span class="text-foreground font-medium">{{ city.name }}</span>
+        </nav>
+
+        <div class="text-center">
+          <div class="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-border/70 bg-card mb-5 shadow-2xs">
+            <ProjectIcon name="cities" class="w-10 h-10" />
+          </div>
+          <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl mb-3 text-foreground">
+            وصفات {{ city.name }}
+          </h1>
+          <p class="mx-auto max-w-2xl text-muted-foreground text-base md:text-lg leading-relaxed mb-4">
+            {{ cityDescription }}
+          </p>
+          <Badge variant="outline" class="text-sm tabular-nums">
+            {{ recipes.meta?.total || recipes.data.length }} وصفة
+          </Badge>
         </div>
-        <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-          وصفات {{ city.name }}
-        </h1>
-        <p class="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-4">
-          {{ cityDescription }}
-        </p>
-        <Badge variant="outline" class="text-sm tabular-nums">
-          {{ recipes.meta?.total || recipes.data.length }} وصفة
-        </Badge>
       </div>
     </section>
 
     <!-- Recipes Grid -->
-    <section class="container mx-auto py-12 px-4 md:px-6">
-      <RecipeGrid 
-        :recipes="recipes.data" 
+    <section class="container max-w-7xl mx-auto py-10 md:py-12 px-4 md:px-8">
+      <RecipeGrid
+        :recipes="recipes.data"
         :empty-message="`لا توجد وصفات من ${city.name} بعد`"
       />
 
       <!-- Pagination -->
-      <div v-if="recipes.meta?.last_page > 1" class="mt-12 flex justify-center gap-2">
+      <div v-if="recipes.meta?.last_page > 1" class="mt-10 flex flex-wrap justify-center gap-2">
         <template v-for="(link, key) in recipes.meta.links" :key="key">
           <component
             :is="link.url ? Link : 'span'"

@@ -2,6 +2,7 @@
     $themeRegistry = json_decode((string) file_get_contents(resource_path('data/themes.json')), true) ?: [];
     $themeKey = $themeRegistry['theme']['key'] ?? 'wasfatna-theme';
     $systemTheme = $themeRegistry['theme']['system'] ?? 'system';
+    $defaultTheme = $themeRegistry['theme']['default'] ?? 'dark-blue';
     $fontKey = $themeRegistry['font']['key'] ?? 'wasfatna-font';
     $defaultFont = $themeRegistry['font']['default'] ?? 'ibm-plex';
     $validFonts = array_values(array_map(
@@ -10,6 +11,21 @@
     ));
     $legacyThemeKeys = $themeRegistry['legacyKeys'] ?? ['color-scheme', 'vueuse-color-scheme'];
     $themesList = $themeRegistry['themes'] ?? [];
+    $themesById = [];
+    foreach ($themesList as $themeEntry) {
+        if (! empty($themeEntry['id'])) {
+            $themesById[(string) $themeEntry['id']] = $themeEntry;
+        }
+    }
+    $defaultThemeConfig = $themesById[$defaultTheme] ?? [];
+    $defaultScheme = ! empty($defaultThemeConfig['isDark']) ? 'dark' : 'light';
+    $defaultThemeBg = (string) ($defaultThemeConfig['bg'] ?? '#0f141f');
+    $themeBgMap = [];
+    foreach ($themesList as $themeEntry) {
+        if (! empty($themeEntry['id']) && ! empty($themeEntry['bg']) && $themeEntry['id'] !== $systemTheme) {
+            $themeBgMap[(string) $themeEntry['id']] = (string) $themeEntry['bg'];
+        }
+    }
     $validThemeIds = array_values(array_map(
         static fn (array $theme): string => (string) $theme['id'],
         $themesList,
@@ -20,11 +36,12 @@
     ));
 @endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="light" data-scheme="light" data-font="{{ $defaultFont }}">
+<html lang="ar" dir="rtl" data-theme="{{ $defaultTheme }}" data-scheme="{{ $defaultScheme }}" data-font="{{ $defaultFont }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="color-scheme" content="light dark">
+    <meta name="color-scheme" content="{{ $defaultScheme }}">
+    <meta name="theme-color" content="{{ $defaultThemeBg }}">
     <title>@yield('title', 'خطأ') | وصفاتنا</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2">
@@ -34,9 +51,11 @@
                 var root = document.documentElement;
                 var themeKey = @json($themeKey);
                 var systemTheme = @json($systemTheme);
+                var defaultTheme = @json($defaultTheme);
                 var legacyKeys = @json($legacyThemeKeys);
                 var validThemeIds = @json($validThemeIds);
                 var darkThemeIds = @json($darkThemeIds);
+                var themeBgMap = @json($themeBgMap);
                 var fontKey = @json($fontKey);
                 var defaultFont = @json($defaultFont);
                 var validFonts = @json($validFonts);
@@ -56,7 +75,10 @@
                         }
                     }
                 }
-                if (!theme || theme === systemTheme || validThemeIds.indexOf(theme) === -1) {
+                if (!theme || validThemeIds.indexOf(theme) === -1) {
+                    theme = defaultTheme;
+                }
+                if (theme === systemTheme) {
                     theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
                 }
                 var scheme = darkThemeIds.indexOf(theme) !== -1 ? 'dark' : 'light';
@@ -64,6 +86,8 @@
                 root.setAttribute('data-scheme', scheme);
                 var meta = document.querySelector('meta[name="color-scheme"]');
                 if (meta) meta.setAttribute('content', scheme);
+                var themeColorMeta = document.querySelector('meta[name="theme-color"]');
+                if (themeColorMeta && themeBgMap[theme]) themeColorMeta.setAttribute('content', themeBgMap[theme]);
 
                 var font = localStorage.getItem(fontKey);
                 if (!font || validFonts.indexOf(font) === -1) font = defaultFont;

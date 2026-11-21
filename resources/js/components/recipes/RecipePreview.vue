@@ -5,7 +5,7 @@ import {
     Badge, Card, CardContent, CardHeader, CardTitle,
     Avatar, AvatarFallback,
 } from '@/components/ui';
-import { MapPin, Clock, Utensils, Tag as TagIcon } from 'lucide-vue-next';
+import { ChefHat, Clock, ListChecks, MapPin, Tag as TagIcon, Utensils, UtensilsCrossed } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import { usePage } from '@inertiajs/vue3';
 
@@ -113,7 +113,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                 <div class="relative aspect-video rounded-xl overflow-hidden bg-muted">
                     <img v-if="imagePreview" :src="imagePreview" :alt="name" width="720" height="405" decoding="async" fetchpriority="low" class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-muted to-accent">
-                        <span class="text-7xl" aria-hidden="true">🍽️</span>
+                        <UtensilsCrossed class="h-16 w-16 text-muted-foreground/30" aria-hidden="true" />
                     </div>
                 </div>
 
@@ -171,7 +171,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <span aria-hidden="true">🥗</span>
+                                <ListChecks class="h-5 w-5 text-primary" aria-hidden="true" />
                                 المكونات
                             </CardTitle>
                         </CardHeader>
@@ -193,7 +193,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <span aria-hidden="true">👨‍🍳</span>
+                                <ChefHat class="h-5 w-5 text-primary" aria-hidden="true" />
                                 خطوات التحضير
                             </CardTitle>
                         </CardHeader>

@@ -1,9 +1,9 @@
 import { computed, ref } from 'vue';
 import {
   DEFAULT_FONT,
+  DEFAULT_THEME,
   FONT_KEY,
   LEGACY_THEME_KEYS,
-  SYSTEM_THEME,
   THEME_KEY,
   applyFont,
   applyFontAttribute,
@@ -19,9 +19,9 @@ import {
   type FontPreference,
 } from '@/lib/theme';
 
-const themePreference = ref<string>(SYSTEM_THEME);
-const theme = ref<string>('light');
-const scheme = ref<ColorScheme>('light');
+const themePreference = ref<string>(DEFAULT_THEME);
+const theme = ref<string>(DEFAULT_THEME);
+const scheme = ref<ColorScheme>(colorSchemeOf(DEFAULT_THEME));
 const font = ref<FontPreference>(DEFAULT_FONT);
 
 const isDark = computed<boolean>(() => scheme.value === 'dark');

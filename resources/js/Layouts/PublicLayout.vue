@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { FileText, Globe, Shield } from 'lucide-vue-next';
+import { FileText, Globe, Info, Shield } from 'lucide-vue-next';
 import { Toaster, toast } from 'vue-sonner';
 import PublicHeader from '@/components/layout/PublicHeader.vue';
 import { useColorScheme } from '@/composables/useColorScheme';
@@ -70,6 +70,11 @@ watch(
         </div>
 
         <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+          <Link href="/about" class="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <Info aria-hidden="true" class="h-4 w-4" />
+            <span>عن وصفاتنا</span>
+          </Link>
+          <span aria-hidden="true">•</span>
           <Link href="/privacy" class="flex items-center gap-1.5 hover:text-primary transition-colors">
             <Shield aria-hidden="true" class="h-4 w-4" />
             <span>سياسة الخصوصية</span>

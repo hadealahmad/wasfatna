@@ -99,19 +99,19 @@ const handlePerPageChange = (perPage: number) => {
                                 :checked="roleFilter === 'admin'"
                                 @update:checked="(checked) => handleRoleChange('admin', checked)"
                             >
-                                Admin
+                                مسؤول
                             </DropdownMenuCheckboxItem>
                             <DropdownMenuCheckboxItem
                                 :checked="roleFilter === 'moderator'"
                                 @update:checked="(checked) => handleRoleChange('moderator', checked)"
                             >
-                                Moderator
+                                مشرف
                             </DropdownMenuCheckboxItem>
                             <DropdownMenuCheckboxItem
                                 :checked="roleFilter === 'user'"
                                 @update:checked="(checked) => handleRoleChange('user', checked)"
                             >
-                                User
+                                مستخدم
                             </DropdownMenuCheckboxItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

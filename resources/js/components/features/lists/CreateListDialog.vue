@@ -43,7 +43,7 @@ const handleSubmit = () => {
         <DialogTrigger asChild>
             <slot name="trigger">
                 <Button class="gap-2">
-                    <Plus class="w-4 h-4" />
+                    <Plus class="w-4 h-4" aria-hidden="true" />
                     قائمة جديدة
                 </Button>
             </slot>
@@ -54,9 +54,9 @@ const handleSubmit = () => {
             </DialogHeader>
             <form @submit.prevent="handleSubmit" class="space-y-4 py-4">
                 <div class="space-y-2">
-                    <Label htmlFor="name">اسم القائمة</Label>
+                    <Label for="create-list-name">اسم القائمة</Label>
                     <Input
-                        id="name"
+                        id="create-list-name"
                         v-model="form.name"
                         placeholder="مثال: وصفات الفطور"
                         required
@@ -64,9 +64,9 @@ const handleSubmit = () => {
                     <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
                 </div>
                 <div class="space-y-2">
-                    <Label htmlFor="description">وصف (اختياري)</Label>
+                    <Label for="create-list-description">وصف (اختياري)</Label>
                     <Input
-                        id="description"
+                        id="create-list-description"
                         v-model="form.description"
                         placeholder="وصف مختصر للقائمة..."
                     />

@@ -8,7 +8,7 @@ import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
     Input, Label, Textarea, Switch,
 } from '@/components/ui';
-import { CalendarDays, Pencil, Trash2, ChevronRight, Globe, Lock } from 'lucide-vue-next';
+import { CalendarDays, Pencil, Trash2, ChevronLeft, Globe, Lock } from 'lucide-vue-next';
 import MealPlanCalendar from '@/components/features/meal-plans/MealPlanCalendar.vue';
 import RandomFillDialog from '@/components/features/meal-plans/RandomFillDialog.vue';
 import ShareMealPlan from '@/components/features/meal-plans/ShareMealPlan.vue';
@@ -83,11 +83,11 @@ const handleTogglePublic = async (value: boolean) => {
 
         <div class="container mx-auto py-6 px-4 md:px-6 max-w-5xl">
             <!-- Breadcrumb -->
-            <div class="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
-                <Link :href="route('my.meal-plans.index')" class="hover:text-primary">خطط الوجبات</Link>
-                <ChevronRight class="w-4 h-4" />
+            <nav aria-label="مسار التصفح" class="flex items-center gap-1.5 mb-6 text-sm text-muted-foreground">
+                <Link :href="route('my.meal-plans.index')" class="hover:text-primary transition-colors">خطط الوجبات</Link>
+                <ChevronLeft class="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span class="text-foreground font-medium truncate">{{ plan.name }}</span>
-            </div>
+            </nav>
 
             <!-- Header -->
             <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6">
@@ -125,7 +125,7 @@ const handleTogglePublic = async (value: boolean) => {
             <!-- Visibility & Share -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 rounded-lg border bg-muted/30">
                 <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <component :is="isPublic ? Globe : Lock" class="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <component :is="isPublic ? Globe : Lock" class="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <div class="min-w-0">
                         <p class="text-sm font-medium">{{ isPublic ? 'خطة عامة' : 'خطة خاصة' }}</p>
                         <p class="text-xs text-muted-foreground">{{ isPublic ? 'يمكن للآخرين رؤية خطتك في صفحة التصفح' : 'لا يمكن لأحد رؤية خطتك إلا عبر رابط المشاركة' }}</p>
@@ -159,7 +159,7 @@ const handleTogglePublic = async (value: boolean) => {
                         <Label for="edit-plan-description">الوصف (اختياري)</Label>
                         <Textarea id="edit-plan-description" v-model="editForm.description" rows="2" />
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="edit-plan-start-date">تاريخ البداية</Label>
                             <Input id="edit-plan-start-date" type="date" v-model="editForm.start_date" required />

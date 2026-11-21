@@ -7,6 +7,7 @@ import {
     Button, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui';
 import { Flag, Loader2 } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     reportableId: number;
@@ -36,7 +37,7 @@ watch(isOpen, () => {
 });
 
 const handleGoogleLogin = () => {
-    window.location.href = '/auth/google';
+    window.location.href = '/auth/google/redirect';
 };
 
 const submitReport = async () => {
@@ -65,6 +66,7 @@ const submitReport = async () => {
             message: message.value
         });
         
+        toast.success('تم إرسال البلاغ بنجاح، شكراً لملاحظاتك.');
         isOpen.value = false;
         message.value = '';
         type.value = 'content_issue';

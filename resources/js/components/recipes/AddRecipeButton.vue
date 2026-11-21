@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { usePage, Link } from '@inertiajs/vue3';
-import { Button } from '@/components/ui';
+import { Link, usePage } from '@inertiajs/vue3';
 import { PlusCircle } from 'lucide-vue-next';
+import { Button } from '@/components/ui';
 
 interface Props {
   className?: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon" | "xl";
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon' | 'xl';
   showIcon?: boolean;
 }
 
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const page = usePage();
-const isAuthenticated = computed(() => !!page.props.auth?.user);
+const isAuthenticated = computed(() => Boolean((page.props.auth as any)?.user));
 
 const handleLogin = () => {
   window.location.href = route('auth.google.redirect');
@@ -27,24 +27,28 @@ const handleLogin = () => {
 </script>
 
 <template>
-  <template v-if="isAuthenticated">
+  <Button
+    v-if="isAuthenticated"
+    as-child
+    :variant="props.variant"
+    :size="props.size"
+    :class="props.className"
+  >
     <Link href="/recipes/new">
-      <Button :variant="props.variant" :size="props.size" :class="props.className">
-        <PlusCircle v-if="props.showIcon" class="me-2 h-4 w-4" aria-hidden="true" />
-        <slot>أضف وصفة</slot>
-      </Button>
-    </Link>
-  </template>
-  <template v-else>
-    <Button 
-      type="button"
-      :variant="props.variant" 
-      :size="props.size" 
-      :class="props.className"
-      @click="handleLogin"
-    >
       <PlusCircle v-if="props.showIcon" class="me-2 h-4 w-4" aria-hidden="true" />
-      <slot>شاركينا وصفتك</slot>
-    </Button>
-  </template>
+      <slot>أضف وصفة</slot>
+    </Link>
+  </Button>
+
+  <Button
+    v-else
+    type="button"
+    :variant="props.variant"
+    :size="props.size"
+    :class="props.className"
+    @click="handleLogin"
+  >
+    <PlusCircle v-if="props.showIcon" class="me-2 h-4 w-4" aria-hidden="true" />
+    <slot>شارك وصفتك</slot>
+  </Button>
 </template>

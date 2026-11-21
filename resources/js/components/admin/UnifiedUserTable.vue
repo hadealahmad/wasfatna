@@ -29,7 +29,7 @@ import {
     Textarea,
     PaginationControls
 } from '@/components/ui';
-import { MoreHorizontal, Trash, Shield, Ban, CheckCircle } from 'lucide-vue-next';
+import { MoreHorizontal, Trash, Ban, CheckCircle, User } from 'lucide-vue-next';
 import { formatRelativeTime } from '@/lib/utils';
 import type { AdminUser, Pagination } from '@/types';
 
@@ -161,13 +161,21 @@ const handleDelete = (user: AdminUser) => {
         }
     });
 };
+const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+        admin: 'مسؤول',
+        moderator: 'مشرف',
+        user: 'مستخدم',
+    };
+    return labels[role] || role;
+};
 </script>
 
 <template>
     <div>
-        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex items-center justify-between">
+        <div v-if="selectedIds.length > 0" class="bg-muted p-4 rounded-lg mb-4 flex flex-wrap items-center justify-between gap-3">
             <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }} مستخدم</span>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button size="sm" variant="outline" :disabled="isLoading">
@@ -175,9 +183,9 @@ const handleDelete = (user: AdminUser) => {
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'admin' })">Admin</DropdownMenuItem>
-                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'moderator' })">Moderator</DropdownMenuItem>
-                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'user' })">User</DropdownMenuItem>
+                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'admin' })">مسؤول</DropdownMenuItem>
+                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'moderator' })">مشرف</DropdownMenuItem>
+                        <DropdownMenuItem @click="handleBulkAction('change_role', { role: 'user' })">مستخدم</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <Button size="sm" variant="destructive" @click="handleBulkAction('ban', { reason: 'مخالفة الشروط' })" :disabled="isLoading">
@@ -256,7 +264,9 @@ const handleDelete = (user: AdminUser) => {
                             <TableCell>
                                 <div class="flex items-center gap-3">
                                     <img v-if="user.avatar" :src="user.avatar" alt="" width="32" height="32" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover" />
-                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm" aria-hidden="true">👤</div>
+                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                        <User class="h-4 w-4" aria-hidden="true" />
+                                    </div>
                                     <div class="flex flex-col">
                                         <Link :href="route('users.show', user.id)" class="font-medium text-sm hover:underline" target="_blank" rel="noopener noreferrer">
                                             {{ user.name }}
@@ -267,11 +277,11 @@ const handleDelete = (user: AdminUser) => {
                             </TableCell>
                             <TableCell>
                                 <Badge variant="outline" :class="[
-                                    'text-xs uppercase font-bold px-1.5 py-0',
+                                    'text-xs font-bold px-2 py-0.5',
                                     user.role === 'admin' ? 'bg-primary/15 text-primary border-primary/30' :
                                     user.role === 'moderator' ? 'bg-info/15 text-info border-info/30' : 'bg-secondary text-secondary-foreground'
                                 ]">
-                                    {{ user.role }}
+                                    {{ getRoleLabel(user.role) }}
                                 </Badge>
                             </TableCell>
                             <TableCell>
@@ -297,9 +307,9 @@ const handleDelete = (user: AdminUser) => {
                                         <DropdownMenuLabel>تغيير الدور</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuRadioGroup :model-value="user.role" @update:model-value="(v) => handleChangeRole(user, v)">
-                                            <DropdownMenuRadioItem value="admin">Admin</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="moderator">Moderator</DropdownMenuRadioItem>
-                                            <DropdownMenuRadioItem value="user">User</DropdownMenuRadioItem>
+                                            <DropdownMenuRadioItem value="admin">مسؤول</DropdownMenuRadioItem>
+                                            <DropdownMenuRadioItem value="moderator">مشرف</DropdownMenuRadioItem>
+                                            <DropdownMenuRadioItem value="user">مستخدم</DropdownMenuRadioItem>
                                         </DropdownMenuRadioGroup>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem v-if="user.is_banned" @click="handleUnban(user)">

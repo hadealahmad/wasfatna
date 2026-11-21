@@ -2,6 +2,8 @@
 import { Head } from '@inertiajs/vue3';
 import { computed, toRef } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
+import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SmartFilterSearch from '@/components/search/SmartFilterSearch.vue';
 import {
@@ -75,15 +77,21 @@ const totalResults = computed(() => props.recipes.total ?? props.recipes.data.le
       <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
     </Head>
 
-    <div class="container mx-auto py-12 px-4 md:px-6">
+    <div class="container max-w-7xl mx-auto py-10 md:py-14 px-4 md:px-8">
       <!-- Header -->
-      <div class="flex flex-col items-center gap-4 text-center mb-10">
-        <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+      <div class="flex flex-col items-center gap-3 text-center mb-8 md:mb-10">
+        <div class="inline-flex items-center justify-center rounded-2xl border border-border/70 bg-card p-3 shadow-2xs">
+          <ProjectIcon name="recipes" class="h-10 w-10" />
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl text-foreground">
           جميع الوصفات
         </h1>
-        <p class="text-muted-foreground text-lg max-w-[800px]">
+        <p class="text-muted-foreground text-base sm:text-lg max-w-2xl">
           تصفح مئات الوصفات المجربة والمضمونة من مختلف المطابخ السورية
         </p>
+        <div class="pt-1">
+          <AddRecipeButton size="sm" variant="outline">أضف وصفتك</AddRecipeButton>
+        </div>
       </div>
 
       <!-- Smart Filter Search + Quick Difficulty Chips -->

@@ -42,7 +42,10 @@ class SecurityHeadersTest extends TestCase
         $this->assertNotEmpty($nonce);
 
         $html = $response->getContent();
-        $this->assertStringContainsString('<meta name="color-scheme" content="light dark">', $html);
+        $this->assertStringContainsString('data-theme="dark-blue"', $html);
+        $this->assertStringContainsString('data-scheme="dark"', $html);
+        $this->assertStringContainsString('<meta name="color-scheme" content="dark">', $html);
+        $this->assertStringContainsString('<meta name="theme-color" content="#0f141f">', $html);
         $this->assertStringContainsString('nonce="'.$nonce.'"', $html);
 
         // Verify per-request nonce uniqueness

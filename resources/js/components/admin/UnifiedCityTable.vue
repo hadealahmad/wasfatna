@@ -24,7 +24,7 @@ import {
     Textarea,
     PaginationControls
 } from '@/components/ui';
-import { MoreHorizontal, Trash, Edit, Plus } from 'lucide-vue-next';
+import { MoreHorizontal, Trash, Edit, Plus, MapPin } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 import type { City, Pagination } from '@/types';
 
@@ -194,7 +194,7 @@ const handleDeleteSingle = (city: City) => {
 
 <template>
     <div>
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
             <div v-if="selectedIds.length > 0" class="bg-muted px-4 py-2 rounded-lg flex items-center gap-4">
                 <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }}</span>
                 <Button size="sm" variant="destructive" @click="handleBulkDelete" :disabled="isLoading">
@@ -258,7 +258,9 @@ const handleDeleteSingle = (city: City) => {
                             <TableCell>
                                 <div class="flex items-center gap-3">
                                     <img v-if="city.image_url" :src="city.image_url" alt="" width="40" height="40" loading="lazy" decoding="async" class="w-10 h-10 rounded object-cover" />
-                                    <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg" aria-hidden="true">🏙️</div>
+                                    <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                        <MapPin class="h-4 w-4" aria-hidden="true" />
+                                    </div>
                                     <span class="font-medium">{{ city.name }}</span>
                                 </div>
                             </TableCell>

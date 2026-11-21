@@ -95,7 +95,7 @@ const handleUnpublish = () => {
 
         <!-- Edit Button -->
         <Button variant="outline" class="gap-2" @click="editOpen = true">
-            <Pencil class="w-4 h-4" />
+            <Pencil class="w-4 h-4" aria-hidden="true" />
             تعديل
         </Button>
 
@@ -105,7 +105,7 @@ const handleUnpublish = () => {
             class="gap-2" 
             @click="publishConfirmOpen = true"
         >
-            <Upload class="w-4 h-4" />
+            <Upload class="w-4 h-4" aria-hidden="true" />
             نشر
         </Button>
 
@@ -116,7 +116,7 @@ const handleUnpublish = () => {
             disabled 
             class="gap-2 opacity-80"
         >
-            <Upload class="w-4 h-4" />
+            <Upload class="w-4 h-4" aria-hidden="true" />
             قيد المراجعة
         </Button>
 
@@ -138,7 +138,7 @@ const handleUnpublish = () => {
             class="gap-2" 
             @click="deleteConfirmOpen = true"
         >
-            <Trash2 class="w-4 h-4" />
+            <Trash2 class="w-4 h-4" aria-hidden="true" />
             حذف
         </Button>
 
@@ -150,7 +150,7 @@ const handleUnpublish = () => {
                 </DialogHeader>
                 <form @submit.prevent="handleUpdate" class="space-y-4 py-4">
                     <div class="space-y-2">
-                        <Label htmlFor="edit-name">اسم القائمة</Label>
+                        <Label for="edit-name">اسم القائمة</Label>
                         <Input
                             id="edit-name"
                             v-model="form.name"
@@ -159,7 +159,7 @@ const handleUnpublish = () => {
                         <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
                     </div>
                     <div class="space-y-2">
-                        <Label htmlFor="edit-description">وصف</Label>
+                        <Label for="edit-description">وصف</Label>
                         <Input
                             id="edit-description"
                             v-model="form.description"

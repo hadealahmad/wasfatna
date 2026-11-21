@@ -35,6 +35,7 @@ export interface ThemeConfig {
 
 export const THEME_KEY: string = themeData.theme.key;
 export const SYSTEM_THEME: string = themeData.theme.system;
+export const DEFAULT_THEME: string = themeData.theme.default;
 export const FONT_KEY: string = themeData.font.key;
 export const DEFAULT_FONT: FontPreference =
   themeData.font.default === 'system' ? 'system' : 'ibm-plex';
@@ -119,7 +120,7 @@ function prefersDarkMode(): boolean {
  * ('color-scheme' / 'vueuse-color-scheme') if present.
  */
 export function getThemePreference(): string {
-  if (typeof window === 'undefined') return SYSTEM_THEME;
+  if (typeof window === 'undefined') return DEFAULT_THEME;
 
   try {
     const saved = window.localStorage.getItem(THEME_KEY);
@@ -146,12 +147,15 @@ export function getThemePreference(): string {
     // Ignore storage access errors (e.g. restricted or unavailable storage)
   }
 
-  return SYSTEM_THEME;
+  return DEFAULT_THEME;
 }
 
 export function resolveTheme(pref: string): string {
-  if (!isValidThemeId(pref) || pref === SYSTEM_THEME) {
+  if (pref === SYSTEM_THEME) {
     return prefersDarkMode() ? 'dark' : 'light';
+  }
+  if (!isValidThemeId(pref)) {
+    return DEFAULT_THEME;
   }
   return pref;
 }
@@ -172,11 +176,11 @@ export function subscribeToThemeChanges(listener: () => void): () => void {
 }
 
 /**
- * Applies data-theme, data-scheme, and <meta name="color-scheme"> together on <html>.
+ * Applies data-theme, data-scheme, <meta name="color-scheme">, and <meta name="theme-color"> together on <html>.
  */
 function applyThemeAttributes(themeId: string): void {
   if (typeof document === 'undefined') return;
-  const resolvedId = isValidThemeId(themeId) && themeId !== SYSTEM_THEME ? themeId : 'light';
+  const resolvedId = isValidThemeId(themeId) && themeId !== SYSTEM_THEME ? themeId : DEFAULT_THEME;
   const scheme = colorSchemeOf(resolvedId);
   const root = document.documentElement;
   root.setAttribute('data-theme', resolvedId);
@@ -185,6 +189,14 @@ function applyThemeAttributes(themeId: string): void {
   const meta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
   if (meta) {
     meta.setAttribute('content', scheme);
+  }
+
+  const themeBg = getThemeById(resolvedId)?.bg;
+  if (themeBg) {
+    const themeColorMeta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', themeBg);
+    }
   }
 }
 
@@ -195,7 +207,7 @@ export function applyResolvedTheme(pref?: string): void {
 }
 
 export function applyTheme(pref: string): void {
-  const nextPref = isValidThemeId(pref) ? pref : SYSTEM_THEME;
+  const nextPref = isValidThemeId(pref) ? pref : DEFAULT_THEME;
   try {
     window.localStorage.setItem(THEME_KEY, nextPref);
     for (const legacyKey of LEGACY_THEME_KEYS) {
@@ -209,13 +221,16 @@ export function applyTheme(pref: string): void {
 }
 
 export function getThemeId(): string {
-  if (typeof document === 'undefined') return 'light';
-  return document.documentElement.getAttribute('data-theme') || 'light';
+  if (typeof document === 'undefined') return DEFAULT_THEME;
+  return document.documentElement.getAttribute('data-theme') || DEFAULT_THEME;
 }
 
 export function getColorScheme(): ColorScheme {
-  if (typeof document === 'undefined') return 'light';
-  return document.documentElement.getAttribute('data-scheme') === 'dark' ? 'dark' : 'light';
+  const defaultScheme = colorSchemeOf(DEFAULT_THEME);
+  if (typeof document === 'undefined') return defaultScheme;
+  const attr = document.documentElement.getAttribute('data-scheme');
+  if (attr === 'dark' || attr === 'light') return attr;
+  return defaultScheme;
 }
 
 export function getFontPreference(): FontPreference {

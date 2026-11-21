@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ArrowLeft, Dices, MapPin } from 'lucide-vue-next';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import ProjectIcon from '@/components/ProjectIcon.vue';
+import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import SearchFilters from '@/components/recipes/SearchFilters.vue';
-import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import { Button } from '@/components/ui';
 import PaginationControls from '@/components/ui/PaginationControls.vue';
 import { safeJsonLd } from '@/lib/utils';
-import { PlusCircle, ArrowRight, MapPin } from 'lucide-vue-next';
 
 interface Recipe {
   id: number;
@@ -51,33 +52,41 @@ const props = defineProps<{
   filters: any;
 }>();
 
+const sectionShortcuts = [
+  { href: '/recipes', label: 'جميع الوصفات', description: 'تصفح كل الأطباق', icon: 'recipes' },
+  { href: '/cities', label: 'المدن السورية', description: 'مطابخ المحافظات', icon: 'cities' },
+  { href: '/lists', label: 'القوائم', description: 'مجموعات مختارة', icon: 'lists' },
+  { href: '/meal-plans/browse', label: 'خطط الوجبات', description: 'جداول أسبوعية', icon: 'meal_plans' },
+  { href: '/randomizer', label: 'شو نطبخ؟', description: 'صندوق الاختيار العشوائي', icon: 'randomizer' },
+  { href: '/search', label: 'البحث المتقدم', description: 'تصفية دقيقة', icon: 'search' },
+] as const;
+
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  'name': 'وصفاتنا - مجتمع الطبخ السوري',
-  'alternateName': 'Wasfatna',
-  'url': 'https://food.syrian.zone',
-  'inLanguage': 'ar-SY',
-  'potentialAction': {
+  name: 'وصفاتنا - مجتمع الطبخ السوري',
+  alternateName: 'Wasfatna',
+  url: 'https://food.syrian.zone',
+  inLanguage: 'ar-SY',
+  potentialAction: {
     '@type': 'SearchAction',
-    'target': {
+    target: {
       '@type': 'EntryPoint',
-      'urlTemplate': 'https://food.syrian.zone/search?search={search_term_string}'
+      urlTemplate: 'https://food.syrian.zone/search?search={search_term_string}',
     },
-    'query-input': 'required name=search_term_string'
-  }
+    'query-input': 'required name=search_term_string',
+  },
 };
 
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  'name': 'وصفاتنا',
-  'url': 'https://food.syrian.zone',
-  'logo': 'https://food.syrian.zone/logo-light.svg',
-  'description': 'مجتمع الطبخ السوري الأول لتوثيق ومشاركة أشهى الوصفات والأكلات التراثية من جميع المدن والمناطق السورية.'
+  name: 'وصفاتنا',
+  url: 'https://food.syrian.zone',
+  logo: 'https://food.syrian.zone/logo-light.svg',
+  description: 'مجتمع الطبخ السوري الأول لتوثيق ومشاركة أشهى الوصفات والأكلات التراثية من جميع المدن والمناطق السورية.',
 };
 
-// Handle page navigation
 function handlePageChange(page: number) {
   router.get('/', { ...props.filters, page }, { preserveState: true, preserveScroll: false });
 }
@@ -106,51 +115,107 @@ function handlePerPageChange(perPage: number) {
     </Head>
 
     <!-- Hero Section -->
-    <section class="border-b bg-background py-20 md:py-32">
-      <div class="container mx-auto px-4 md:px-6">
-        <div class="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto">
-          <div class="relative mb-8 h-10 w-32 md:h-12 md:w-40">
+    <section class="relative overflow-hidden border-b border-border bg-background py-14 md:py-24">
+      <div
+        class="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 h-72 w-[36rem] rounded-full bg-primary/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div class="container relative max-w-7xl mx-auto px-4 md:px-8">
+        <div class="flex flex-col items-center text-center space-y-5 max-w-4xl mx-auto">
+          <div class="relative h-10 w-32 md:h-12 md:w-40">
             <img src="/logo-light.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="logo-light w-full h-full object-contain" />
             <img src="/logo-dark.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="logo-dark w-full h-full object-contain" />
           </div>
-          <h1 class="text-[clamp(1.875rem,1.25rem+3vw,3.75rem)] font-bold tracking-tighter text-foreground">
+
+          <h1 class="text-[clamp(1.875rem,1.25rem+2.8vw,3.5rem)] font-extrabold tracking-tight text-foreground">
             اكتشف أشهى الوصفات السورية
           </h1>
-          <p class="mx-auto max-w-[60ch] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-            مجتمع من المحبين للطبخ يشاركون وصفاتهم المميزة من مختلف المدن والمناطق.
+
+          <p class="mx-auto max-w-[60ch] text-muted-foreground text-base md:text-lg leading-relaxed">
+            مجتمع من محبّي الطبخ يشاركون وصفاتهم الأصيلة والمجرّبة من مختلف المدن والمناطق السورية.
           </p>
 
-          <div class="flex justify-center pt-4">
-             <AddRecipeButton size="lg" class-name="px-8 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow">
+          <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <AddRecipeButton size="lg" class-name="h-11 px-6 text-base font-semibold shadow-sm">
               شارك وصفتك الآن
             </AddRecipeButton>
+            <Button as-child variant="outline" size="lg" class="h-11 px-6 text-base font-semibold gap-2">
+              <Link href="/randomizer" prefetch>
+                <Dices class="h-4 w-4 text-primary" aria-hidden="true" />
+                <span>شو نطبخ اليوم؟</span>
+              </Link>
+            </Button>
           </div>
 
-          <div class="w-full max-w-5xl space-y-2 pt-4">
-            <SearchFilters 
-              :cities="allCities" 
-              :tags="allTags" 
-              :initial-filters="filters"
-              :show-search-button="true"
-            />
+          <div class="w-full max-w-5xl pt-4">
+            <div class="rounded-2xl border border-border/70 bg-card/60 p-3 sm:p-4 shadow-2xs">
+              <SearchFilters
+                :cities="allCities"
+                :tags="allTags"
+                :initial-filters="filters"
+                :show-search-button="true"
+              />
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Section Shortcuts (SyrianZone style) -->
+    <section aria-label="أقسام وصفاتنا" class="border-b border-border/70 bg-muted/20 py-8">
+      <div class="container max-w-7xl mx-auto px-4 md:px-8">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <Link
+            v-for="shortcut in sectionShortcuts"
+            :key="shortcut.href"
+            :href="shortcut.href"
+            prefetch
+            class="group flex flex-col items-center justify-center gap-2 rounded-xl border border-border/70 bg-card p-4 text-center transition-all hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ProjectIcon
+              :name="shortcut.icon"
+              class="h-9 w-9 motion-safe:transition-transform group-hover:scale-110"
+            />
+            <div class="space-y-0.5">
+              <p class="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
+                {{ shortcut.label }}
+              </p>
+              <p class="text-[11px] text-muted-foreground line-clamp-1">
+                {{ shortcut.description }}
+              </p>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </section>
+
     <!-- Latest Recipes -->
-    <section class="py-24 bg-background">
-      <div class="container mx-auto px-4">
-          <div class="flex flex-col items-start gap-4 mb-10 md:flex-row md:justify-between md:items-center">
+    <section class="py-14 md:py-20 bg-background">
+      <div class="container max-w-7xl mx-auto px-4 md:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+          <div class="flex items-start gap-3">
+            <ProjectIcon name="recipes" class="h-9 w-9 mt-0.5" />
             <div class="space-y-1">
-              <h2 class="text-2xl font-bold tracking-tight md:text-3xl">أحدث الوصفات</h2>
-              <p class="text-muted-foreground max-w-[60ch]">
-                وصفات تم إضافتها حديثاً من قبل مجتمعنا
+              <h2 class="text-2xl font-bold tracking-tight md:text-3xl text-foreground">أحدث الوصفات</h2>
+              <p class="text-sm sm:text-base text-muted-foreground max-w-[60ch]">
+                وصفات أُضيفت حديثاً من قِبل مجتمعنا
               </p>
             </div>
           </div>
 
-        <RecipeGrid :recipes="recipes.data" :eager-first-row="false" empty-message="لم يتم إضافة وصفات بعد. كن أول من يضيف!" />
+          <Button as-child variant="outline" size="sm" class="self-start sm:self-auto gap-1.5">
+            <Link href="/recipes" prefetch>
+              <span>تصفح كل الوصفات</span>
+              <ArrowLeft class="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+
+        <RecipeGrid
+          :recipes="recipes.data"
+          :eager-first-row="false"
+          empty-message="لم يتم إضافة وصفات بعد. كن أول من يضيف!"
+        />
 
         <!-- Pagination -->
         <PaginationControls
@@ -159,7 +224,7 @@ function handlePerPageChange(perPage: number) {
           :total-pages="recipes.last_page"
           :per-page="recipes.per_page"
           :total-items="recipes.total"
-          class-name="mt-12"
+          class-name="mt-10"
           @page-change="handlePageChange"
           @per-page-change="handlePerPageChange"
         />
@@ -167,14 +232,15 @@ function handlePerPageChange(perPage: number) {
     </section>
 
     <!-- Cities Grid -->
-    <section v-if="cities.length > 0" class="cv-auto-section py-24 bg-muted/30 border-t">
-      <div class="container mx-auto px-4">
+    <section v-if="cities.length > 0" class="cv-auto-section py-16 md:py-20 bg-muted/30 border-t border-border">
+      <div class="container max-w-7xl mx-auto px-4 md:px-8">
         <div class="flex flex-col items-center text-center mb-10 space-y-2">
-          <h2 class="text-2xl font-bold tracking-tight md:text-3xl">
+          <ProjectIcon name="cities" class="h-10 w-10 mb-1" />
+          <h2 class="text-2xl font-bold tracking-tight md:text-3xl text-foreground">
             اكتشف وصفات من مدينتك
           </h2>
-          <p class="text-muted-foreground max-w-[60ch]">
-            تصفح الوصفات حسب المدينة أو المنطقة واستكشف نكهات جديدة
+          <p class="text-sm sm:text-base text-muted-foreground max-w-[60ch]">
+            تصفح الوصفات حسب المدينة أو المنطقة واستكشف نكهات المطابخ المحلية
           </p>
         </div>
 
@@ -184,28 +250,31 @@ function handlePerPageChange(perPage: number) {
             :key="city.id"
             :href="`/cities/${city.slug}`"
             prefetch
-            class="group relative overflow-hidden rounded-lg border bg-background p-6 hover:shadow-md transition-[box-shadow,border-color] hover:border-primary/50"
+            class="group relative overflow-hidden rounded-xl border border-border/80 bg-card p-5 hover:shadow-md transition-[box-shadow,border-color] hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <div class="flex flex-col items-center justify-center space-y-2">
-              <h3 class="text-lg font-bold group-hover:text-primary transition-colors">{{ city.name }}</h3>
-              <p class="text-sm text-muted-foreground">{{ city.recipes_count }} وصفة</p>
+            <div class="flex flex-col items-center justify-center text-center space-y-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                <MapPin class="h-5 w-5" aria-hidden="true" />
+              </div>
+              <h3 class="text-base sm:text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                {{ city.name }}
+              </h3>
+              <p class="text-xs sm:text-sm text-muted-foreground tabular-nums">
+                {{ city.recipes_count }} وصفة
+              </p>
             </div>
           </Link>
         </div>
-        
-        <div class="mt-12 text-center">
-          <Button as-child variant="outline" class="rounded-full px-8">
-            <Link href="/cities">عرض كل المدن</Link>
+
+        <div class="mt-10 text-center">
+          <Button as-child variant="outline" class="rounded-full px-8 gap-2">
+            <Link href="/cities" prefetch>
+              <span>عرض كل المدن</span>
+              <ArrowLeft class="h-4 w-4" aria-hidden="true" />
+            </Link>
           </Button>
         </div>
       </div>
     </section>
-
-    <!-- CTA Section -->
-    <!-- Disabled CTA Section to match Frontend -->
   </PublicLayout>
 </template>
-
-<style scoped>
-/* Scoped styles if needed */
-</style>

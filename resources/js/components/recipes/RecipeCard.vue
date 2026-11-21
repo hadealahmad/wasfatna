@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { Card, CardContent, CardHeader, Badge } from '@/components/ui';
-import { Clock, MapPin, Tag as TagIcon } from 'lucide-vue-next';
+import { Clock, MapPin, UtensilsCrossed } from 'lucide-vue-next';
 import { cn } from '@/lib/utils';
 import AddToFavoritesModal from '@/components/features/lists/AddToFavoritesModal.vue';
 import type { Recipe } from '@/types';
@@ -42,7 +42,7 @@ const formatTimeNeeded = (time: any): string => {
 </script>
 
 <template>
-  <Card class="relative h-full overflow-hidden motion-safe:transition-[transform,box-shadow] duration-300 hover:shadow-xl motion-safe:hover:-translate-y-1 group cursor-pointer flex flex-col">
+  <Card class="relative h-full overflow-hidden motion-safe:transition-[transform,box-shadow,border-color] duration-300 hover:shadow-lg hover:border-primary/40 motion-safe:hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-ring group cursor-pointer flex flex-col">
     <!-- Image -->
     <div class="relative aspect-video bg-muted overflow-hidden shrink-0">
       <img
@@ -57,7 +57,7 @@ const formatTimeNeeded = (time: any): string => {
         class="object-cover w-full h-full motion-safe:group-hover:scale-105 motion-safe:transition-transform duration-300"
       />
       <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-muted to-accent">
-        <span class="text-5xl" aria-hidden="true">🍽️</span>
+        <UtensilsCrossed class="h-12 w-12 text-muted-foreground/30" aria-hidden="true" />
       </div>
 
       <!-- Difficulty Badge -->

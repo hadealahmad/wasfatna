@@ -16,7 +16,7 @@ import AvatarFallback from '@/components/ui/AvatarFallback.vue';
 import { Alert, AlertDescription } from '@/components/ui';
 import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
-import { AlertTriangle } from 'lucide-vue-next';
+import { AlertTriangle, Loader2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     mustVerifyEmail?: boolean;
@@ -99,7 +99,10 @@ const getRoleDisplay = (role: string) => {
         <Head title="الملف الشخصي" />
         
         <div class="container mx-auto py-8 max-w-2xl px-4 md:px-6">
-            <h1 class="text-3xl font-bold mb-8">الملف الشخصي</h1>
+            <div class="mb-8 space-y-1">
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">الملف الشخصي</h1>
+                <p class="text-sm text-muted-foreground">تحديث معلومات حسابك وصورتك والاسم المعروض على وصفاتك</p>
+            </div>
 
             <div class="space-y-6">
                 <!-- Profile Info -->
@@ -150,7 +153,8 @@ const getRoleDisplay = (role: string) => {
                                 <p v-if="form.errors.display_name" id="display-name-error" class="text-sm text-destructive">{{ form.errors.display_name }}</p>
                             </div>
 
-                            <Button type="submit" :disabled="form.processing" size="lg">
+                            <Button type="submit" :disabled="form.processing" :aria-busy="form.processing || undefined" size="lg">
+                                <Loader2 v-if="form.processing" class="me-2 h-4 w-4 animate-spin" aria-hidden="true" />
                                 {{ form.processing ? 'جاري الحفظ...' : 'حفظ التغييرات' }}
                             </Button>
                         </form>
@@ -170,7 +174,7 @@ const getRoleDisplay = (role: string) => {
                         <div class="flex justify-between">
                             <span class="text-muted-foreground">تاريخ التسجيل</span>
                             <span class="font-medium tabular-nums">
-                                {{ user?.created_at ? new Date(user.created_at).toLocaleDateString('ar-SA') : 'غير متوفر' }}
+                                {{ user?.created_at ? new Date(user.created_at).toLocaleDateString('ar-SY') : 'غير متوفر' }}
                             </span>
                         </div>
                     </CardContent>

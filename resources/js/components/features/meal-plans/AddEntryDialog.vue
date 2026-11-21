@@ -5,7 +5,7 @@ import {
     Button, Input, Label, Textarea,
     Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui';
-import { Plus, Search, Loader2 } from 'lucide-vue-next';
+import { Plus, Search, Loader2, UtensilsCrossed } from 'lucide-vue-next';
 import { useDebounceFn } from '@vueuse/core';
 import { toast } from 'vue-sonner';
 import type { MealPlanEntry, Tag } from '@/types';
@@ -158,7 +158,9 @@ const resetForm = () => {
                             @click="selectRecipe(recipe)"
                         >
                             <img v-if="recipe.image_url" :src="recipe.image_url" alt="" decoding="async" class="w-8 h-8 rounded object-cover" loading="lazy" width="32" height="32" />
-                            <div v-else class="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground text-xs" aria-hidden="true">🍽</div>
+                            <div v-else class="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground shrink-0">
+                                <UtensilsCrossed class="h-4 w-4" aria-hidden="true" />
+                            </div>
                             <span class="text-sm truncate">{{ recipe.name }}</span>
                         </button>
                     </div>

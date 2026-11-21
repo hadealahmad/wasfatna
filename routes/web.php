@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\AboutController;
 use App\Http\Controllers\Web\AdminCityController;
 use App\Http\Controllers\Web\AdminImportController;
 use App\Http\Controllers\Web\AdminListController;
@@ -70,6 +71,7 @@ Route::get('/lists/{list}', [ListController::class, 'show'])->name('lists.show')
 
 Route::get('/randomizer', [RandomizerController::class, 'index'])->name('randomizer.index');
 
+Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/privacy', function () {
     return Inertia::render('Privacy');
 })->name('privacy');

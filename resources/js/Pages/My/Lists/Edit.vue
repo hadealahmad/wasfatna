@@ -12,7 +12,8 @@ import CardHeader from '@/components/ui/CardHeader.vue';
 import CardTitle from '@/components/ui/CardTitle.vue';
 import CardContent from '@/components/ui/CardContent.vue';
 import CardFooter from '@/components/ui/CardFooter.vue';
-import { Trash2, ArrowRight, Upload } from 'lucide-vue-next';
+import { Trash2, ArrowRight, Upload, UtensilsCrossed } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 const props = defineProps<{
     list: {
@@ -50,11 +51,13 @@ const handleImageChange = (e: Event) => {
 };
 
 const submit = () => {
-    // Wait, with file upload in Inertia, we must use POST with _method: PUT
     form.post(route('my.lists.update', props.list.id), {
         preserveScroll: true,
         onSuccess: () => {
-            // Optional: Show toast
+            toast.success('تم حفظ التغييرات');
+        },
+        onError: () => {
+            toast.error('فشل في حفظ التغييرات');
         },
     });
 };
@@ -71,6 +74,8 @@ const removeRecipe = (recipeId: number) => {
             recipe_id: recipeId
         }, {
             preserveScroll: true,
+            onSuccess: () => toast.success('تمت إزالة الوصفة من القائمة'),
+            onError: () => toast.error('فشل في إزالة الوصفة'),
         });
     }
 };
@@ -80,8 +85,8 @@ const removeRecipe = (recipeId: number) => {
     <PublicLayout>
         <Head :title="`تعديل ${list.name}`" />
 
-        <div class="container py-8 max-w-4xl">
-            <div class="mb-6 flex items-center justify-between">
+        <div class="container mx-auto py-8 max-w-4xl px-4 md:px-6">
+            <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
                     <Link :href="route('my.lists.index')" aria-label="العودة إلى قوائمي" class="text-muted-foreground hover:text-foreground">
                         <ArrowRight class="w-5 h-5" aria-hidden="true" />
@@ -135,11 +140,11 @@ const removeRecipe = (recipeId: number) => {
                                             <img :src="coverPreview" alt="معاينة صورة الغلاف" decoding="async" width="96" height="64" class="w-full h-full object-cover" />
                                         </div>
                                         <Label for="cover" class="cursor-pointer">
-                                            <div class="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-muted text-sm">
-                                                <Upload class="w-4 h-4" />
+                                            <div class="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-muted text-sm focus-within:ring-2 focus-within:ring-ring">
+                                                <Upload class="w-4 h-4" aria-hidden="true" />
                                                 <span>تغيير الصورة</span>
                                             </div>
-                                            <input id="cover" type="file" accept="image/*" class="hidden" @change="handleImageChange" />
+                                            <input id="cover" type="file" accept="image/*" class="sr-only" @change="handleImageChange" />
                                         </Label>
                                     </div>
                                     <span v-if="form.errors.cover_image" class="text-destructive text-xs">{{ form.errors.cover_image }}</span>
@@ -168,9 +173,12 @@ const removeRecipe = (recipeId: number) => {
                                     :key="recipe.id"
                                     class="flex items-center justify-between p-2 rounded hover:bg-muted/50 border"
                                 >
-                                    <Link :href="route('recipes.show', recipe.slug)" class="flex items-center gap-3 flex-1">
-                                        <img :src="recipe.image_url" :alt="recipe.name" loading="lazy" decoding="async" width="48" height="48" class="w-12 h-12 rounded object-cover bg-muted" />
-                                        <span class="font-medium hover:underline">{{ recipe.name }}</span>
+                                    <Link :href="route('recipes.show', recipe.slug)" class="flex items-center gap-3 flex-1 min-w-0">
+                                        <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" loading="lazy" decoding="async" width="48" height="48" class="w-12 h-12 rounded object-cover bg-muted shrink-0" />
+                                        <div v-else class="w-12 h-12 rounded bg-muted flex items-center justify-center shrink-0">
+                                            <UtensilsCrossed class="h-5 w-5 text-muted-foreground/40" aria-hidden="true" />
+                                        </div>
+                                        <span class="font-medium hover:underline truncate">{{ recipe.name }}</span>
                                     </Link>
                                     <Button variant="ghost" size="icon" class="text-destructive hover:bg-destructive/10" :aria-label="`إزالة ${recipe.name} من القائمة`" @click="removeRecipe(recipe.id)">
                                         <Trash2 class="w-4 h-4" aria-hidden="true" />

@@ -134,7 +134,7 @@ const handleCreateList = async () => {
 };
 
 const handleGoogleLogin = () => {
-    window.location.href = '/auth/google';
+    window.location.href = '/auth/google/redirect';
 };
 </script>
 
@@ -215,7 +215,11 @@ const handleGoogleLogin = () => {
                     </form>
                     
                     <div class="max-h-[300px] overflow-y-auto space-y-2">
+                        <div v-if="loading" class="space-y-2 py-2" aria-busy="true">
+                            <div v-for="i in 3" :key="i" class="h-12 rounded-lg bg-muted/60 animate-pulse" />
+                        </div>
                         <Label
+                            v-else
                             v-for="list in lists"
                             :key="list.id"
                             :for="`list-${list.id}`"
