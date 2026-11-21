@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Button from '@/components/ui/Button.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
+import { formatPaginationLabel } from '@/lib/utils';
 import { Plus } from 'lucide-vue-next';
 
 defineProps<{
@@ -22,12 +23,12 @@ defineProps<{
         <div class="container mx-auto py-8 px-4 md:px-6">
             <div class="flex items-center justify-between mb-8">
                 <h1 class="text-3xl font-bold">وصفاتي</h1>
-                <Link :href="route('recipes.create')">
-                    <Button>
-                        <Plus class="ml-2 h-4 w-4" />
+                <Button as-child>
+                    <Link :href="route('recipes.create')">
+                        <Plus class="ms-2 h-4 w-4" aria-hidden="true" />
                         إضافة وصفة
-                    </Button>
-                </Link>
+                    </Link>
+                </Button>
             </div>
 
             <RecipeGrid 
@@ -48,8 +49,9 @@ defineProps<{
                             'bg-background hover:bg-muted': !link.active && link.url,
                             'opacity-50 cursor-default': !link.url 
                         }"
-                        v-html="link.label" 
-                    />
+                    >
+                        {{ formatPaginationLabel(link.label) }}
+                    </component>
                 </template>
             </div>
         </div>

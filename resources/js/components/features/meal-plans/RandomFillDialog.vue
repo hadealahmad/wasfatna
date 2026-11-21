@@ -62,8 +62,8 @@ const handleSubmit = async () => {
 <template>
     <Dialog v-model:open="open">
         <DialogTrigger asChild>
-            <Button variant="outline" size="sm" class="gap-2">
-                <Shuffle class="h-4 w-4" />
+            <Button type="button" variant="outline" size="sm" class="gap-2">
+                <Shuffle class="h-4 w-4" aria-hidden="true" />
                 تعبئة عشوائية
             </Button>
         </DialogTrigger>
@@ -73,9 +73,9 @@ const handleSubmit = async () => {
             </DialogHeader>
             <form @submit.prevent="handleSubmit" class="space-y-4 py-4">
                 <div class="space-y-2">
-                    <Label>نوع الوجبة</Label>
+                    <Label for="random-fill-meal-type">نوع الوجبة</Label>
                     <Select v-model="mealType">
-                        <SelectTrigger>
+                        <SelectTrigger id="random-fill-meal-type">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -85,16 +85,16 @@ const handleSubmit = async () => {
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <Checkbox :checked="overwrite" @update:checked="overwrite = $event" />
-                    <Label class="cursor-pointer" @click="overwrite = !overwrite">استبدال الوجبات الموجودة</Label>
+                    <Checkbox id="random-fill-overwrite" :checked="overwrite" @update:checked="overwrite = $event" />
+                    <Label for="random-fill-overwrite" class="cursor-pointer">استبدال الوجبات الموجودة</Label>
                 </div>
 
                 <p class="text-xs text-muted-foreground">سيتم ملء الأيام الفارغة بوصفات عشوائية من الوصفات المعتمدة.</p>
 
                 <div class="flex justify-end gap-2 pt-2">
                     <Button type="button" variant="ghost" @click="open = false">إلغاء</Button>
-                    <Button type="submit" :disabled="loading">
-                        <Loader2 v-if="loading" class="h-4 w-4 ml-2 animate-spin" />
+                    <Button type="submit" :disabled="loading" :aria-busy="loading">
+                        <Loader2 v-if="loading" class="h-4 w-4 me-2 animate-spin" aria-hidden="true" />
                         {{ loading ? 'جاري التعبئة...' : 'تعبئة' }}
                     </Button>
                 </div>

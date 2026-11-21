@@ -127,27 +127,35 @@ const handleUpdateStatus = (list: List, status: string) => {
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول قوائم الوصفات" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول قوائم الوصفات</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع القوائم"
                                 :checked="lists.length > 0 && selectedIds.length === lists.length"
                                 @update:checked="handleSelectAll"
                             />
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'name')">
-                            القائمة
-                            <span v-if="sortColumn === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'name')">
+                                القائمة
+                                <span v-if="sortColumn === 'name'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>المستخدم</TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'status')">
-                            الحالة
-                            <span v-if="sortColumn === 'status'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'status' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'status')">
+                                الحالة
+                                <span v-if="sortColumn === 'status'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'recipes_count')">
-                            عدد الوصفات
-                            <span v-if="sortColumn === 'recipes_count'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'recipes_count' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'recipes_count')">
+                                عدد الوصفات
+                                <span v-if="sortColumn === 'recipes_count'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>التاريخ</TableHead>
                         <TableHead>الإجراءات</TableHead>
@@ -156,35 +164,36 @@ const handleUpdateStatus = (list: List, status: string) => {
                 <TableBody>
                     <template v-if="loading">
                         <TableRow v-for="i in 5" :key="i">
-                            <TableCell colspan="7" class="h-12 text-center text-right">جاري التحميل...</TableCell>
+                            <TableCell colspan="7" class="h-12 text-center">جاري التحميل...</TableCell>
                         </TableRow>
                     </template>
                     <template v-else-if="lists.length === 0">
                         <TableRow>
-                            <TableCell colspan="7" class="h-24 text-center text-right">لا توجد قوائم</TableCell>
+                            <TableCell colspan="7" class="h-24 text-center">لا توجد قوائم</TableCell>
                         </TableRow>
                     </template>
                     <template v-else>
                         <TableRow v-for="list in lists" :key="list.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد ${list.name}`"
                                     :checked="selectedIds.includes(list.id)"
                                     @update:checked="(c) => handleSelectOne(list.id, c)"
                                 />
                             </TableCell>
                             <TableCell>
-                                <a :href="`/lists/${list.id}`" class="font-medium hover:underline text-right" target="_blank">
+                                <a :href="`/lists/${list.id}`" class="font-medium hover:underline text-start" target="_blank" rel="noopener noreferrer">
                                     {{ list.name }}
                                 </a>
-                                <div v-if="list.description" class="text-xs text-muted-foreground truncate max-w-[200px] text-right">
+                                <div v-if="list.description" class="text-xs text-muted-foreground truncate max-w-[200px] text-start">
                                     {{ list.description }}
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <div class="flex items-center gap-2 justify-end">
                                     <span class="text-sm">{{ list.user?.name }}</span>
-                                    <img v-if="list.user?.avatar" :src="list.user.avatar" class="w-6 h-6 rounded-full" />
-                                    <div v-else class="w-6 h-6 rounded-full bg-gray-300" />
+                                    <img v-if="list.user?.avatar" :src="list.user.avatar" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover" />
+                                    <div v-else class="w-6 h-6 rounded-full bg-gray-300" aria-hidden="true" />
                                 </div>
                             </TableCell>
                             <TableCell>
@@ -202,31 +211,31 @@ const handleUpdateStatus = (list: List, status: string) => {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal class="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" :aria-label="`إجراءات ${list.name}`">
+                                            <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <template v-if="list.status === 'review'">
                                             <DropdownMenuItem @click="handleUpdateStatus(list, 'approved')">
-                                                <CheckCircle class="h-4 w-4 ml-2" /> موافقة
+                                                <CheckCircle class="h-4 w-4 me-2" aria-hidden="true" /> موافقة
                                             </DropdownMenuItem>
                                             <DropdownMenuItem @click="handleUpdateStatus(list, 'rejected')" class="text-red-600">
-                                                <XCircle class="h-4 w-4 ml-2" /> رفض
+                                                <XCircle class="h-4 w-4 me-2" aria-hidden="true" /> رفض
                                             </DropdownMenuItem>
                                         </template>
                                         <template v-if="list.status === 'approved'">
                                             <DropdownMenuItem @click="handleUpdateStatus(list, 'private')">
-                                                <EyeOff class="h-4 w-4 ml-2" /> إلغاء النشر
+                                                <EyeOff class="h-4 w-4 me-2" aria-hidden="true" /> إلغاء النشر
                                             </DropdownMenuItem>
                                         </template>
                                         <template v-if="list.status === 'private'">
                                             <DropdownMenuItem @click="handleUpdateStatus(list, 'approved')">
-                                                <CheckCircle class="h-4 w-4 ml-2" /> نشر
+                                                <CheckCircle class="h-4 w-4 me-2" aria-hidden="true" /> نشر
                                             </DropdownMenuItem>
                                         </template>
                                         <DropdownMenuItem @click="handleDelete(list)" class="text-red-600 focus:text-red-600">
-                                            <Trash class="h-4 w-4 ml-2" /> حذف
+                                            <Trash class="h-4 w-4 me-2" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>

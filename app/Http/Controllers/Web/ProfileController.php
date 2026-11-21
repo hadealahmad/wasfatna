@@ -14,6 +14,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof \Illuminate\Contracts\Auth\MustVerifyEmail,
             'status' => session('status'),
+            'deletion_requested' => (bool) $request->user()->deletion_requested,
         ]);
     }
 
@@ -42,13 +43,35 @@ class ProfileController extends Controller
         return redirect()->route('profile.edit');
     }
 
+    public function requestDeletion(Request $request)
+    {
+        $request->user()->forceFill([
+            'deletion_requested' => true,
+            'deletion_requested_at' => now(),
+        ])->save();
+
+        return redirect()->route('profile.edit')->with('success', 'تم إرسال طلب حذف الحساب. سيتم مراجعته من قبل المسؤول.');
+    }
+
+    public function cancelDeletion(Request $request)
+    {
+        $request->user()->forceFill([
+            'deletion_requested' => false,
+            'deletion_requested_at' => null,
+        ])->save();
+
+        return redirect()->route('profile.edit')->with('success', 'تم إلغاء طلب حذف الحساب.');
+    }
+
     public function destroy(Request $request)
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
         $user = $request->user();
+
+        if ($user->password !== null) {
+            $request->validate([
+                'password' => ['required', 'current_password'],
+            ]);
+        }
 
         Auth::logout();
 
@@ -57,6 +80,6 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->header('Clear-Site-Data', '"cookies", "storage", "cache"');
     }
 }

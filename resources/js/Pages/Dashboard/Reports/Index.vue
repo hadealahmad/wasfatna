@@ -68,7 +68,7 @@ const handlePerPageChange = (perPage: number) => {
     <DashboardLayout>
         <div class="space-y-6">
             <div>
-                <h1 class="text-3xl font-bold tracking-tight">إدارة البلاغات</h1>
+                <h2 class="text-3xl font-bold tracking-tight">إدارة البلاغات</h2>
                 <p class="text-muted-foreground">مراجعة وإدارة بلاغات المستخدمين</p>
             </div>
 

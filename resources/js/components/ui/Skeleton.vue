@@ -11,6 +11,6 @@ defineProps<SkeletonProps>();
 <template>
   <div
     data-slot="skeleton"
-    :class="cn('bg-accent animate-pulse rounded-md', $props.class)"
+    :class="cn('bg-accent motion-safe:animate-pulse rounded-md', $props.class)"
   />
 </template>

@@ -73,6 +73,6 @@ class WebAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->header('Clear-Site-Data', '"cookies", "storage", "cache"');
     }
 }

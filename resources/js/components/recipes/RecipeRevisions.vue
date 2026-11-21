@@ -103,8 +103,8 @@ const handleRestore = async () => {
 
 <template>
     <template v-if="canModerate">
-        <Button variant="outline" size="sm" @click="isOpen = true" class="gap-2">
-            <History class="w-4 h-4" />
+        <Button type="button" variant="outline" size="sm" @click="isOpen = true" class="gap-2">
+            <History class="w-4 h-4" aria-hidden="true" />
             سجل التعديلات
         </Button>
         
@@ -117,9 +117,9 @@ const handleRestore = async () => {
                     </p>
                 </SheetHeader>
                 
-                <div class="h-[calc(100vh-120px)] mt-6 pr-4 overflow-y-auto">
+                <div class="h-[calc(100dvh-7.5rem)] mt-6 pe-4 overflow-y-auto">
                     <div v-if="isLoading" class="flex justify-center py-8">
-                        <Loader2 class="w-6 h-6 animate-spin" />
+                        <progress aria-label="جاري التحميل" class="loading-spinner"></progress>
                     </div>
                     
                     <p v-else-if="revisions.length === 0" class="text-center text-muted-foreground py-8">
@@ -145,12 +145,13 @@ const handleRestore = async () => {
                             </div>
                             
                             <Button
+                                type="button"
                                 variant="ghost"
                                 size="sm"
                                 class="w-full mt-2 gap-2 text-primary hover:text-primary/90"
                                 @click="handlePreview(rev)"
                             >
-                                <Eye class="w-4 h-4" />
+                                <Eye class="w-4 h-4" aria-hidden="true" />
                                 معاينة و استعادة
                             </Button>
                         </div>
@@ -200,12 +201,12 @@ const handleRestore = async () => {
                 </div>
                 
                 <DialogFooter class="gap-2 sm:gap-0">
-                    <Button variant="outline" @click="isPreviewOpen = false">
+                    <Button type="button" variant="outline" @click="isPreviewOpen = false">
                         إلغاء
                     </Button>
-                    <Button @click="handleRestore" :disabled="isRestoring" class="gap-2">
-                        <Loader2 v-if="isRestoring" class="w-4 h-4 animate-spin" />
-                        <RotateCcw v-else class="w-4 h-4" />
+                    <Button type="button" @click="handleRestore" :disabled="isRestoring" :aria-busy="isRestoring" class="gap-2">
+                        <Loader2 v-if="isRestoring" class="w-4 h-4 animate-spin" aria-hidden="true" />
+                        <RotateCcw v-else class="w-4 h-4" aria-hidden="true" />
                         استعادة هذه النسخة
                     </Button>
                 </DialogFooter>

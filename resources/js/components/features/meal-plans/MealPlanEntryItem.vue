@@ -96,6 +96,7 @@ const removeEntry = async () => {
                 :alt="entry.title"
                 class="w-8 h-8 rounded object-cover"
                 loading="lazy"
+                decoding="async"
                 width="32"
                 height="32"
             />
@@ -109,10 +110,10 @@ const removeEntry = async () => {
                     </Link>
                     <span v-else>{{ entry.title }}</span>
                 </span>
-                <Badge :class="getTagColor(entry.meal_type)" class="text-[10px] px-1.5 py-0">
+                <Badge :class="getTagColor(entry.meal_type)" class="text-xs px-1.5 py-0">
                     {{ entry.meal_type }}
                 </Badge>
-                <StickyNote v-if="entry.notes" class="h-3 w-3 text-muted-foreground shrink-0" />
+                <StickyNote v-if="entry.notes" class="h-3 w-3 text-muted-foreground shrink-0" aria-hidden="true" />
             </div>
             <p v-if="entry.notes" class="text-xs text-muted-foreground truncate mt-0.5">{{ entry.notes }}</p>
         </div>
@@ -120,21 +121,24 @@ const removeEntry = async () => {
         <Link
             v-if="entry.recipe"
             :href="`/recipes/${entry.recipe.slug}`"
+            :aria-label="`فتح وصفة ${entry.title}`"
             @click.stop
             class="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
         >
-            <ExternalLink class="h-3.5 w-3.5" />
+            <ExternalLink class="h-3.5 w-3.5" aria-hidden="true" />
         </Link>
 
         <Button
             v-if="!readonly"
+            type="button"
             variant="ghost"
             size="icon"
-            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-500 dark:hover:text-red-400"
+            :aria-label="`حذف ${entry.title}`"
+            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
             @click.stop="removeEntry"
             :disabled="loading"
         >
-            <Trash2 class="h-3.5 w-3.5" />
+            <Trash2 class="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
     </div>
 </template>

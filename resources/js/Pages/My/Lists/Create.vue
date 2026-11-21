@@ -39,7 +39,7 @@ const submit = () => {
             <span class="text-foreground font-medium">قائمة جديدة</span>
         </div>
 
-        <h2 class="text-2xl font-bold mb-6">إنشاء قائمة جديدة</h2>
+        <h1 class="text-2xl font-bold mb-6">إنشاء قائمة جديدة</h1>
 
         <Card>
             <CardContent class="pt-6">
@@ -47,19 +47,19 @@ const submit = () => {
                     <div class="space-y-2">
                         <Label for="name">اسم القائمة</Label>
                         <Input id="name" v-model="form.name" required placeholder="مثال: حلويات رمضان، أطباقي المفضلة..." />
-                        <p v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</p>
+                        <p v-if="form.errors.name" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.name }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="description">وصف القائمة (اختياري)</Label>
                         <Textarea id="description" v-model="form.description" placeholder="اكتب وصفاً مختصراً لمحتوى القائمة..." />
-                        <p v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</p>
+                        <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.description }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="image">صورة الغلاف (اختياري)</Label>
                         <Input id="image" type="file" @input="form.cover_image = $event.target.files[0]" accept="image/*" />
-                        <p v-if="form.errors.cover_image" class="text-sm text-red-500">{{ form.errors.cover_image }}</p>
+                        <p v-if="form.errors.cover_image" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.cover_image }}</p>
                     </div>
 
                     <div class="flex items-center space-x-2 flex-row-reverse space-x-reverse justify-end">
@@ -68,10 +68,10 @@ const submit = () => {
                     </div>
 
                     <div class="flex justify-end gap-4 pt-4">
-                        <Link :href="route('my.lists.index')">
-                            <Button variant="outline" type="button">إلغاء</Button>
-                        </Link>
-                        <Button type="submit" :disabled="form.processing">
+                        <Button as-child variant="outline">
+                            <Link :href="route('my.lists.index')">إلغاء</Link>
+                        </Button>
+                        <Button type="submit" :disabled="form.processing" :aria-busy="form.processing || undefined">
                             {{ form.processing ? 'جاري الحفظ...' : 'إنشاء القائمة' }}
                         </Button>
                     </div>

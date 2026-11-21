@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, reactive, computed, watch, onMounted, nextTick, defineAsyncComponent } from 'vue';
 import { useForm, usePage, router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import { compressImage, validateImageFile } from '@/lib/image-utils';
@@ -20,8 +20,9 @@ import {
     Badge
 } from '@/components/ui';
 import { Plus, Trash, X, Eye, GripVertical } from 'lucide-vue-next';
-import RecipePreview from '@/components/recipes/RecipePreview.vue';
 import draggable from 'vuedraggable';
+
+const RecipePreview = defineAsyncComponent(() => import('@/components/recipes/RecipePreview.vue'));
 
 // Types
 interface City {
@@ -102,6 +103,16 @@ const difficulties = [
 const isSubmitting = ref(false);
 const isAiProcessing = ref(false);
 const showPreview = ref(false);
+const hasOpenedPreview = ref(false);
+
+const errors = reactive<{
+    name?: string;
+    ingredients?: string;
+    steps?: string;
+    image?: string;
+    manualAuthorName?: string;
+}>({});
+const formErrorAnnouncement = ref('');
 
 // Preview computed data
 const previewCityName = computed(() => {
@@ -508,28 +519,83 @@ const buildSteps = () => {
         }));
 };
 
+watch(name, (val) => {
+    if (val.trim()) delete errors.name;
+});
+watch(ingredientGroups, () => {
+    if (ingredientGroups.value.some(g => g.items.some(i => i.name.trim()))) {
+        delete errors.ingredients;
+    }
+}, { deep: true });
+watch(stepGroups, () => {
+    if (stepGroups.value.some(g => g.items.some(s => s.trim()))) {
+        delete errors.steps;
+    }
+}, { deep: true });
+watch([image, imagePreview], ([img, preview]) => {
+    if (img || preview) delete errors.image;
+});
+watch(manualAuthorName, (val) => {
+    if (val.trim()) delete errors.manualAuthorName;
+});
+
 // Submit form
 const submit = async () => {
-    if (!name.value.trim()) {
-        toast.error('يرجى إدخال اسم الوصفة');
-        return;
-    }
+    delete errors.name;
+    delete errors.ingredients;
+    delete errors.steps;
+    delete errors.image;
+    delete errors.manualAuthorName;
+    formErrorAnnouncement.value = '';
 
     const ingredients = buildIngredients();
     const steps = buildSteps();
 
-    if ((Array.isArray(ingredients) && ingredients.length === 0)) {
-        toast.error('يرجى إضافة المكونات');
-        return;
+    let firstInvalidId: string | null = null;
+    let firstErrorMessage: string | null = null;
+
+    if (!name.value.trim()) {
+        errors.name = 'يرجى إدخال اسم الوصفة';
+        firstInvalidId ??= 'name';
+        firstErrorMessage ??= errors.name;
     }
 
-    if ((Array.isArray(steps) && steps.length === 0)) {
-        toast.error('يرجى إضافة خطوات التحضير');
-        return;
+    if (isAdmin.value && isManualAuthor.value && !manualAuthorName.value.trim()) {
+        errors.manualAuthorName = 'يرجى إدخال اسم المؤلف';
+        firstInvalidId ??= 'manualAuthorName';
+        firstErrorMessage ??= errors.manualAuthorName;
     }
 
     if (!isEditing.value && !image.value && !imagePreview.value) {
-        toast.error('يرجى إضافة صورة للوصفة');
+        errors.image = 'يرجى إضافة صورة للوصفة';
+        firstInvalidId ??= 'recipe-image-input';
+        firstErrorMessage ??= errors.image;
+    }
+
+    if (Array.isArray(ingredients) && ingredients.length === 0) {
+        errors.ingredients = 'يرجى إضافة المكونات';
+        firstInvalidId ??= 'ing-name-0-0';
+        firstErrorMessage ??= errors.ingredients;
+    }
+
+    if (Array.isArray(steps) && steps.length === 0) {
+        errors.steps = 'يرجى إضافة خطوات التحضير';
+        firstInvalidId ??= 'step-item-0-0';
+        firstErrorMessage ??= errors.steps;
+    }
+
+    if (firstInvalidId && firstErrorMessage) {
+        const allErrors = [
+            errors.name,
+            errors.manualAuthorName,
+            errors.image,
+            errors.ingredients,
+            errors.steps,
+        ].filter(Boolean);
+        formErrorAnnouncement.value = allErrors.join('، ');
+        toast.error(firstErrorMessage);
+        await nextTick();
+        document.getElementById(firstInvalidId)?.focus();
         return;
     }
 
@@ -550,11 +616,6 @@ const submit = async () => {
 
         if (isAdmin.value) {
             if (isManualAuthor.value) {
-                if (!manualAuthorName.value.trim()) {
-                    toast.error('يرجى إدخال اسم المؤلف');
-                    isSubmitting.value = false;
-                    return;
-                }
                 formData.append('manual_author_name', manualAuthorName.value);
             } else if (authorId.value) {
                 formData.append('user_id', authorId.value);
@@ -631,7 +692,8 @@ const submit = async () => {
 </script>
 
 <template>
-    <form @submit.prevent="submit" class="space-y-8">
+    <form @submit.prevent="submit" novalidate class="space-y-8">
+        <div aria-live="polite" class="sr-only">{{ formErrorAnnouncement }}</div>
         <!-- Basic Info Card -->
         <Card>
             <CardHeader>
@@ -642,7 +704,7 @@ const submit = async () => {
                 <div v-if="isAdmin" class="bg-muted/50 border rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-lg">✨</span>
+                            <span class="text-lg" aria-hidden="true">✨</span>
                             <h3 class="font-semibold">مساعد الذكاء الاصطناعي</h3>
                         </div>
                         <p class="text-sm text-muted-foreground">
@@ -653,6 +715,7 @@ const submit = async () => {
                         type="button"
                         @click="handleAiProcess"
                         :disabled="isAiProcessing"
+                        :aria-busy="isAiProcessing"
                         variant="secondary"
                         class="shrink-0"
                     >
@@ -668,8 +731,11 @@ const submit = async () => {
                         v-model="name"
                         placeholder="مثال: منسف رز"
                         required
+                        :aria-invalid="!!errors.name"
+                        :aria-describedby="errors.name ? 'name-error' : undefined"
                         class="h-12 text-base bg-background"
                     />
+                    <p v-if="errors.name" id="name-error" class="text-sm text-destructive mt-1.5">{{ errors.name }}</p>
                 </div>
 
                 <!-- Description -->
@@ -680,10 +746,11 @@ const submit = async () => {
                         v-model="description"
                         :maxlength="280"
                         placeholder="وصف قصير للوصفة (اختياري)"
-                        class="text-base bg-background resize-none"
+                        aria-describedby="description-counter"
+                        class="text-base bg-background resize-y"
                         rows="3"
                     />
-                    <p class="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{{ description.length }}/280</p>
+                    <p id="description-counter" class="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{{ description.length }}/280</p>
                 </div>
 
                 <!-- City & Difficulty -->
@@ -691,7 +758,7 @@ const submit = async () => {
                     <div>
                         <Label for="city" class="text-base mb-2 block">المدينة</Label>
                         <Select v-model="cityId">
-                            <SelectTrigger class="h-12 text-base bg-background">
+                            <SelectTrigger id="city" class="h-12 text-base bg-background">
                                 <SelectValue placeholder="اختر المدينة" />
                             </SelectTrigger>
                             <SelectContent>
@@ -705,7 +772,7 @@ const submit = async () => {
                     <div>
                         <Label for="difficulty" class="text-base mb-2 block">مستوى الصعوبة *</Label>
                         <Select v-model="difficulty">
-                            <SelectTrigger class="h-12 text-base bg-background">
+                            <SelectTrigger id="difficulty" class="h-12 text-base bg-background">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -734,8 +801,11 @@ const submit = async () => {
                         <Badge
                             v-for="tag in tags"
                             :key="tag.id"
+                            as="button"
+                            type="button"
                             variant="outline"
-                            class="cursor-pointer select-none hover:bg-secondary/50 transition-colors px-3 py-1.5"
+                            :aria-pressed="selectedTags.includes(tag.id)"
+                            class="cursor-pointer hover:bg-secondary/50 transition-colors px-3 py-1.5"
                             :class="{ 'bg-primary text-primary-foreground hover:bg-primary/90': selectedTags.includes(tag.id) }"
                             @click="toggleTag(tag.id)"
                         >
@@ -753,7 +823,7 @@ const submit = async () => {
                             v-model="isManualAuthor"
                             class="w-4 h-4 accent-primary"
                         />
-                        <Label for="isManualAuthor" class="cursor-pointer select-none">
+                        <Label for="isManualAuthor" class="cursor-pointer">
                             مؤلف خارجي / غير مسجل
                         </Label>
                     </div>
@@ -764,14 +834,17 @@ const submit = async () => {
                             id="manualAuthorName"
                             v-model="manualAuthorName"
                             placeholder="أدخل اسم المؤلف..."
+                            :aria-invalid="!!errors.manualAuthorName"
+                            :aria-describedby="errors.manualAuthorName ? 'manualAuthorName-error' : undefined"
                             class="h-12 text-base bg-background"
                         />
+                        <p v-if="errors.manualAuthorName" id="manualAuthorName-error" class="text-sm text-destructive mt-1.5">{{ errors.manualAuthorName }}</p>
                     </div>
 
                     <div v-else>
                         <Label for="author" class="text-base mb-2 block">المؤلف (مستخدم مسجل)</Label>
                         <Select v-model="authorId">
-                            <SelectTrigger class="h-12 text-base bg-background">
+                            <SelectTrigger id="author" class="h-12 text-base bg-background">
                                 <SelectValue placeholder="اختر المؤلف" />
                             </SelectTrigger>
                             <SelectContent>
@@ -785,31 +858,35 @@ const submit = async () => {
 
                 <!-- Image Upload -->
                 <div>
-                    <Label class="text-base mb-2 block">صورة الوصفة</Label>
+                    <Label for="recipe-image-input" class="text-base mb-2 block">صورة الوصفة</Label>
                     <div class="mt-2">
                         <div v-if="imagePreview" class="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border bg-background">
-                            <img :src="imagePreview" alt="معاينة" loading="lazy" decoding="async" class="object-cover w-full h-full" />
+                            <img :src="imagePreview" alt="معاينة" decoding="async" width="448" height="252" class="object-cover w-full h-full" />
                             <Button
                                 type="button"
                                 variant="destructive"
                                 size="sm"
-                                class="absolute top-2 right-2"
+                                class="absolute top-2 end-2"
                                 @click="removeImage"
                             >
                                 حذف
                             </Button>
                         </div>
-                        <label v-else class="flex flex-col items-center justify-center w-full max-w-md h-52 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors bg-background">
-                            <span class="text-4xl mb-4">📷</span>
+                        <label v-else for="recipe-image-input" class="flex flex-col items-center justify-center w-full max-w-md h-52 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors bg-background focus-within:ring-2 focus-within:ring-ring" :class="{ 'border-destructive': !!errors.image }">
+                            <span class="text-4xl mb-4" aria-hidden="true">📷</span>
                             <span class="text-base text-muted-foreground font-medium">اضغط لاختيار صورة</span>
                             <span class="text-sm text-muted-foreground mt-2">(الحد الأقصى 1 ميغابايت)</span>
                             <input
+                                id="recipe-image-input"
                                 type="file"
                                 accept="image/*"
-                                class="hidden"
+                                class="sr-only"
+                                :aria-invalid="!!errors.image"
+                                :aria-describedby="errors.image ? 'image-error' : undefined"
                                 @change="handleImageChange"
                             />
                         </label>
+                        <p v-if="errors.image" id="image-error" class="text-sm text-destructive mt-1.5">{{ errors.image }}</p>
                     </div>
                 </div>
             </CardContent>
@@ -822,25 +899,34 @@ const submit = async () => {
             </CardHeader>
             <CardContent class="space-y-4">
                 <div v-for="(entry, index) in timeEntries" :key="index" class="grid grid-cols-12 gap-4">
-                    <Input
-                        placeholder="المرحلة (مثال: التحضير)"
-                        v-model="entry.step"
-                        class="h-12 text-base bg-background col-span-5"
-                    />
-                    <Input
-                        placeholder="المدة (مثال: 30 دقيقة)"
-                        v-model="entry.duration"
-                        class="h-12 text-base bg-background col-span-5"
-                    />
+                    <div class="col-span-5">
+                        <label class="sr-only" :for="`time-step-${index}`">المرحلة {{ index + 1 }}</label>
+                        <Input
+                            :id="`time-step-${index}`"
+                            placeholder="المرحلة (مثال: التحضير)"
+                            v-model="entry.step"
+                            class="h-12 text-base bg-background"
+                        />
+                    </div>
+                    <div class="col-span-5">
+                        <label class="sr-only" :for="`time-duration-${index}`">المدة {{ index + 1 }}</label>
+                        <Input
+                            :id="`time-duration-${index}`"
+                            placeholder="المدة (مثال: 30 دقيقة)"
+                            v-model="entry.duration"
+                            class="h-12 text-base bg-background"
+                        />
+                    </div>
                     <Button 
                         v-if="timeEntries.length > 1"
                         type="button" 
                         variant="ghost" 
                         size="icon" 
+                        :aria-label="`حذف مرحلة الوقت ${index + 1}`"
                         @click="removeTimeEntry(index)"
                         class="col-span-2 h-12 text-destructive"
                     >
-                        <X class="w-4 h-4" />
+                        <X class="w-4 h-4" aria-hidden="true" />
                     </Button>
                 </div>
                 <Button type="button" variant="outline" @click="addTimeEntry" class="h-10">
@@ -855,10 +941,13 @@ const submit = async () => {
                 <CardTitle>المكونات *</CardTitle>
             </CardHeader>
             <CardContent class="space-y-6">
+                <p v-if="errors.ingredients" id="ingredients-error" class="text-sm text-destructive">{{ errors.ingredients }}</p>
                 <div v-for="(group, groupIndex) in ingredientGroups" :key="groupIndex" class="space-y-4 p-5 border rounded-xl bg-muted/20">
                     <!-- Group name (only show if multiple groups) -->
                     <div v-if="ingredientGroups.length > 1" class="flex gap-2">
+                        <label class="sr-only" :for="`ingredient-group-name-${groupIndex}`">اسم مجموعة المكونات {{ groupIndex + 1 }}</label>
                         <Input
+                            :id="`ingredient-group-name-${groupIndex}`"
                             placeholder="اسم المجموعة (مثال: العجينة)"
                             v-model="group.name"
                             class="font-semibold h-12 text-base bg-background flex-1"
@@ -867,10 +956,11 @@ const submit = async () => {
                             type="button"
                             variant="ghost"
                             size="icon"
+                            :aria-label="`حذف مجموعة المكونات ${groupIndex + 1}`"
                             @click="removeIngredientGroup(groupIndex)"
                             class="h-12 text-destructive"
                         >
-                            <Trash class="w-4 h-4" />
+                            <Trash class="w-4 h-4" aria-hidden="true" />
                         </Button>
                     </div>
 
@@ -885,40 +975,59 @@ const submit = async () => {
                         <template #item="{ element: item, index: itemIndex }">
                             <div class="space-y-2 mb-3">
                                 <div class="flex gap-2 items-center">
-                                    <GripVertical class="w-4 h-4 shrink-0 text-muted-foreground cursor-grab drag-handle touch-none" />
+                                    <GripVertical class="w-4 h-4 shrink-0 text-muted-foreground cursor-grab drag-handle touch-none" aria-hidden="true" />
                                     <div class="grid grid-cols-12 gap-2 flex-1">
-                                        <Input
-                                            placeholder="الكمية"
-                                            v-model="item.amount"
-                                            class="h-11 text-base bg-background col-span-3 md:col-span-2"
-                                        />
-                                        <Input
-                                            placeholder="الوحدة"
-                                            v-model="item.unit"
-                                            class="h-11 text-base bg-background col-span-3 md:col-span-2"
-                                        />
-                                        <Input
-                                            placeholder="المكون *"
-                                            v-model="item.name"
-                                            class="h-11 text-base bg-background col-span-6"
-                                        />
+                                        <div class="col-span-3 md:col-span-2">
+                                            <label class="sr-only" :for="`ing-amount-${groupIndex}-${itemIndex}`">الكمية للمكون {{ itemIndex + 1 }} في المجموعة {{ groupIndex + 1 }}</label>
+                                            <Input
+                                                :id="`ing-amount-${groupIndex}-${itemIndex}`"
+                                                placeholder="الكمية"
+                                                v-model="item.amount"
+                                                class="h-11 text-base bg-background"
+                                            />
+                                        </div>
+                                        <div class="col-span-3 md:col-span-2">
+                                            <label class="sr-only" :for="`ing-unit-${groupIndex}-${itemIndex}`">الوحدة للمكون {{ itemIndex + 1 }} في المجموعة {{ groupIndex + 1 }}</label>
+                                            <Input
+                                                :id="`ing-unit-${groupIndex}-${itemIndex}`"
+                                                placeholder="الوحدة"
+                                                v-model="item.unit"
+                                                class="h-11 text-base bg-background"
+                                            />
+                                        </div>
+                                        <div class="col-span-6">
+                                            <label class="sr-only" :for="`ing-name-${groupIndex}-${itemIndex}`">اسم المكون {{ itemIndex + 1 }} في المجموعة {{ groupIndex + 1 }}</label>
+                                            <Input
+                                                :id="`ing-name-${groupIndex}-${itemIndex}`"
+                                                placeholder="المكون *"
+                                                v-model="item.name"
+                                                :aria-invalid="groupIndex === 0 && itemIndex === 0 ? !!errors.ingredients : undefined"
+                                                :aria-describedby="groupIndex === 0 && itemIndex === 0 && errors.ingredients ? 'ingredients-error' : undefined"
+                                                class="h-11 text-base bg-background"
+                                            />
+                                        </div>
                                     </div>
                                     <Button
                                         v-if="group.items.length > 1"
                                         type="button"
                                         variant="ghost"
                                         size="icon"
+                                        :aria-label="`حذف المكون ${itemIndex + 1} من المجموعة ${groupIndex + 1}`"
                                         @click="removeIngredientItem(groupIndex, itemIndex)"
                                         class="h-11 text-destructive shrink-0"
                                     >
-                                        <X class="w-4 h-4" />
+                                        <X class="w-4 h-4" aria-hidden="true" />
                                     </Button>
                                 </div>
-                                <Input
-                                    placeholder="وصف إضافي (اختياري)"
-                                    v-model="item.descriptor"
-                                    class="h-10 text-sm bg-background text-muted-foreground mr-6"
-                                />
+                                <div class="me-6">
+                                    <label class="sr-only" :for="`ing-descriptor-${groupIndex}-${itemIndex}`">وصف إضافي للمكون {{ itemIndex + 1 }} في المجموعة {{ groupIndex + 1 }}</label>
+                                    <Input
+                                        :id="`ing-descriptor-${groupIndex}-${itemIndex}`"
+                                        placeholder="وصف إضافي (اختياري)"
+                                        v-model="item.descriptor"
+                                        class="h-10 text-sm bg-background text-muted-foreground"
+                                    />
+                                </div>
                             </div>
                         </template>
                     </draggable>
@@ -945,10 +1054,13 @@ const submit = async () => {
                 <CardTitle>طريقة التحضير *</CardTitle>
             </CardHeader>
             <CardContent class="space-y-6">
+                <p v-if="errors.steps" id="steps-error" class="text-sm text-destructive">{{ errors.steps }}</p>
                 <div v-for="(group, groupIndex) in stepGroups" :key="groupIndex" class="space-y-4 p-5 border rounded-xl bg-muted/20">
                     <!-- Group name (only show if multiple groups) -->
                     <div v-if="stepGroups.length > 1" class="flex gap-2">
+                        <label class="sr-only" :for="`step-group-name-${groupIndex}`">اسم مرحلة التحضير {{ groupIndex + 1 }}</label>
                         <Input
+                            :id="`step-group-name-${groupIndex}`"
                             placeholder="اسم المرحلة (مثال: تحضير الصلصة)"
                             v-model="group.name"
                             class="font-semibold h-12 text-base bg-background flex-1"
@@ -957,10 +1069,11 @@ const submit = async () => {
                             type="button"
                             variant="ghost"
                             size="icon"
+                            :aria-label="`حذف مرحلة التحضير ${groupIndex + 1}`"
                             @click="removeStepGroup(groupIndex)"
                             class="h-12 text-destructive"
                         >
-                            <Trash class="w-4 h-4" />
+                            <Trash class="w-4 h-4" aria-hidden="true" />
                         </Button>
                     </div>
 
@@ -974,25 +1087,32 @@ const submit = async () => {
                     >
                         <template #item="{ index: itemIndex }">
                             <div class="flex gap-2 mb-3">
-                                <GripVertical class="w-4 h-4 shrink-0 mt-3.5 text-muted-foreground cursor-grab drag-handle touch-none" />
-                                <div class="flex-none pt-3 bg-muted w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                                <GripVertical class="w-4 h-4 shrink-0 mt-3.5 text-muted-foreground cursor-grab drag-handle touch-none" aria-hidden="true" />
+                                <div class="flex-none pt-3 bg-muted w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm" aria-hidden="true">
                                     {{ itemIndex + 1 }}
                                 </div>
-                                <Textarea
-                                    :placeholder="`الخطوة ${itemIndex + 1}`"
-                                    v-model="group.items[itemIndex]"
-                                    :rows="3"
-                                    class="text-base bg-background resize-y min-h-[100px] flex-1"
-                                />
+                                <div class="flex-1">
+                                    <label class="sr-only" :for="`step-item-${groupIndex}-${itemIndex}`">الخطوة {{ itemIndex + 1 }} في المرحلة {{ groupIndex + 1 }}</label>
+                                    <Textarea
+                                        :id="`step-item-${groupIndex}-${itemIndex}`"
+                                        :placeholder="`الخطوة ${itemIndex + 1}`"
+                                        v-model="group.items[itemIndex]"
+                                        :rows="3"
+                                        :aria-invalid="groupIndex === 0 && itemIndex === 0 ? !!errors.steps : undefined"
+                                        :aria-describedby="groupIndex === 0 && itemIndex === 0 && errors.steps ? 'steps-error' : undefined"
+                                        class="text-base bg-background resize-y min-h-[100px]"
+                                    />
+                                </div>
                                 <Button
                                     v-if="group.items.length > 1"
                                     type="button"
                                     variant="ghost"
                                     size="icon"
+                                    :aria-label="`حذف الخطوة ${itemIndex + 1} من المرحلة ${groupIndex + 1}`"
                                     @click="removeStepItem(groupIndex, itemIndex)"
                                     class="h-11 text-destructive shrink-0"
                                 >
-                                    <X class="w-4 h-4" />
+                                    <X class="w-4 h-4" aria-hidden="true" />
                                 </Button>
                             </div>
                         </template>
@@ -1019,11 +1139,11 @@ const submit = async () => {
             <Button type="button" variant="outline" @click="router.back()">
                 إلغاء
             </Button>
-            <Button type="button" variant="secondary" @click="showPreview = true" class="gap-2">
-                <Eye class="h-4 w-4" />
+            <Button type="button" variant="secondary" @click="hasOpenedPreview = true; showPreview = true" class="gap-2">
+                <Eye class="h-4 w-4" aria-hidden="true" />
                 معاينة
             </Button>
-            <Button type="submit" :disabled="isSubmitting">
+            <Button type="submit" :disabled="isSubmitting" :aria-busy="isSubmitting">
                 {{ isSubmitting
                     ? (isEditing ? 'جاري التحديث...' : 'جاري الإرسال...')
                     : (isEditing
@@ -1036,6 +1156,7 @@ const submit = async () => {
 
         <!-- Preview Dialog -->
         <RecipePreview
+            v-if="hasOpenedPreview"
             v-model:open="showPreview"
             :name="name"
             :description="description"

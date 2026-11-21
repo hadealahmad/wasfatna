@@ -34,7 +34,7 @@ const copyLink = async () => {
 
 const shareWhatsApp = () => {
     const text = encodeURIComponent(`شاهد خطة وجبات "${props.plan.name}": ${window.location.href}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
 };
 </script>
 

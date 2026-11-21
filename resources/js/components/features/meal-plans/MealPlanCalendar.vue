@@ -156,19 +156,23 @@ onMounted(() => {
         <div class="rounded-2xl border border-border overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 bg-card text-card-foreground border-b border-border">
                 <button
+                    type="button"
+                    aria-label="الشهر السابق"
                     :disabled="!canPrev"
                     @click="goPrev"
                     class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                    <ChevronRight class="w-5 h-5" />
+                    <ChevronRight class="w-5 h-5" aria-hidden="true" />
                 </button>
-                <span class="text-base font-bold select-none">{{ monthLabel }}</span>
+                <span class="text-base font-bold">{{ monthLabel }}</span>
                 <button
+                    type="button"
+                    aria-label="الشهر التالي"
                     :disabled="!canNext"
                     @click="goNext"
                     class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                    <ChevronLeft class="w-5 h-5" />
+                    <ChevronLeft class="w-5 h-5" aria-hidden="true" />
                 </button>
             </div>
 
@@ -176,7 +180,7 @@ onMounted(() => {
                 <div
                     v-for="(d, i) in weekDaysEn"
                     :key="'h' + i"
-                    class="bg-muted text-center py-2 text-[11px] font-semibold text-muted-foreground select-none"
+                    class="bg-muted text-center py-2 text-xs font-semibold text-muted-foreground"
                 >
                     <span class="hidden sm:inline">{{ weekDaysMed[i] }}</span>
                     <span class="sm:hidden">{{ d }}</span>
@@ -185,6 +189,7 @@ onMounted(() => {
                 <button
                     v-for="day in flatCells"
                     :key="day.date"
+                    type="button"
                     @click="selectDay(day)"
                     :disabled="!day.inRange"
                     :class="[
@@ -230,7 +235,7 @@ onMounted(() => {
                             :key="entry.id"
                             :class="['w-1.5 h-1.5 rounded-full', getDotColor(entry.meal_type), entry.is_done && 'opacity-40']"
                         />
-                        <span v-if="day.entries.length > 4" class="text-[8px] text-muted-foreground leading-none">
+                        <span v-if="day.entries.length > 4" class="text-xs text-muted-foreground leading-none">
                             +{{ day.entries.length - 4 }}
                         </span>
                     </div>

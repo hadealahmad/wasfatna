@@ -97,11 +97,12 @@ const isActive = (item: any) => {
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div class="md:col-span-1">
-                    <nav class="flex flex-col space-y-1">
+                    <nav aria-label="لوحة التحكم" class="flex flex-col space-y-1">
                         <Link
                             v-for="item in navItems"
                             :key="item.name"
                             :href="route(item.name)"
+                            :aria-current="isActive(item) ? 'page' : undefined"
                             :class="cn(
                                 'flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
                                 isActive(item)
@@ -109,7 +110,7 @@ const isActive = (item: any) => {
                                     : 'hover:bg-muted text-foreground'
                             )"
                         >
-                            <component :is="item.icon" class="h-4 w-4" />
+                            <component :is="item.icon" aria-hidden="true" class="h-4 w-4" />
                             {{ item.label }}
                         </Link>
                     </nav>

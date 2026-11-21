@@ -72,11 +72,12 @@ const listImage = computed(() =>
               v-if="list.cover_image"
               :src="list.cover_image"
               :alt="list.name"
-              loading="lazy"
+              width="128"
+              height="128"
               decoding="async"
               class="object-cover w-full h-full"
             />
-            <div v-else class="text-4xl">
+            <div v-else class="text-4xl" aria-hidden="true">
               📋
             </div>
           </div>
@@ -103,7 +104,7 @@ const listImage = computed(() =>
               <span>بواسطة</span>
               <div class="flex items-center gap-1 font-medium text-foreground">
                 <Avatar class="w-5 h-5">
-                  <AvatarImage :src="list.user.avatar" />
+                  <AvatarImage :src="list.user.avatar" :alt="list.user.name" width="20" height="20" />
                   <AvatarFallback>{{ initials(list.user.name) }}</AvatarFallback>
                 </Avatar>
                 <span>{{ list.user.name }}</span>

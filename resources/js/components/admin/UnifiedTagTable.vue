@@ -49,6 +49,7 @@ const selectedTag = ref<Tag | null>(null);
 const isLoading = ref(false);
 
 const name = ref('');
+const nameError = ref('');
 
 const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -68,6 +69,7 @@ const handleSelectOne = (id: number, checked: boolean) => {
 
 const resetForm = () => {
     name.value = '';
+    nameError.value = '';
     selectedTag.value = null;
 };
 
@@ -79,11 +81,16 @@ const handleOpenCreate = () => {
 const handleOpenEdit = (tag: Tag) => {
     selectedTag.value = tag;
     name.value = tag.name;
+    nameError.value = '';
     isDialogOpen.value = true;
 };
 
 const handleSubmit = () => {
-    if (!name.value.trim()) return;
+    if (!name.value.trim()) {
+        nameError.value = 'يرجى إدخال اسم الوسم';
+        return;
+    }
+    nameError.value = '';
     
     isLoading.value = true;
     const url = selectedTag.value 
@@ -155,32 +162,38 @@ const handleDeleteSingle = (tag: Tag) => {
             <div v-if="selectedIds.length > 0" class="bg-muted px-4 py-2 rounded-lg flex items-center gap-4">
                 <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }}</span>
                 <Button size="sm" variant="destructive" @click="handleBulkDelete" :disabled="isLoading">
-                    <Trash class="w-4 h-4 mr-1" /> حذف المحدد
+                    <Trash class="w-4 h-4 me-1" aria-hidden="true" /> حذف المحدد
                 </Button>
             </div>
             <div v-else></div>
             <Button @click="handleOpenCreate">
-                <Plus class="w-4 h-4 mr-1" /> إضافة وسم
+                <Plus class="w-4 h-4 me-1" aria-hidden="true" /> إضافة وسم
             </Button>
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول الوسوم" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول الوسوم</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع الوسوم"
                                 :checked="tags.length > 0 && selectedIds.length === tags.length"
                                 @update:checked="handleSelectAll"
                             />
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'name')">
-                            الاسم
-                            <span v-if="sortColumn === 'name'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'name')">
+                                الاسم
+                                <span v-if="sortColumn === 'name'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'recipes_count')">
-                            عدد الوصفات
-                            <span v-if="sortColumn === 'recipes_count'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'recipes_count' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'recipes_count')">
+                                عدد الوصفات
+                                <span v-if="sortColumn === 'recipes_count'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>الإجراءات</TableHead>
                     </TableRow>
@@ -200,6 +213,7 @@ const handleDeleteSingle = (tag: Tag) => {
                         <TableRow v-for="tag in tags" :key="tag.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد ${tag.name}`"
                                     :checked="selectedIds.includes(tag.id)"
                                     @update:checked="(c) => handleSelectOne(tag.id, c)"
                                 />
@@ -213,16 +227,16 @@ const handleDeleteSingle = (tag: Tag) => {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal class="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" :aria-label="`إجراءات ${tag.name}`">
+                                            <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem @click="handleOpenEdit(tag)">
-                                            <Edit class="h-4 w-4" /> تعديل
+                                            <Edit class="h-4 w-4" aria-hidden="true" /> تعديل
                                         </DropdownMenuItem>
                                         <DropdownMenuItem @click="handleDeleteSingle(tag)" class="text-red-600 focus:text-red-600">
-                                            <Trash class="h-4 w-4" /> حذف
+                                            <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -252,18 +266,23 @@ const handleDeleteSingle = (tag: Tag) => {
                 </DialogHeader>
                 <div class="space-y-4 py-4">
                     <div class="space-y-2">
-                        <label class="text-sm font-medium">اسم الوسم</label>
+                        <label for="tag-name" class="text-sm font-medium">اسم الوسم</label>
                         <Input
+                            id="tag-name"
                             v-model="name"
                             placeholder="مثال: نباتي"
+                            :aria-invalid="Boolean(nameError) || undefined"
+                            :aria-describedby="nameError ? 'tag-name-error' : undefined"
+                            @input="nameError = ''"
                         />
+                        <p v-if="nameError" id="tag-name-error" class="text-sm text-red-600 dark:text-red-400">{{ nameError }}</p>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" @click="isDialogOpen = false">
                         إلغاء
                     </Button>
-                    <Button @click="handleSubmit" :disabled="!name.trim() || isLoading">
+                    <Button @click="handleSubmit" :disabled="isLoading" :aria-busy="isLoading || undefined">
                         {{ selectedTag ? 'حفظ التعديلات' : 'إنشاء' }}
                     </Button>
                 </DialogFooter>

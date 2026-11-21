@@ -15,6 +15,7 @@ import AvatarImage from '@/components/ui/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/AvatarFallback.vue';
 import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
+import { AlertTriangle } from 'lucide-vue-next';
 
 const props = defineProps<{
     mustVerifyEmail?: boolean;
@@ -105,7 +106,7 @@ const getRoleDisplay = (role: string) => {
                     <CardHeader>
                         <div class="flex items-center gap-4">
                             <Avatar class="w-20 h-20">
-                                <AvatarImage :src="user?.avatar_url || undefined" />
+                                <AvatarImage :src="user?.avatar_url || undefined" :alt="user?.name || ''" width="80" height="80" />
                                 <AvatarFallback class="text-2xl bg-primary/10 text-primary">
                                     {{ user?.name?.charAt(0) }}
                                 </AvatarFallback>
@@ -120,9 +121,17 @@ const getRoleDisplay = (role: string) => {
                         <form @submit.prevent="submit" class="space-y-4">
                             <!-- Avatar Upload (Optional - kept for better UX than frontend) -->
                             <div class="space-y-2">
-                                 <Label>الصورة الشخصية</Label>
-                                 <Input type="file" @input="form.avatar = $event.target.files[0]" accept="image/*" class="max-w-xs" />
-                                 <p v-if="form.errors.avatar" class="text-sm text-red-500">{{ form.errors.avatar }}</p>
+                                 <Label for="avatar">الصورة الشخصية</Label>
+                                 <Input
+                                    id="avatar"
+                                    type="file"
+                                    @input="form.avatar = $event.target.files[0]"
+                                    accept="image/*"
+                                    class="max-w-xs"
+                                    :aria-invalid="Boolean(form.errors.avatar) || undefined"
+                                    :aria-describedby="form.errors.avatar ? 'avatar-error' : undefined"
+                                 />
+                                 <p v-if="form.errors.avatar" id="avatar-error" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.avatar }}</p>
                             </div>
 
                             <div class="space-y-2">
@@ -130,11 +139,14 @@ const getRoleDisplay = (role: string) => {
                                 <Input 
                                     id="display_name" 
                                     v-model="form.display_name" 
+                                    autocomplete="nickname"
                                     placeholder="اترك فارغاً لاستخدام اسم Google"
                                     class="h-12 text-lg bg-background"
+                                    :aria-invalid="Boolean(form.errors.display_name) || undefined"
+                                    :aria-describedby="form.errors.display_name ? 'display-name-hint display-name-error' : 'display-name-hint'"
                                 />
-                                <p class="text-sm text-muted-foreground">هذا الاسم سيظهر في وصفاتك</p>
-                                <p v-if="form.errors.display_name" class="text-sm text-red-500">{{ form.errors.display_name }}</p>
+                                <p id="display-name-hint" class="text-sm text-muted-foreground">هذا الاسم سيظهر في وصفاتك</p>
+                                <p v-if="form.errors.display_name" id="display-name-error" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.display_name }}</p>
                             </div>
 
                             <Button type="submit" :disabled="form.processing" size="lg">
@@ -177,9 +189,12 @@ const getRoleDisplay = (role: string) => {
                         </Button>
 
                         <div v-if="user?.deletion_requested" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg">
-                            <p class="text-red-800 dark:text-red-400 mb-4">
-                                تم إرسال طلب حذف حسابك. سيتم مراجعته من قبل المسؤول.
-                            </p>
+                            <div class="flex items-start gap-3 mb-4">
+                                <AlertTriangle class="w-5 h-5 text-red-700 dark:text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
+                                <p class="text-red-800 dark:text-red-400">
+                                    تم إرسال طلب حذف حسابك. سيتم مراجعته من قبل المسؤول.
+                                </p>
+                            </div>
                             <Button variant="outline" @click="handleCancelDeletion" :disabled="isRequestingDeletion" size="lg">
                                 إلغاء طلب الحذف
                             </Button>

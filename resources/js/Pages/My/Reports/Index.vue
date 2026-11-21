@@ -8,6 +8,7 @@ import CardHeader from '@/components/ui/CardHeader.vue';
 import CardTitle from '@/components/ui/CardTitle.vue';
 import CardDescription from '@/components/ui/CardDescription.vue';
 import CardContent from '@/components/ui/CardContent.vue';
+import { formatPaginationLabel } from '@/lib/utils';
 import { MessageSquare, AlertCircle, ExternalLink } from 'lucide-vue-next';
 
 defineProps<{
@@ -57,8 +58,8 @@ const getReportableLink = (report: any) => {
             <h1 class="text-3xl font-bold mb-8">بلاغاتي</h1>
 
             <div v-if="reports.data.length === 0" class="text-center py-16 bg-muted/30 rounded-lg border border-dashed">
-                <MessageSquare class="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 class="text-xl font-medium mb-2">لا توجد بلاغات</h3>
+                <MessageSquare class="w-12 h-12 mx-auto text-muted-foreground mb-4" aria-hidden="true" />
+                <h2 class="text-xl font-medium mb-2">لا توجد بلاغات</h2>
                 <p class="text-muted-foreground">لم تقم بإرسال أي بلاغات أو ملاحظات بعد.</p>
             </div>
 
@@ -96,10 +97,10 @@ const getReportableLink = (report: any) => {
                         </div>
 
                         <div v-if="report.admin_reply" class="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-md border border-blue-100 dark:border-blue-900">
-                            <h4 class="font-semibold text-sm text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2">
-                                <AlertCircle class="w-4 h-4" />
+                            <h2 class="font-semibold text-sm text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2">
+                                <AlertCircle class="w-4 h-4" aria-hidden="true" />
                                 رد الإدارة
-                            </h4>
+                            </h2>
                             <p class="text-sm text-blue-900 dark:text-blue-200">
                                 {{ report.admin_reply }}
                             </p>
@@ -121,8 +122,9 @@ const getReportableLink = (report: any) => {
                             'bg-background hover:bg-muted': !link.active && link.url,
                             'opacity-50 cursor-default': !link.url 
                         }"
-                        v-html="link.label" 
-                    />
+                    >
+                        {{ formatPaginationLabel(link.label) }}
+                    </component>
                 </template>
             </div>
         </div>

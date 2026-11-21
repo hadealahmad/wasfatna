@@ -30,19 +30,20 @@ const handleLogin = () => {
   <template v-if="isAuthenticated">
     <Link href="/recipes/new">
       <Button :variant="props.variant" :size="props.size" :class="props.className">
-        <PlusCircle v-if="props.showIcon" class="ml-2 h-4 w-4" />
+        <PlusCircle v-if="props.showIcon" class="me-2 h-4 w-4" aria-hidden="true" />
         <slot>أضف وصفة</slot>
       </Button>
     </Link>
   </template>
   <template v-else>
     <Button 
+      type="button"
       :variant="props.variant" 
       :size="props.size" 
       :class="props.className"
       @click="handleLogin"
     >
-      <PlusCircle v-if="props.showIcon" class="ml-2 h-4 w-4" />
+      <PlusCircle v-if="props.showIcon" class="me-2 h-4 w-4" aria-hidden="true" />
       <slot>شاركينا وصفتك</slot>
     </Button>
   </template>

@@ -189,7 +189,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'تم تسجيل الخروج',
-        ]);
+        ])->header('Clear-Site-Data', '"cookies", "storage", "cache"');
     }
 
     /**

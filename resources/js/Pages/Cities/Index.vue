@@ -43,7 +43,7 @@ defineProps<{
           v-for="city in cities" 
           :key="city.id" 
           :href="route('cities.show', city.slug)"
-          class="group flex flex-col items-center justify-center p-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-primary/50"
+          class="group flex flex-col items-center justify-center p-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-[box-shadow,border-color] hover:shadow-md hover:border-primary/50"
         >
           <div class="h-16 w-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
             <MapPin class="w-8 h-8" />

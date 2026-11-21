@@ -132,7 +132,7 @@ const removeRecipe = (recipeId: number) => {
                                     <Label>صورة الغلاف</Label>
                                     <div class="flex items-center gap-4">
                                         <div v-if="coverPreview" class="w-24 h-16 rounded overflow-hidden bg-muted relative border">
-                                            <img :src="coverPreview" alt="معاينة صورة الغلاف" loading="lazy" decoding="async" class="w-full h-full object-cover" />
+                                            <img :src="coverPreview" alt="معاينة صورة الغلاف" decoding="async" width="96" height="64" class="w-full h-full object-cover" />
                                         </div>
                                         <Label for="cover" class="cursor-pointer">
                                             <div class="flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-muted text-sm">
@@ -172,8 +172,8 @@ const removeRecipe = (recipeId: number) => {
                                         <img :src="recipe.image_url" :alt="recipe.name" loading="lazy" decoding="async" width="48" height="48" class="w-12 h-12 rounded object-cover bg-muted" />
                                         <span class="font-medium hover:underline">{{ recipe.name }}</span>
                                     </Link>
-                                    <Button variant="ghost" size="icon" class="text-destructive hover:bg-destructive/10" @click="removeRecipe(recipe.id)">
-                                        <Trash2 class="w-4 h-4" />
+                                    <Button variant="ghost" size="icon" class="text-destructive hover:bg-destructive/10" :aria-label="`إزالة ${recipe.name} من القائمة`" @click="removeRecipe(recipe.id)">
+                                        <Trash2 class="w-4 h-4" aria-hidden="true" />
                                     </Button>
                                 </div>
                             </div>

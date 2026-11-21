@@ -111,9 +111,9 @@ const today = new Date().toLocaleDateString('ar-SY', {
             <div class="space-y-6 py-2">
                 <!-- Image -->
                 <div class="relative aspect-video rounded-xl overflow-hidden bg-muted">
-                    <img v-if="imagePreview" :src="imagePreview" :alt="name" class="w-full h-full object-cover" />
+                    <img v-if="imagePreview" :src="imagePreview" :alt="name" width="720" height="405" decoding="async" fetchpriority="low" class="w-full h-full object-cover" />
                     <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
-                        <span class="text-7xl">🍽️</span>
+                        <span class="text-7xl" aria-hidden="true">🍽️</span>
                     </div>
                 </div>
 
@@ -126,11 +126,11 @@ const today = new Date().toLocaleDateString('ar-SY', {
                 <!-- Tags & Location -->
                 <div v-if="cityName || tags.length" class="flex flex-wrap items-center gap-2 text-sm">
                     <Badge v-if="cityName" variant="secondary" class="gap-1 px-3 py-1 bg-muted/50 border-muted-foreground/20">
-                        <MapPin class="w-3.5 h-3.5" />
+                        <MapPin class="w-3.5 h-3.5" aria-hidden="true" />
                         {{ cityName }}
                     </Badge>
                     <Badge v-for="tag in tags" :key="tag.id" variant="outline" class="gap-1 px-3 py-1 border-muted-foreground/20">
-                        <TagIcon class="w-3.5 h-3.5" />
+                        <TagIcon class="w-3.5 h-3.5" aria-hidden="true" />
                         {{ tag.name }}
                     </Badge>
                 </div>
@@ -138,16 +138,16 @@ const today = new Date().toLocaleDateString('ar-SY', {
                 <!-- Time & Servings & Difficulty -->
                 <div class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <div v-if="timeParts" class="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                        <Clock class="w-4 h-4 text-primary" />
+                        <Clock class="w-4 h-4 text-primary" aria-hidden="true" />
                         <div class="flex gap-1.5 flex-wrap">
                             <span v-for="(t, i) in timeParts" :key="i" class="bg-background px-2 py-0.5 rounded-md border text-xs font-medium shadow-sm">{{ t }}</span>
                         </div>
                     </div>
                     <div v-if="servings" class="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                        <Utensils class="w-4 h-4 text-primary" />
+                        <Utensils class="w-4 h-4 text-primary" aria-hidden="true" />
                         <span class="font-medium">{{ servings }}{{ servings.includes('شخص') ? '' : ' أشخاص' }}</span>
                     </div>
-                    <Badge v-if="difficulty" :class="cn('mr-auto', getDifficultyColor(difficulty))">
+                    <Badge v-if="difficulty" :class="cn('ms-auto', getDifficultyColor(difficulty))">
                         {{ difficulty }}
                     </Badge>
                 </div>
@@ -171,7 +171,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <span>🥗</span>
+                                <span aria-hidden="true">🥗</span>
                                 المكونات
                             </CardTitle>
                         </CardHeader>
@@ -193,7 +193,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                     <Card>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
-                                <span>👨‍🍳</span>
+                                <span aria-hidden="true">👨‍🍳</span>
                                 خطوات التحضير
                             </CardTitle>
                         </CardHeader>

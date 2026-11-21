@@ -25,6 +25,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    Label,
     Textarea,
     PaginationControls
 } from '@/components/ui';
@@ -58,6 +59,7 @@ const isLoading = ref(false);
 const rejectDialogOpen = ref(false);
 const selectedRecipe = ref<AdminRecipe | null>(null);
 const rejectReason = ref('');
+const rejectError = ref('');
 
 const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -117,6 +119,8 @@ const handleBulkAiTagging = () => {
 const handleSingleStatusChange = (recipe: AdminRecipe, newStatus: string) => {
     if (newStatus === 'rejected') {
         selectedRecipe.value = recipe;
+        rejectReason.value = '';
+        rejectError.value = '';
         rejectDialogOpen.value = true;
         return;
     }
@@ -134,7 +138,12 @@ const handleSingleStatusChange = (recipe: AdminRecipe, newStatus: string) => {
 };
 
 const handleReject = () => {
-    if (!selectedRecipe.value || !rejectReason.value.trim()) return;
+    if (!selectedRecipe.value) return;
+    if (!rejectReason.value.trim()) {
+        rejectError.value = 'يرجى ذكر سبب الرفض';
+        return;
+    }
+    rejectError.value = '';
     
     isLoading.value = true;
     router.post(route('dashboard.recipes.reject', selectedRecipe.value.id), {
@@ -143,6 +152,7 @@ const handleReject = () => {
         onSuccess: () => {
             rejectDialogOpen.value = false;
             rejectReason.value = '';
+            rejectError.value = '';
             selectedRecipe.value = null;
         },
         onFinish: () => {
@@ -206,7 +216,7 @@ const getStatusLabel = (status: string) => {
                         :disabled="isLoading"
                         class="gap-2"
                     >
-                        <Sparkles class="h-4 w-4" />
+                        <Sparkles class="h-4 w-4" aria-hidden="true" />
                         تنظيم الوسوم
                     </Button>
                     <Button size="sm" variant="destructive" @click="handleBulkAction('delete')" :disabled="isLoading">
@@ -217,28 +227,36 @@ const getStatusLabel = (status: string) => {
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول الوصفات" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول الوصفات</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع الوصفات"
                                 :checked="recipes.length > 0 && selectedIds.length === recipes.length"
                                 @update:checked="handleSelectAll"
                             />
                         </TableHead>
                         <TableHead>الصورة</TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'name')">
-                            اسم الوصفة
-                            <span v-if="sortColumn === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'name')">
+                                اسم الوصفة
+                                <span v-if="sortColumn === 'name'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>المستخدم</TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'status')">
-                            الحالة
-                            <span v-if="sortColumn === 'status'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'status' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'status')">
+                                الحالة
+                                <span v-if="sortColumn === 'status'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'tags_count')">
-                            الوسوم
-                            <span v-if="sortColumn === 'tags_count'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'tags_count' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'tags_count')">
+                                الوسوم
+                                <span v-if="sortColumn === 'tags_count'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>الإجراءات</TableHead>
                     </TableRow>
@@ -258,17 +276,18 @@ const getStatusLabel = (status: string) => {
                         <TableRow v-for="recipe in recipes" :key="recipe.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد ${recipe.name}`"
                                     :checked="selectedIds.includes(recipe.id)"
                                     @update:checked="(c) => handleSelectOne(recipe.id, c)"
                                 />
                             </TableCell>
                             <TableCell>
-                                <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" class="w-10 h-10 rounded object-cover" />
-                                <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg">🍽️</div>
+                                <img v-if="recipe.image_url" :src="recipe.image_url" :alt="recipe.name" width="40" height="40" loading="lazy" decoding="async" class="w-10 h-10 rounded object-cover" />
+                                <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg" aria-hidden="true">🍽️</div>
                             </TableCell>
                             <TableCell>
                                 <div class="flex flex-col">
-                                    <Link :href="`/recipes/${recipe.slug}`" class="font-medium hover:underline" target="_blank">
+                                    <Link :href="`/recipes/${recipe.slug}`" class="font-medium hover:underline" target="_blank" rel="noopener noreferrer">
                                         {{ recipe.name }}
                                     </Link>
                                     <span class="text-xs text-muted-foreground">{{ formatRelativeTime(recipe.created_at) }}</span>
@@ -276,9 +295,9 @@ const getStatusLabel = (status: string) => {
                             </TableCell>
                             <TableCell>
                                 <div v-if="recipe.user" class="flex items-center gap-2">
-                                    <Link :href="route('users.show', recipe.user.id)" class="flex items-center gap-2 hover:underline" target="_blank">
-                                        <img v-if="recipe.user.avatar" :src="recipe.user.avatar" class="w-6 h-6 rounded-full" />
-                                        <div v-else class="w-6 h-6 rounded-full bg-muted" />
+                                    <Link :href="route('users.show', recipe.user.id)" class="flex items-center gap-2 hover:underline" target="_blank" rel="noopener noreferrer">
+                                        <img v-if="recipe.user.avatar" :src="recipe.user.avatar" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover" />
+                                        <div v-else class="w-6 h-6 rounded-full bg-muted" aria-hidden="true" />
                                         <span class="text-sm">{{ recipe.user.name }}</span>
                                     </Link>
                                 </div>
@@ -309,28 +328,28 @@ const getStatusLabel = (status: string) => {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal class="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" :aria-label="`إجراءات ${recipe.name}`">
+                                            <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem asChild>
-                                            <Link :href="route('my.recipes.edit', recipe.id)" target="_blank" class="flex items-center gap-2">
-                                                <Edit class="h-4 w-4" /> تعديل
+                                            <Link :href="route('my.recipes.edit', recipe.id)" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2">
+                                                <Edit class="h-4 w-4" aria-hidden="true" /> تعديل
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem @click="handleSingleStatusChange(recipe, recipe.status === 'approved' ? 'unpublished' : 'approved')">
                                             <template v-if="recipe.status === 'approved'">
-                                                <EyeOff class="h-4 w-4" /> إلغاء النشر
+                                                <EyeOff class="h-4 w-4" aria-hidden="true" /> إلغاء النشر
                                             </template>
                                             <template v-else>
-                                                <Eye class="h-4 w-4" /> نشر
+                                                <Eye class="h-4 w-4" aria-hidden="true" /> نشر
                                             </template>
                                         </DropdownMenuItem>
                                         <template v-if="isAdmin">
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem @click="handleDelete(recipe)" class="text-red-600 focus:text-red-600">
-                                                <Trash class="h-4 w-4" /> حذف
+                                                <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                             </DropdownMenuItem>
                                         </template>
                                     </DropdownMenuContent>
@@ -357,13 +376,21 @@ const getStatusLabel = (status: string) => {
                     <DialogTitle>رفض الوصفة</DialogTitle>
                     <DialogDescription>يرجى ذكر سبب الرفض</DialogDescription>
                 </DialogHeader>
-                <Textarea
-                    v-model="rejectReason"
-                    placeholder="سبب الرفض..."
-                />
+                <div class="space-y-2">
+                    <Label for="reject-reason" class="sr-only">سبب الرفض</Label>
+                    <Textarea
+                        id="reject-reason"
+                        v-model="rejectReason"
+                        placeholder="سبب الرفض..."
+                        :aria-invalid="Boolean(rejectError) || undefined"
+                        :aria-describedby="rejectError ? 'reject-reason-error' : undefined"
+                        @input="rejectError = ''"
+                    />
+                    <p v-if="rejectError" id="reject-reason-error" class="text-sm text-red-600 dark:text-red-400">{{ rejectError }}</p>
+                </div>
                 <DialogFooter>
                     <Button variant="outline" @click="rejectDialogOpen = false">إلغاء</Button>
-                    <Button variant="destructive" @click="handleReject" :disabled="!rejectReason.trim() || isLoading">تأكيد الرفض</Button>
+                    <Button variant="destructive" @click="handleReject" :disabled="isLoading" :aria-busy="isLoading || undefined">تأكيد الرفض</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

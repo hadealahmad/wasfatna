@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, nextTick } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import Dialog from '@/components/ui/Dialog.vue';
@@ -37,9 +37,15 @@ const newListName = ref('');
 const loading = ref(false);
 const creating = ref(false);
 const selectedLists = ref<number[]>([]);
+const newListError = ref('');
+
+watch(newListName, (val) => {
+    if (val.trim()) newListError.value = '';
+});
 
 // Fetch lists when dialog opens
 watch(open, async (isOpen) => {
+    newListError.value = '';
     if (isOpen && isAuthenticated.value) {
         await fetchLists();
     }
@@ -93,7 +99,13 @@ const handleToggle = async (listId: number, checked: boolean) => {
 };
 
 const handleCreateList = async () => {
-    if (!newListName.value.trim()) return;
+    if (!newListName.value.trim()) {
+        newListError.value = 'يرجى إدخال اسم القائمة';
+        await nextTick();
+        document.getElementById('new-list-name')?.focus();
+        return;
+    }
+    newListError.value = '';
     creating.value = true;
     try {
         const response = await axios.post('/web-api/lists', {
@@ -130,7 +142,7 @@ const handleGoogleLogin = () => {
     <Dialog v-model:open="open">
         <DialogTrigger as-child>
             <slot>
-                <Button variant="outline" size="sm" class="gap-2">
+                <Button type="button" variant="outline" size="sm" class="gap-2">
                     <Heart 
                         :class="[
                             'w-4 h-4',
@@ -138,6 +150,7 @@ const handleGoogleLogin = () => {
                                 ? 'fill-red-500 text-red-500' 
                                 : ''
                         ]" 
+                        aria-hidden="true"
                     />
                     <span>حفظ</span>
                 </Button>
@@ -148,7 +161,7 @@ const handleGoogleLogin = () => {
             <!-- Not authenticated state -->
             <div v-if="!isAuthenticated" class="flex flex-col items-center justify-center py-6 text-center space-y-4">
                 <div class="bg-muted p-3 rounded-full">
-                    <Heart class="h-6 w-6 text-muted-foreground" />
+                    <Heart class="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <DialogHeader>
                     <DialogTitle class="text-center">تسجيل الدخول مطلوب</DialogTitle>
@@ -156,8 +169,8 @@ const handleGoogleLogin = () => {
                         يرجى تسجيل الدخول لتمكن من حفظ الوصفات في قوائمك.
                     </DialogDescription>
                 </DialogHeader>
-                <Button @click="handleGoogleLogin" class="gap-2 w-full sm:w-auto">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <Button type="button" @click="handleGoogleLogin" class="gap-2 w-full sm:w-auto">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -174,21 +187,32 @@ const handleGoogleLogin = () => {
                 </DialogHeader>
                 
                 <div class="flex flex-col gap-4 py-4">
-                    <div class="flex items-center gap-2">
-                        <Input
-                            v-model="newListName"
-                            placeholder="اسم القائمة الجديدة..."
-                            class="bg-muted/50"
-                        />
-                        <Button
-                            @click="handleCreateList"
-                            :disabled="!newListName.trim() || creating"
-                            size="icon"
-                            variant="secondary"
-                        >
-                            <Plus class="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <form @submit.prevent="handleCreateList" novalidate class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <Label for="new-list-name" class="sr-only">اسم القائمة الجديدة</Label>
+                            <Input
+                                id="new-list-name"
+                                v-model="newListName"
+                                placeholder="اسم القائمة الجديدة..."
+                                :aria-invalid="!!newListError"
+                                :aria-describedby="newListError ? 'new-list-error' : undefined"
+                                class="bg-muted/50"
+                            />
+                            <Button
+                                type="submit"
+                                :disabled="creating"
+                                :aria-busy="creating"
+                                aria-label="إنشاء قائمة جديدة"
+                                size="icon"
+                                variant="secondary"
+                            >
+                                <Plus class="h-4 w-4" aria-hidden="true" />
+                            </Button>
+                        </div>
+                        <p v-if="newListError" id="new-list-error" role="alert" class="text-xs text-destructive">
+                            {{ newListError }}
+                        </p>
+                    </form>
                     
                     <div class="max-h-[300px] overflow-y-auto space-y-2">
                         <Label
@@ -196,7 +220,7 @@ const handleGoogleLogin = () => {
                             :key="list.id"
                             :for="`list-${list.id}`"
                             :class="[
-                                'flex items-center space-x-3 space-x-reverse p-3 rounded-lg border cursor-pointer transition-all',
+                                'flex items-center space-x-3 space-x-reverse p-3 rounded-lg border cursor-pointer transition-colors',
                                 selectedLists.includes(list.id) 
                                     ? 'border-primary bg-primary/5' 
                                     : 'border-transparent hover:bg-accent'

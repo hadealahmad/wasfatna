@@ -123,8 +123,8 @@ const resetForm = () => {
     <Dialog v-model:open="open">
         <DialogTrigger asChild>
             <slot>
-                <Button variant="ghost" size="sm" class="gap-1 text-xs h-7">
-                    <Plus class="w-3.5 h-3.5" />
+                <Button type="button" variant="ghost" size="sm" class="gap-1 text-xs h-7">
+                    <Plus class="w-3.5 h-3.5" aria-hidden="true" />
                     إضافة
                 </Button>
             </slot>
@@ -136,16 +136,17 @@ const resetForm = () => {
             <form @submit.prevent="handleSubmit" class="space-y-4 py-4">
                 <!-- Recipe Search -->
                 <div class="space-y-2">
-                    <Label>بحث عن وصفة</Label>
+                    <Label for="meal-entry-search">بحث عن وصفة</Label>
                     <div class="relative">
-                        <Search class="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search class="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <Input
+                            id="meal-entry-search"
                             v-model="searchQuery"
                             placeholder="ابحث عن وصفة..."
-                            class="pr-9"
+                            class="ps-9"
                             @focus="selectedRecipe && clearRecipe()"
                         />
-                        <Loader2 v-if="searching" class="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground animate-spin" />
+                        <progress v-if="searching" aria-label="جاري التحميل" class="loading-spinner absolute end-2.5 top-2.5 h-4 w-4"></progress>
                     </div>
                     <!-- Search Results -->
                     <div v-if="searchResults.length > 0 && !selectedRecipe" class="border rounded-lg max-h-48 overflow-y-auto">
@@ -156,13 +157,13 @@ const resetForm = () => {
                             class="flex items-center gap-3 w-full p-2 hover:bg-muted text-right transition-colors"
                             @click="selectRecipe(recipe)"
                         >
-                            <img v-if="recipe.image_url" :src="recipe.image_url" class="w-8 h-8 rounded object-cover" loading="lazy" width="32" height="32" />
-                            <div v-else class="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground text-xs">🍽</div>
+                            <img v-if="recipe.image_url" :src="recipe.image_url" alt="" decoding="async" class="w-8 h-8 rounded object-cover" loading="lazy" width="32" height="32" />
+                            <div v-else class="w-8 h-8 rounded bg-muted flex items-center justify-center text-muted-foreground text-xs" aria-hidden="true">🍽</div>
                             <span class="text-sm truncate">{{ recipe.name }}</span>
                         </button>
                     </div>
                     <div v-if="selectedRecipe" class="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-lg p-2">
-                        <img v-if="selectedRecipe.image_url" :src="selectedRecipe.image_url" class="w-8 h-8 rounded object-cover" width="32" height="32" />
+                        <img v-if="selectedRecipe.image_url" :src="selectedRecipe.image_url" alt="" decoding="async" class="w-8 h-8 rounded object-cover" width="32" height="32" />
                         <span class="text-sm font-medium flex-1">{{ selectedRecipe.name }}</span>
                         <Button type="button" variant="ghost" size="sm" @click="clearRecipe" class="h-6 px-2 text-xs">إزالة</Button>
                     </div>
@@ -170,15 +171,15 @@ const resetForm = () => {
 
                 <!-- Custom Title (when no recipe selected) -->
                 <div v-if="!selectedRecipe" class="space-y-2">
-                    <Label>أو عنوان مخصص</Label>
-                    <Input v-model="customTitle" placeholder="مثال: فتوش، سلطة..." />
+                    <Label for="meal-entry-custom-title">أو عنوان مخصص</Label>
+                    <Input id="meal-entry-custom-title" v-model="customTitle" placeholder="مثال: فتوش، سلطة..." />
                 </div>
 
                 <!-- Meal Type -->
                 <div class="space-y-2">
-                    <Label>نوع الوجبة</Label>
+                    <Label for="meal-entry-type">نوع الوجبة</Label>
                     <Select v-model="mealType">
-                        <SelectTrigger>
+                        <SelectTrigger id="meal-entry-type">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -189,14 +190,14 @@ const resetForm = () => {
 
                 <!-- Notes -->
                 <div class="space-y-2">
-                    <Label>ملاحظات (اختياري)</Label>
-                    <Textarea v-model="notes" placeholder="أي ملاحظات إضافية..." rows="2" />
+                    <Label for="meal-entry-notes">ملاحظات (اختياري)</Label>
+                    <Textarea id="meal-entry-notes" v-model="notes" placeholder="أي ملاحظات إضافية..." rows="2" />
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2">
                     <Button type="button" variant="ghost" @click="open = false">إلغاء</Button>
-                    <Button type="submit" :disabled="loading || (!selectedRecipe && !customTitle.trim())">
-                        <Loader2 v-if="loading" class="h-4 w-4 ml-2 animate-spin" />
+                    <Button type="submit" :disabled="loading || (!selectedRecipe && !customTitle.trim())" :aria-busy="loading">
+                        <Loader2 v-if="loading" class="h-4 w-4 me-2 animate-spin" aria-hidden="true" />
                         {{ loading ? 'جاري الإضافة...' : 'إضافة' }}
                     </Button>
                 </div>

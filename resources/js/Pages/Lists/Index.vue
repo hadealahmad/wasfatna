@@ -2,6 +2,7 @@
 import { Link, Head } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, Badge, Button } from '@/components/ui';
+import { formatPaginationLabel } from '@/lib/utils';
 import { Heart, User } from 'lucide-vue-next';
 
 defineProps<{
@@ -40,14 +41,14 @@ defineProps<{
             كن أول من يشارك قوائمه! تصفح الوصفات، اضغط على زر القلب ❤️، وأنشئ قائمة جديدة لمشاركتها مع الجميع.
           </p>
         </div>
-        <Link href="/">
-          <Button size="lg" class="rounded-full">تصفح الوصفات</Button>
-        </Link>
+        <Button as-child size="lg" class="rounded-full">
+          <Link href="/">تصفح الوصفات</Link>
+        </Button>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link 
-            v-for="list in lists.data" 
+            v-for="(list, index) in lists.data" 
             :key="list.id" 
             :href="route('lists.show', list.id)"
             class="block group h-full"
@@ -58,11 +59,12 @@ defineProps<{
                             v-if="list.cover_image" 
                             :src="list.cover_image" 
                             :alt="list.name"
-                            loading="lazy"
-                            decoding="async"
+                            :loading="index < 4 ? 'eager' : 'lazy'"
+                            :fetchpriority="index === 0 ? 'high' : undefined"
+                            :decoding="index === 0 ? undefined : 'async'"
                             width="640"
                             height="360"
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            class="w-full h-full object-cover motion-safe:group-hover:scale-105 transition-transform duration-300"
                         />
                         <div v-else class="w-full h-full flex items-center justify-center text-muted-foreground bg-secondary">
                             <span class="text-4xl text-muted-foreground/20 font-bold">{{ list.name.charAt(0) }}</span>
@@ -101,8 +103,9 @@ defineProps<{
                     'bg-background hover:bg-muted': !link.active && link.url,
                     'opacity-50 cursor-default': !link.url 
                 }"
-                v-html="link.label" 
-            />
+            >
+              {{ formatPaginationLabel(link.label) }}
+            </component>
         </template>
       </div>
     </div>

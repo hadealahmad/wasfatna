@@ -26,44 +26,48 @@ interface Props {
             avatar?: string;
         };
     };
+    priority?: 'lcp' | 'eager' | 'lazy';
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), {
+    priority: 'lazy',
+});
 
 const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
 </script>
 
 <template>
     <Link :href="route('lists.show', { list: list.slug || list.id })">
-        <Card class="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group cursor-pointer flex flex-col">
+        <Card class="h-full overflow-hidden motion-safe:transition-[transform,box-shadow] duration-300 hover:shadow-lg motion-safe:hover:-translate-y-1 group cursor-pointer flex flex-col">
             <!-- Cover Image -->
             <div class="relative aspect-video bg-muted overflow-hidden">
                 <img
                     v-if="coverImage"
                     :src="coverImage"
                     :alt="list.name"
-                    loading="lazy"
-                    decoding="async"
+                    :loading="priority === 'lazy' ? 'lazy' : undefined"
+                    :decoding="priority === 'lcp' ? undefined : 'async'"
+                    :fetchpriority="priority === 'lcp' ? 'high' : undefined"
                     width="640"
                     height="360"
-                    class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                    class="object-cover w-full h-full motion-safe:group-hover:scale-105 motion-safe:transition-transform duration-300"
                 />
                 <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/5 to-primary/20">
-                    <BookOpen class="w-12 h-12 text-primary/40" />
+                    <BookOpen class="w-12 h-12 text-primary/40" aria-hidden="true" />
                 </div>
 
                 <!-- Status Badges -->
                 <div class="absolute top-3 left-3 flex gap-1">
                     <Badge v-if="list.is_public && list.status === 'approved'" variant="secondary" class="bg-background/80 backdrop-blur-sm gap-1">
-                        <Globe class="w-3 h-3 text-green-600" />
+                        <Globe class="w-3 h-3 text-green-600" aria-hidden="true" />
                         <span class="text-xs">عامة</span>
                     </Badge>
                     <Badge v-if="list.is_public && list.status === 'review'" variant="secondary" class="bg-yellow-100/90 text-yellow-800 gap-1">
-                        <AlertCircle class="w-3 h-3" />
+                        <AlertCircle class="w-3 h-3" aria-hidden="true" />
                         <span class="text-xs">قيد المراجعة</span>
                     </Badge>
                     <Badge v-if="!list.is_public" variant="secondary" class="bg-background/80 backdrop-blur-sm gap-1">
-                        <Lock class="w-3 h-3 text-muted-foreground" />
+                        <Lock class="w-3 h-3 text-muted-foreground" aria-hidden="true" />
                         <span class="text-xs">خاصة</span>
                     </Badge>
                 </div>
@@ -86,8 +90,8 @@ const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
             <CardContent class="mt-auto pt-2 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
                 <div class="flex items-center gap-2">
                     <Avatar class="w-5 h-5">
-                        <AvatarImage :src="list.user.avatar || ''" />
-                        <AvatarFallback class="text-[10px]">{{ list.user.name.charAt(0) }}</AvatarFallback>
+                        <AvatarImage :src="list.user.avatar || ''" width="24" height="24" alt="" />
+                        <AvatarFallback class="text-xs">{{ list.user.name.charAt(0) }}</AvatarFallback>
                     </Avatar>
                     <span class="truncate max-w-[120px]">{{ list.user.name }}</span>
                 </div>

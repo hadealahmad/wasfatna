@@ -6,6 +6,7 @@ import SearchFilters from '@/components/recipes/SearchFilters.vue';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import { Button } from '@/components/ui';
 import PaginationControls from '@/components/ui/PaginationControls.vue';
+import { safeJsonLd } from '@/lib/utils';
 import { PlusCircle, ArrowRight, MapPin } from 'lucide-vue-next';
 
 interface Recipe {
@@ -100,8 +101,8 @@ function handlePerPageChange(perPage: number) {
       <meta head-key="twitter:title" name="twitter:title" content="وصفاتنا - مجتمع الطبخ السوري" />
       <meta head-key="twitter:description" name="twitter:description" content="اكتشف أشهى الوصفات السورية من مختلف المدن والمناطق. شارك وصفاتك واستمتع بتجربة طهي فريدة مع مجتمعنا." />
       <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-website" v-html="JSON.stringify(websiteSchema)" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-organization" v-html="JSON.stringify(organizationSchema)" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-website">{{ safeJsonLd(websiteSchema) }}</component>
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-organization">{{ safeJsonLd(organizationSchema) }}</component>
     </Head>
 
     <!-- Hero Section -->
@@ -109,18 +110,18 @@ function handlePerPageChange(perPage: number) {
       <div class="container mx-auto px-4 md:px-6">
         <div class="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto">
           <div class="relative mb-8 h-10 w-32 md:h-12 md:w-40">
-            <img src="/logo-light.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="dark:hidden w-full h-full object-contain" />
-            <img src="/logo-dark.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="hidden dark:block w-full h-full object-contain" />
+            <img src="/logo-light.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="logo-light w-full h-full object-contain" />
+            <img src="/logo-dark.svg" alt="وصفاتنا" width="160" height="48" decoding="async" class="logo-dark w-full h-full object-contain" />
           </div>
-          <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl text-foreground">
+          <h1 class="text-[clamp(1.875rem,1.25rem+3vw,3.75rem)] font-bold tracking-tighter text-foreground">
             اكتشف أشهى الوصفات السورية
           </h1>
-          <p class="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+          <p class="mx-auto max-w-[60ch] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
             مجتمع من المحبين للطبخ يشاركون وصفاتهم المميزة من مختلف المدن والمناطق.
           </p>
 
           <div class="flex justify-center pt-4">
-             <AddRecipeButton size="lg" class-name="px-8 text-lg font-semibold shadow-lg hover:shadow-xl transition-all">
+             <AddRecipeButton size="lg" class-name="px-8 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow">
               شارك وصفتك الآن
             </AddRecipeButton>
           </div>
@@ -143,13 +144,13 @@ function handlePerPageChange(perPage: number) {
           <div class="flex flex-col items-start gap-4 mb-10 md:flex-row md:justify-between md:items-center">
             <div class="space-y-1">
               <h2 class="text-2xl font-bold tracking-tight md:text-3xl">أحدث الوصفات</h2>
-              <p class="text-muted-foreground">
+              <p class="text-muted-foreground max-w-[60ch]">
                 وصفات تم إضافتها حديثاً من قبل مجتمعنا
               </p>
             </div>
           </div>
 
-        <RecipeGrid :recipes="recipes.data" empty-message="لم يتم إضافة وصفات بعد. كن أول من يضيف!" />
+        <RecipeGrid :recipes="recipes.data" :eager-first-row="false" empty-message="لم يتم إضافة وصفات بعد. كن أول من يضيف!" />
 
         <!-- Pagination -->
         <PaginationControls
@@ -166,35 +167,36 @@ function handlePerPageChange(perPage: number) {
     </section>
 
     <!-- Cities Grid -->
-    <section v-if="cities.length > 0" class="py-24 bg-muted/30 border-t">
+    <section v-if="cities.length > 0" class="cv-auto-section py-24 bg-muted/30 border-t">
       <div class="container mx-auto px-4">
         <div class="flex flex-col items-center text-center mb-10 space-y-2">
           <h2 class="text-2xl font-bold tracking-tight md:text-3xl">
             اكتشف وصفات من مدينتك
           </h2>
-          <p class="text-muted-foreground max-w-[600px]">
+          <p class="text-muted-foreground max-w-[60ch]">
             تصفح الوصفات حسب المدينة أو المنطقة واستكشف نكهات جديدة
           </p>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <a
+          <Link
             v-for="city in cities.slice(0, 8)"
             :key="city.id"
             :href="`/cities/${city.slug}`"
-            class="group relative overflow-hidden rounded-lg border bg-background p-6 hover:shadow-md transition-all hover:border-primary/50"
+            prefetch
+            class="group relative overflow-hidden rounded-lg border bg-background p-6 hover:shadow-md transition-[box-shadow,border-color] hover:border-primary/50"
           >
             <div class="flex flex-col items-center justify-center space-y-2">
               <h3 class="text-lg font-bold group-hover:text-primary transition-colors">{{ city.name }}</h3>
               <p class="text-sm text-muted-foreground">{{ city.recipes_count }} وصفة</p>
             </div>
-          </a>
+          </Link>
         </div>
         
         <div class="mt-12 text-center">
-          <Link href="/cities">
-            <Button variant="outline" class="rounded-full px-8">عرض كل المدن</Button>
-          </Link>
+          <Button as-child variant="outline" class="rounded-full px-8">
+            <Link href="/cities">عرض كل المدن</Link>
+          </Button>
         </div>
       </div>
     </section>

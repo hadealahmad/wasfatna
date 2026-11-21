@@ -43,7 +43,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'auth' => [
                 // Whitelist only what the frontend actually consumes —
-                // never leak role internals, ban_reason, deletion requests, etc.
+                // never leak role internals, ban_reason, etc.
                 'user' => $request->user() ? $request->user()->only([
                     'id',
                     'name',
@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
                     'email',
                     'avatar_url',
                     'role',
+                    'deletion_requested',
                     'created_at',
                 ]) : null,
             ],

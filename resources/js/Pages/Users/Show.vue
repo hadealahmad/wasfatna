@@ -3,6 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
+import { formatPaginationLabel } from '@/lib/utils';
 
 const props = defineProps<{
     profile: {
@@ -38,7 +39,7 @@ const props = defineProps<{
                 <div class="container mx-auto px-4 md:px-6">
                     <div class="flex flex-col items-center text-center">
                         <Avatar class="w-24 h-24 border mb-4">
-                            <AvatarImage :src="profile.avatar_url || undefined" />
+                            <AvatarImage :src="profile.avatar_url || undefined" :alt="profile.name" width="96" height="96" />
                             <AvatarFallback class="text-3xl bg-primary/10 text-primary uppercase">
                                 {{ profile.name.charAt(0) }}
                             </AvatarFallback>
@@ -73,8 +74,9 @@ const props = defineProps<{
                                 'bg-background hover:bg-muted': !link.active && link.url,
                                 'opacity-50 cursor-default': !link.url 
                             }"
-                            v-html="link.label" 
-                        />
+                        >
+                            {{ formatPaginationLabel(link.label) }}
+                        </component>
                     </template>
                 </div>
             </section>

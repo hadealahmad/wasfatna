@@ -22,7 +22,6 @@ use App\Http\Controllers\Web\ProfileController;
 use App\Http\Controllers\Web\RandomizerController;
 use App\Http\Controllers\Web\RecipeController;
 use App\Http\Controllers\Web\SearchController;
-use App\Http\Controllers\Web\SitemapController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\WebAuthController;
 use Illuminate\Support\Facades\Route;
@@ -83,7 +82,7 @@ Route::get('/meal-plans/shared/{token}', [MealPlanController::class, 'shared'])-
 Route::get('/meal-plans/browse', [MealPlanController::class, 'browse'])->name('meal-plans.browse');
 
 // Public User Profile
-Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+Route::get('/users/{user}', [UserController::class, 'show'])->middleware('throttle:60,1')->name('users.show');
 
 Route::middleware(['auth', 'not-banned'])->group(function () {
     // My Recipes
@@ -104,6 +103,8 @@ Route::middleware(['auth', 'not-banned'])->group(function () {
     Route::get('/settings', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/settings', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/settings', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/settings/request-deletion', [ProfileController::class, 'requestDeletion'])->name('profile.request-deletion');
+    Route::post('/settings/cancel-deletion', [ProfileController::class, 'cancelDeletion'])->name('profile.cancel-deletion');
 
     Route::resource('my/meal-plans', MealPlanController::class)->names('my.meal-plans')->parameters(['meal-plans' => 'meal_plan']);
 

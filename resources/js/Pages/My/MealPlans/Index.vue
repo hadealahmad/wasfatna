@@ -16,13 +16,13 @@ defineProps<{
         <Head title="خطط الوجبات" />
 
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold">خطط الوجبات</h2>
-            <Link :href="route('my.meal-plans.create')">
-                <Button class="gap-2">
-                    <Plus class="w-4 h-4" />
+            <h1 class="text-2xl font-bold">خطط الوجبات</h1>
+            <Button as-child class="gap-2">
+                <Link :href="route('my.meal-plans.create')">
+                    <Plus class="w-4 h-4" aria-hidden="true" />
                     خطة جديدة
-                </Button>
-            </Link>
+                </Link>
+            </Button>
         </div>
 
         <div v-if="plans.length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -30,15 +30,15 @@ defineProps<{
         </div>
 
         <div v-else class="text-center py-16">
-            <div class="text-4xl mb-4">📅</div>
-            <h3 class="text-lg font-semibold mb-2">لا توجد خطط وجبات بعد</h3>
+            <div class="text-4xl mb-4" aria-hidden="true">📅</div>
+            <h2 class="text-lg font-semibold mb-2">لا توجد خطط وجبات بعد</h2>
             <p class="text-muted-foreground mb-6">أنشئ خطة وجبات لتنظيم وجباتك اليومية</p>
-            <Link :href="route('my.meal-plans.create')">
-                <Button class="gap-2">
-                    <Plus class="w-4 h-4" />
+            <Button as-child class="gap-2">
+                <Link :href="route('my.meal-plans.create')">
+                    <Plus class="w-4 h-4" aria-hidden="true" />
                     إنشاء خطة جديدة
-                </Button>
-            </Link>
+                </Link>
+            </Button>
         </div>
     </MyDashboardLayout>
 </template>

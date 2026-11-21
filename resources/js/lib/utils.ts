@@ -68,3 +68,35 @@ export function formatRelativeTime(dateString: string): string {
 
     return formatDate(dateString);
 }
+
+/**
+ * Serialize JSON-LD safely for rendering as text content without v-html.
+ */
+export function safeJsonLd(data: unknown): string {
+    const json = JSON.stringify(data);
+    if (!json) return '';
+
+    return json
+        .replace(/</g, '\\u003c')
+        .replace(/>/g, '\\u003e')
+        .replace(/&/g, '\\u0026');
+}
+
+const PAGINATION_ENTITY_MAP: Record<string, string> = {
+    laquo: '«',
+    raquo: '»',
+    lsaquo: '‹',
+    rsaquo: '›',
+    hellip: '…',
+    nbsp: ' ',
+    amp: '&',
+};
+
+/**
+ * Decode common Laravel pagination HTML entities and strip HTML tags for safe text rendering.
+ */
+export function formatPaginationLabel(label: string): string {
+    return label
+        .replace(/<[^>]*>/g, '')
+        .replace(/&(laquo|raquo|lsaquo|rsaquo|hellip|nbsp|amp);/g, (_, entity: string) => PAGINATION_ENTITY_MAP[entity] ?? _);
+}

@@ -113,11 +113,11 @@ const handleTogglePublic = async (value: boolean) => {
                         :tags="tags"
                         @filled="handleRandomFilled"
                     />
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground" @click="editOpen = true">
-                        <Pencil class="h-4 w-4" />
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground" aria-label="تعديل الخطة" @click="editOpen = true">
+                        <Pencil class="h-4 w-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" @click="handleDelete">
-                        <Trash2 class="h-4 w-4" />
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" aria-label="حذف الخطة" @click="handleDelete">
+                        <Trash2 class="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
             </div>
@@ -151,29 +151,29 @@ const handleTogglePublic = async (value: boolean) => {
                 </DialogHeader>
                 <form @submit.prevent="handleEdit" class="space-y-4 py-4">
                     <div class="space-y-2">
-                        <Label>اسم الخطة</Label>
-                        <Input v-model="editForm.name" required />
-                        <div v-if="editForm.errors.name" class="text-sm text-red-500">{{ editForm.errors.name }}</div>
+                        <Label for="edit-plan-name">اسم الخطة</Label>
+                        <Input id="edit-plan-name" v-model="editForm.name" required />
+                        <div v-if="editForm.errors.name" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.name }}</div>
                     </div>
                     <div class="space-y-2">
-                        <Label>الوصف (اختياري)</Label>
-                        <Textarea v-model="editForm.description" rows="2" />
+                        <Label for="edit-plan-description">الوصف (اختياري)</Label>
+                        <Textarea id="edit-plan-description" v-model="editForm.description" rows="2" />
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <Label>تاريخ البداية</Label>
-                            <Input type="date" v-model="editForm.start_date" required />
-                            <div v-if="editForm.errors.start_date" class="text-sm text-red-500">{{ editForm.errors.start_date }}</div>
+                            <Label for="edit-plan-start-date">تاريخ البداية</Label>
+                            <Input id="edit-plan-start-date" type="date" v-model="editForm.start_date" required />
+                            <div v-if="editForm.errors.start_date" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.start_date }}</div>
                         </div>
                         <div class="space-y-2">
-                            <Label>تاريخ النهاية</Label>
-                            <Input type="date" v-model="editForm.end_date" required />
-                            <div v-if="editForm.errors.end_date" class="text-sm text-red-500">{{ editForm.errors.end_date }}</div>
+                            <Label for="edit-plan-end-date">تاريخ النهاية</Label>
+                            <Input id="edit-plan-end-date" type="date" v-model="editForm.end_date" required />
+                            <div v-if="editForm.errors.end_date" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.end_date }}</div>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">
                         <Button type="button" variant="ghost" @click="editOpen = false">إلغاء</Button>
-                        <Button type="submit" :disabled="editForm.processing">
+                        <Button type="submit" :disabled="editForm.processing" :aria-busy="editForm.processing || undefined">
                             {{ editForm.processing ? 'جاري الحفظ...' : 'حفظ' }}
                         </Button>
                     </div>

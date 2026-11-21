@@ -61,16 +61,16 @@ const submit = () => {
             <span class="text-foreground font-medium">خطة جديدة</span>
         </div>
 
-        <h2 class="text-2xl font-bold mb-6">إنشاء خطة وجبات جديدة</h2>
+        <h1 class="text-2xl font-bold mb-6">إنشاء خطة وجبات جديدة</h1>
 
         <Card>
             <CardContent class="pt-6">
                 <form @submit.prevent="submit" class="space-y-6">
                     <!-- Preset Selection -->
                     <div v-if="presets.length > 0" class="space-y-2">
-                        <Label>اختر قالب (اختياري)</Label>
+                        <Label for="preset_id">اختر قالب (اختياري)</Label>
                         <Select v-model="form.preset_id">
-                            <SelectTrigger>
+                            <SelectTrigger id="preset_id">
                                 <SelectValue placeholder="بدون قالب - تواريخ مخصصة" />
                             </SelectTrigger>
                             <SelectContent>
@@ -84,33 +84,33 @@ const submit = () => {
                     <div class="space-y-2">
                         <Label for="name">اسم الخطة</Label>
                         <Input id="name" v-model="form.name" required placeholder="مثال: خطة رمضان، وجبات الأسبوع..." />
-                        <p v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</p>
+                        <p v-if="form.errors.name" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.name }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="description">الوصف (اختياري)</Label>
                         <Textarea id="description" v-model="form.description" placeholder="وصف مختصر للخطة..." />
-                        <p v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</p>
+                        <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.description }}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="start_date">تاريخ البداية</Label>
                             <Input id="start_date" type="date" v-model="form.start_date" required />
-                            <p v-if="form.errors.start_date" class="text-sm text-red-500">{{ form.errors.start_date }}</p>
+                            <p v-if="form.errors.start_date" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.start_date }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="end_date">تاريخ النهاية</Label>
                             <Input id="end_date" type="date" v-model="form.end_date" required />
-                            <p v-if="form.errors.end_date" class="text-sm text-red-500">{{ form.errors.end_date }}</p>
+                            <p v-if="form.errors.end_date" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.end_date }}</p>
                         </div>
                     </div>
 
                     <div class="flex justify-end gap-4 pt-4">
-                        <Link :href="route('my.meal-plans.index')">
-                            <Button variant="outline" type="button">إلغاء</Button>
-                        </Link>
-                        <Button type="submit" :disabled="form.processing">
+                        <Button as-child variant="outline">
+                            <Link :href="route('my.meal-plans.index')">إلغاء</Link>
+                        </Button>
+                        <Button type="submit" :disabled="form.processing" :aria-busy="form.processing || undefined">
                             {{ form.processing ? 'جاري الحفظ...' : 'إنشاء الخطة' }}
                         </Button>
                     </div>

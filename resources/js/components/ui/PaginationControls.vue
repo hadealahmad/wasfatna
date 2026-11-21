@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
@@ -36,17 +37,55 @@ function onPageClick(targetPage: number, isDisabled: boolean) {
         emits('pageChange', targetPage);
     }
 }
+
+const startButtons = computed(() => [
+    {
+        key: 'first',
+        label: 'الصفحة الأولى',
+        targetPage: 1,
+        disabled: props.currentPage <= 1,
+        icon: ChevronsRight,
+    },
+    {
+        key: 'prev',
+        label: 'الصفحة السابقة',
+        targetPage: props.currentPage - 1,
+        disabled: props.currentPage <= 1,
+        icon: ChevronRight,
+    },
+]);
+
+const endButtons = computed(() => [
+    {
+        key: 'next',
+        label: 'الصفحة التالية',
+        targetPage: props.currentPage + 1,
+        disabled: props.currentPage >= props.totalPages,
+        icon: ChevronLeft,
+    },
+    {
+        key: 'last',
+        label: 'الصفحة الأخيرة',
+        targetPage: props.totalPages,
+        disabled: props.currentPage >= props.totalPages,
+        icon: ChevronsLeft,
+    },
+]);
 </script>
 
 <template>
-    <div v-if="totalPages > 1 || totalItems > perPage" :class="['flex flex-col sm:flex-row items-center justify-between gap-4 py-4', className]">
+    <nav
+        v-if="totalPages > 1 || totalItems > perPage"
+        aria-label="ترقيم الصفحات"
+        :class="['flex flex-col sm:flex-row items-center justify-between gap-4 py-4', className]"
+    >
         <div class="flex items-center gap-2 text-sm text-muted-foreground">
             <span>عرض</span>
             <Select
                 :model-value="perPage.toString()"
                 @update:model-value="(v) => emits('perPageChange', Number(v))"
             >
-                <SelectTrigger class="h-8 w-[70px]">
+                <SelectTrigger class="min-h-8 w-[70px]" aria-label="عدد العناصر في الصفحة">
                     <SelectValue :placeholder="perPage.toString()" />
                 </SelectTrigger>
                 <SelectContent>
@@ -60,61 +99,63 @@ function onPageClick(targetPage: number, isDisabled: boolean) {
         </div>
 
         <div class="flex items-center gap-2">
-            <Button
-                as="a"
-                variant="outline"
-                size="icon"
-                :class="['h-8 w-8', currentPage <= 1 ? 'pointer-events-none opacity-50' : '']"
-                :href="currentPage <= 1 ? undefined : getPageHref(1)"
-                :aria-disabled="currentPage <= 1 || undefined"
-                aria-label="الصفحة الأولى"
-                @click.prevent="onPageClick(1, currentPage <= 1)"
-            >
-                <ChevronsRight class="h-4 w-4" />
-            </Button>
-            <Button
-                as="a"
-                variant="outline"
-                size="icon"
-                :class="['h-8 w-8', currentPage <= 1 ? 'pointer-events-none opacity-50' : '']"
-                :href="currentPage <= 1 ? undefined : getPageHref(currentPage - 1)"
-                :aria-disabled="currentPage <= 1 || undefined"
-                aria-label="الصفحة السابقة"
-                @click.prevent="onPageClick(currentPage - 1, currentPage <= 1)"
-            >
-                <ChevronRight class="h-4 w-4" />
-            </Button>
+            <template v-for="btn in startButtons" :key="btn.key">
+                <Button
+                    v-if="btn.disabled"
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    class="size-8"
+                    disabled
+                    :aria-label="btn.label"
+                >
+                    <component :is="btn.icon" class="h-4 w-4" aria-hidden="true" />
+                </Button>
+                <Button
+                    v-else
+                    as="a"
+                    variant="outline"
+                    size="icon"
+                    class="size-8"
+                    :href="getPageHref(btn.targetPage)"
+                    :aria-label="btn.label"
+                    @click.prevent="onPageClick(btn.targetPage, false)"
+                >
+                    <component :is="btn.icon" class="h-4 w-4" aria-hidden="true" />
+                </Button>
+            </template>
 
             <div class="flex items-center gap-1 mx-2 text-sm font-medium">
                 <span>صفحة</span>
-                <span class="px-2 py-1 rounded-md bg-muted">{{ currentPage }}</span>
+                <span class="px-2 py-1 rounded-md bg-muted" aria-current="page">{{ currentPage }}</span>
                 <span>من {{ totalPages }}</span>
             </div>
 
-            <Button
-                as="a"
-                variant="outline"
-                size="icon"
-                :class="['h-8 w-8', currentPage >= totalPages ? 'pointer-events-none opacity-50' : '']"
-                :href="currentPage >= totalPages ? undefined : getPageHref(currentPage + 1)"
-                :aria-disabled="currentPage >= totalPages || undefined"
-                aria-label="الصفحة التالية"
-                @click.prevent="onPageClick(currentPage + 1, currentPage >= totalPages)"
-            >
-                <ChevronLeft class="h-4 w-4" />
-            </Button>
-            <Button
-                as="a"
-                variant="outline"
-                size="icon"
-                :class="['h-8 w-8', currentPage >= totalPages ? 'pointer-events-none opacity-50' : '']"
-                :href="currentPage >= totalPages ? undefined : getPageHref(totalPages)"
-                :aria-disabled="currentPage >= totalPages || undefined"
-                aria-label="الصفحة الأخيرة"
-                @click.prevent="onPageClick(totalPages, currentPage >= totalPages)"
-            >
-                <ChevronsLeft class="h-4 w-4" />
-            </Button>
+            <template v-for="btn in endButtons" :key="btn.key">
+                <Button
+                    v-if="btn.disabled"
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    class="size-8"
+                    disabled
+                    :aria-label="btn.label"
+                >
+                    <component :is="btn.icon" class="h-4 w-4" aria-hidden="true" />
+                </Button>
+                <Button
+                    v-else
+                    as="a"
+                    variant="outline"
+                    size="icon"
+                    class="size-8"
+                    :href="getPageHref(btn.targetPage)"
+                    :aria-label="btn.label"
+                    @click.prevent="onPageClick(btn.targetPage, false)"
+                >
+                    <component :is="btn.icon" class="h-4 w-4" aria-hidden="true" />
+                </Button>
+            </template>
         </div>
-    </div>
+    </nav>
 </template>

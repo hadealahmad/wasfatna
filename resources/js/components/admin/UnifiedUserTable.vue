@@ -25,6 +25,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    Label,
     Textarea,
     PaginationControls
 } from '@/components/ui';
@@ -55,6 +56,7 @@ const isLoading = ref(false);
 
 const banDialogOpen = ref(false);
 const banReason = ref('');
+const banError = ref('');
 const selectedUserForBan = ref<AdminUser | null>(null);
 
 const handleSelectAll = (checked: boolean) => {
@@ -110,11 +112,18 @@ const handleChangeRole = (user: AdminUser, newRole: string) => {
 const handleBanClick = (user: AdminUser) => {
     if (user.id === currentUser.value?.id) return;
     selectedUserForBan.value = user;
+    banReason.value = '';
+    banError.value = '';
     banDialogOpen.value = true;
 };
 
 const confirmBan = () => {
-    if (!selectedUserForBan.value || !banReason.value.trim()) return;
+    if (!selectedUserForBan.value) return;
+    if (!banReason.value.trim()) {
+        banError.value = 'يرجى ذكر سبب الحظر';
+        return;
+    }
+    banError.value = '';
 
     isLoading.value = true;
     router.post(route('dashboard.users.ban', selectedUserForBan.value.id), {
@@ -123,6 +132,7 @@ const confirmBan = () => {
         onSuccess: () => {
             banDialogOpen.value = false;
             banReason.value = '';
+            banError.value = '';
             selectedUserForBan.value = null;
         },
         onFinish: () => {
@@ -171,39 +181,52 @@ const handleDelete = (user: AdminUser) => {
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <Button size="sm" variant="destructive" @click="handleBulkAction('ban', { reason: 'مخالفة الشروط' })" :disabled="isLoading">
-                    <Ban class="w-4 h-4 mr-1" /> حظر
+                    <Ban class="w-4 h-4 me-1" aria-hidden="true" /> حظر
                 </Button>
                 <Button size="sm" variant="secondary" @click="handleBulkAction('unban')" :disabled="isLoading">
-                    <CheckCircle class="w-4 h-4 mr-1" /> إلغاء الحظر
+                    <CheckCircle class="w-4 h-4 me-1" aria-hidden="true" /> إلغاء الحظر
                 </Button>
                 <Button size="sm" variant="destructive" @click="handleBulkAction('delete')" :disabled="isLoading">
-                    <Trash class="w-4 h-4 mr-1" /> حذف
+                    <Trash class="w-4 h-4 me-1" aria-hidden="true" /> حذف
                 </Button>
             </div>
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول المستخدمين" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول المستخدمين</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع المستخدمين"
                                 :checked="users.length > 0 && selectedIds.length === users.filter(u => u.id !== currentUser?.id).length"
                                 @update:checked="handleSelectAll"
                             />
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'name')">
-                            الاسم / البريد
-                            <span v-if="sortColumn === 'name'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'name')">
+                                الاسم / البريد
+                                <span v-if="sortColumn === 'name'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'role')">
-                            الدور
-                            <span v-if="sortColumn === 'role'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'role' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'role')">
+                                الدور
+                                <span v-if="sortColumn === 'role'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'recipes_count')">الوصفات</TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'created_at')">
-                            تاريخ التسجيل
-                            <span v-if="sortColumn === 'created_at'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'recipes_count' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'recipes_count')">
+                                الوصفات
+                                <span v-if="sortColumn === 'recipes_count'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
+                        </TableHead>
+                        <TableHead :aria-sort="sortColumn === 'created_at' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'created_at')">
+                                تاريخ التسجيل
+                                <span v-if="sortColumn === 'created_at'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>الحالة</TableHead>
                         <TableHead>الإجراءات</TableHead>
@@ -224,6 +247,7 @@ const handleDelete = (user: AdminUser) => {
                         <TableRow v-for="user in users" :key="user.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد ${user.name}`"
                                     :checked="selectedIds.includes(user.id)"
                                     @update:checked="(c) => handleSelectOne(user.id, c)"
                                     :disabled="user.id === currentUser?.id"
@@ -231,10 +255,10 @@ const handleDelete = (user: AdminUser) => {
                             </TableCell>
                             <TableCell>
                                 <div class="flex items-center gap-3">
-                                    <img v-if="user.avatar" :src="user.avatar" class="w-8 h-8 rounded-full object-cover" />
-                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm">👤</div>
+                                    <img v-if="user.avatar" :src="user.avatar" alt="" width="32" height="32" loading="lazy" decoding="async" class="w-8 h-8 rounded-full object-cover" />
+                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm" aria-hidden="true">👤</div>
                                     <div class="flex flex-col">
-                                        <Link :href="route('users.show', user.id)" class="font-medium text-sm hover:underline" target="_blank">
+                                        <Link :href="route('users.show', user.id)" class="font-medium text-sm hover:underline" target="_blank" rel="noopener noreferrer">
                                             {{ user.name }}
                                         </Link>
                                         <span class="text-xs text-muted-foreground">{{ user.email }}</span>
@@ -243,7 +267,7 @@ const handleDelete = (user: AdminUser) => {
                             </TableCell>
                             <TableCell>
                                 <Badge variant="outline" :class="[
-                                    'text-[10px] uppercase font-bold px-1.5 py-0',
+                                    'text-xs uppercase font-bold px-1.5 py-0',
                                     user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                                     user.role === 'moderator' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'
                                 ]">
@@ -258,15 +282,15 @@ const handleDelete = (user: AdminUser) => {
                             </TableCell>
                             <TableCell>
                                 <div class="flex flex-wrap gap-1">
-                                    <Badge v-if="user.is_banned" variant="destructive" class="text-[10px]">محظور</Badge>
-                                    <Badge v-if="user.deletion_requested" variant="secondary" class="text-[10px]">طلب حذف</Badge>
+                                    <Badge v-if="user.is_banned" variant="destructive" class="text-xs">محظور</Badge>
+                                    <Badge v-if="user.deletion_requested" variant="secondary" class="text-xs">طلب حذف</Badge>
                                 </div>
                             </TableCell>
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" :disabled="user.id === currentUser?.id">
-                                            <MoreHorizontal class="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" :disabled="user.id === currentUser?.id" :aria-label="`إجراءات ${user.name}`">
+                                            <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -279,13 +303,13 @@ const handleDelete = (user: AdminUser) => {
                                         </DropdownMenuRadioGroup>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem v-if="user.is_banned" @click="handleUnban(user)">
-                                            <CheckCircle class="h-4 w-4" /> إلغاء الحظر
+                                            <CheckCircle class="h-4 w-4" aria-hidden="true" /> إلغاء الحظر
                                         </DropdownMenuItem>
                                         <DropdownMenuItem v-else @click="handleBanClick(user)" class="text-red-600">
-                                            <Ban class="h-4 w-4" /> حظر
+                                            <Ban class="h-4 w-4" aria-hidden="true" /> حظر
                                         </DropdownMenuItem>
                                         <DropdownMenuItem @click="handleDelete(user)" class="text-red-600">
-                                            <Trash class="h-4 w-4" /> حذف
+                                            <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -311,13 +335,21 @@ const handleDelete = (user: AdminUser) => {
                     <DialogTitle>حظر المستخدم</DialogTitle>
                     <DialogDescription>يرجى ذكر سبب الحظر</DialogDescription>
                 </DialogHeader>
-                <Textarea
-                    v-model="banReason"
-                    placeholder="سبب الحظر..."
-                />
+                <div class="space-y-2">
+                    <Label for="ban-reason" class="sr-only">سبب الحظر</Label>
+                    <Textarea
+                        id="ban-reason"
+                        v-model="banReason"
+                        placeholder="سبب الحظر..."
+                        :aria-invalid="Boolean(banError) || undefined"
+                        :aria-describedby="banError ? 'ban-reason-error' : undefined"
+                        @input="banError = ''"
+                    />
+                    <p v-if="banError" id="ban-reason-error" class="text-sm text-red-600 dark:text-red-400">{{ banError }}</p>
+                </div>
                 <DialogFooter>
                     <Button variant="outline" @click="banDialogOpen = false">إلغاء</Button>
-                    <Button variant="destructive" @click="confirmBan" :disabled="!banReason.trim() || isLoading">تأكيد الحظر</Button>
+                    <Button variant="destructive" @click="confirmBan" :disabled="isLoading" :aria-busy="isLoading || undefined">تأكيد الحظر</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

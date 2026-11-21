@@ -43,10 +43,12 @@ class ReportController extends Controller
 
             return response()->json($reports);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('ReportController Index Error: '.$e->getMessage());
-            \Illuminate\Support\Facades\Log::error($e->getTraceAsString());
+            \Illuminate\Support\Facades\Log::error('ReportController index failed', [
+                'exception' => $e::class,
+                'user_id' => Auth::id(),
+            ]);
 
-            return response()->json(['message' => 'Server Error', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Server Error'], 500);
         }
     }
 
@@ -88,7 +90,7 @@ class ReportController extends Controller
             }
         }
 
-        $report = new Report();
+        $report = new Report;
         $report->user_id = Auth::id();
         $report->fill([
             'reportable_id' => $validated['reportable_id'],

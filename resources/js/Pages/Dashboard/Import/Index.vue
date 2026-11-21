@@ -225,7 +225,7 @@ const jsonExample = `[
                         <!-- Importing Progress -->
                         <div v-if="isImporting" class="space-y-2">
                             <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Loader2 class="h-4 w-4 animate-spin" />
+                                <progress aria-label="جاري التحميل" class="loading-spinner"></progress>
                                 جاري الاستيراد... قد يستغرق هذا بعض الوقت
                             </div>
                             <Progress :value="undefined" class="h-2" />
@@ -233,15 +233,21 @@ const jsonExample = `[
 
                         <!-- Import Result -->
                         <Alert v-if="result" :variant="result.failed === 0 ? 'default' : 'destructive'">
-                            <CheckCircle v-if="result.failed === 0" class="h-4 w-4" />
-                            <AlertTriangle v-else class="h-4 w-4" />
+                            <CheckCircle v-if="result.failed === 0" class="h-4 w-4" aria-hidden="true" />
+                            <AlertTriangle v-else class="h-4 w-4" aria-hidden="true" />
                             <AlertTitle>نتيجة الاستيراد</AlertTitle>
                             <AlertDescription>
                                 <div class="mt-2 space-y-1">
                                     <div>الإجمالي: {{ result.total }}</div>
-                                    <div class="text-green-600">نجحت: {{ result.success }}</div>
+                                    <div class="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                        <CheckCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        <span>نجحت: {{ result.success }}</span>
+                                    </div>
                                     <template v-if="result.failed > 0">
-                                        <div class="text-red-600">فشلت: {{ result.failed }}</div>
+                                        <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                            <XCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                            <span>فشلت: {{ result.failed }}</span>
+                                        </div>
                                         <ul class="mt-2 text-sm list-disc list-inside max-h-40 overflow-auto">
                                             <li v-for="(err, i) in result.errors" :key="i">
                                                 <strong>{{ err.name }}</strong>: {{ err.error }}
@@ -257,10 +263,11 @@ const jsonExample = `[
                             <Button
                                 @click="handleImport"
                                 :disabled="recipes.length === 0 || isImporting"
+                                :aria-busy="isImporting || undefined"
                                 class="gap-2"
                             >
-                                <Loader2 v-if="isImporting" class="h-4 w-4 animate-spin" />
-                                <Upload v-else class="h-4 w-4" />
+                                <Loader2 v-if="isImporting" class="h-4 w-4 animate-spin" aria-hidden="true" />
+                                <Upload v-else class="h-4 w-4" aria-hidden="true" />
                                 {{ isImporting ? 'جاري الاستيراد...' : 'بدء الاستيراد' }}
                             </Button>
                             <Button

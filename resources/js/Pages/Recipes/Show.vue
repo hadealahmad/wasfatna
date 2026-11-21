@@ -3,8 +3,8 @@ import { computed } from 'vue';
 import { Link, Head, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import { Badge, Card, CardContent, CardHeader, CardTitle, Button, Avatar, AvatarImage, AvatarFallback } from '@/components/ui';
-import { MapPin, Clock, Utensils, Tag as TagIcon } from 'lucide-vue-next';
-import { cn } from '@/lib/utils';
+import { MapPin, Clock, Utensils, Tag as TagIcon, Info } from 'lucide-vue-next';
+import { cn, safeJsonLd } from '@/lib/utils';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
 import AddToFavoritesModal from '@/components/features/lists/AddToFavoritesModal.vue';
 import ReportModal from '@/components/reports/ReportModal.vue';
@@ -375,8 +375,8 @@ const breadcrumbSchema = computed(() => {
       <meta head-key="twitter:description" name="twitter:description" :content="metaDescription" />
       <meta head-key="twitter:image" name="twitter:image" :content="ogImageUrl" />
       <link rel="alternate" type="text/markdown" :href="`/recipes/${recipe.slug}.md`" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-recipe" v-html="JSON.stringify(jsonLdSchema)" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-breadcrumb" v-html="JSON.stringify(breadcrumbSchema)" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-recipe">{{ safeJsonLd(jsonLdSchema) }}</component>
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-breadcrumb">{{ safeJsonLd(breadcrumbSchema) }}</component>
     </Head>
 
     <div class="container mx-auto py-8 px-4 md:px-6">
@@ -391,13 +391,12 @@ const breadcrumbSchema = computed(() => {
                 :src="recipe.image_url"
                 :alt="recipe.name"
                 fetchpriority="high"
-                decoding="async"
                 width="1200"
                 height="675"
                 class="w-full h-full object-cover"
               />
               <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
-                <span class="text-9xl">🍽️</span>
+                <span class="text-9xl" aria-hidden="true">🍽️</span>
               </div>
             </div>
 
@@ -411,7 +410,8 @@ const breadcrumbSchema = computed(() => {
             </div>
 
             <!-- Variations Alert -->
-            <div v-if="has_variations" class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+            <div v-if="has_variations" class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+              <Info class="w-5 h-5 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
               <p class="text-amber-800 dark:text-amber-200">
                 يوجد {{ variations_count }} طريقة أخرى لتحضير هذا الطبق!
                 <Link :href="`/recipes/${recipe.slug}/variations`" class="font-semibold underline">
@@ -459,7 +459,7 @@ const breadcrumbSchema = computed(() => {
                   <Utensils class="w-4 h-4 text-primary" />
                   <span class="font-medium">{{ recipe.servings }}{{ String(recipe.servings).includes('شخص') ? '' : ' أشخاص' }}</span>
                 </div>
-                <Badge :class="cn('mr-auto', getDifficultyColor(recipe.difficulty))">
+                <Badge :class="cn('ms-auto', getDifficultyColor(recipe.difficulty))">
                   {{ recipe.difficulty }}
                 </Badge>
               </div>
@@ -488,7 +488,7 @@ const breadcrumbSchema = computed(() => {
             <Link v-if="recipe.user && !recipe.is_anonymous" :href="`/users/${recipe.user.id}`">
               <div class="flex items-center gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                 <Avatar>
-                  <AvatarImage :src="recipe.user.avatar_url || undefined" />
+                  <AvatarImage :src="recipe.user.avatar_url || undefined" :alt="recipe.user.name" width="40" height="40" />
                   <AvatarFallback>{{ recipe.user.name.charAt(0) }}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -562,8 +562,8 @@ const breadcrumbSchema = computed(() => {
           </div>
 
           <!-- CTA -->
-          <div class="mt-12 p-8 rounded-2xl bg-muted/30 border border-border/50 text-center space-y-4">
-            <h3 class="text-xl font-bold">لديك وصفة مميزة؟</h3>
+          <div class="cv-auto-section mt-12 p-8 rounded-2xl bg-muted/30 border border-border/50 text-center space-y-4">
+            <h2 class="text-xl font-bold">لديك وصفة مميزة؟</h2>
             <p class="text-muted-foreground max-w-lg mx-auto">
               شارك وصفاتك مع مجتمعنا وساعد الآخرين على اكتشاف نكهات جديدة من مطبخك.
             </p>

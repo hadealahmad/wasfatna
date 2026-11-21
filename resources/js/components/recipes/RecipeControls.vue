@@ -59,33 +59,37 @@ const handlePublish = async () => {
     <div v-if="showControls" class="flex gap-2">
         <Link :href="route('my.recipes.edit', recipeId)">
             <Button variant="outline" size="sm" class="gap-2">
-                <Edit class="w-4 h-4" />
+                <Edit class="w-4 h-4" aria-hidden="true" />
                 تعديل
             </Button>
         </Link>
         
         <Button
             v-if="canPublish"
+            type="button"
             size="sm"
             class="gap-2"
             @click="handlePublish"
             :disabled="isPublishing"
+            :aria-busy="isPublishing"
         >
-            <Loader2 v-if="isPublishing" class="w-4 h-4 animate-spin" />
-            <Send v-else class="w-4 h-4" />
+            <Loader2 v-if="isPublishing" class="w-4 h-4 animate-spin" aria-hidden="true" />
+            <Send v-else class="w-4 h-4" aria-hidden="true" />
             نشر الوصفة
         </Button>
         
         <Button
             v-if="canUnpublish"
+            type="button"
             variant="destructive"
             size="sm"
             class="gap-2"
             @click="handleUnpublish"
             :disabled="isUnpublishing"
+            :aria-busy="isUnpublishing"
         >
-            <Loader2 v-if="isUnpublishing" class="w-4 h-4 animate-spin" />
-            <EyeOff v-else class="w-4 h-4" />
+            <Loader2 v-if="isUnpublishing" class="w-4 h-4 animate-spin" aria-hidden="true" />
+            <EyeOff v-else class="w-4 h-4" aria-hidden="true" />
             إلغاء النشر
         </Button>
     </div>

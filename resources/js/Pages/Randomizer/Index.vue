@@ -35,6 +35,15 @@ const winner = ref<Recipe | null>(null);
 const showModal = ref(false);
 const selectedIngredients = ref<Ingredient[]>([]);
 
+const sparkleDecorations = [
+    { top: '18%', left: '14%', delay: '0.25s', size: '16px' },
+    { top: '26%', left: '78%', delay: '0.5s', size: '20px' },
+    { top: '48%', left: '22%', delay: '0.75s', size: '15px' },
+    { top: '58%', left: '84%', delay: '1s', size: '22px' },
+    { top: '76%', left: '16%', delay: '1.25s', size: '18px' },
+    { top: '72%', left: '74%', delay: '1.5s', size: '16px' },
+];
+
 const handleIngredientSelect = (ingredient: Ingredient) => {
     if (!selectedIngredients.value.find(i => i.id === ingredient.id)) {
         selectedIngredients.value.push(ingredient);
@@ -151,9 +160,10 @@ const spinAgain = () => {
               class="w-full text-lg font-bold h-14"
               @click="startSpin"
               :disabled="isSpinning || loading"
+              :aria-busy="loading || isSpinning || undefined"
             >
-              <Loader2 v-if="loading" class="ml-2 h-5 w-5 animate-spin" />
-              <Sparkles v-else class="ml-2 h-5 w-5" />
+              <Loader2 v-if="loading" class="ms-2 h-5 w-5 animate-spin" aria-hidden="true" />
+              <Sparkles v-else class="ms-2 h-5 w-5" aria-hidden="true" />
               {{ loading ? 'جاري التحميل...' : isSpinning ? 'جاري التدوير...' : '🎲 يلا نختار!' }}
             </Button>
           </CardContent>
@@ -194,16 +204,17 @@ const spinAgain = () => {
             <!-- Sparkle Decorations -->
             <div class="absolute inset-0 z-10 pointer-events-none overflow-hidden">
               <Sparkles 
-                v-for="i in 6" 
-                :key="i"
-                class="absolute text-yellow-400 animate-pulse"
+                v-for="(sparkle, idx) in sparkleDecorations" 
+                :key="idx"
+                aria-hidden="true"
+                class="absolute text-yellow-400 motion-safe:animate-pulse"
                 :style="{
-                  top: `${15 + Math.random() * 70}%`,
-                  left: `${10 + Math.random() * 80}%`,
-                  animationDelay: `${i * 0.25}s`,
+                  top: sparkle.top,
+                  left: sparkle.left,
+                  animationDelay: sparkle.delay,
                   opacity: 0.8,
-                  width: `${14 + Math.random() * 10}px`,
-                  height: `${14 + Math.random() * 10}px`,
+                  width: sparkle.size,
+                  height: sparkle.size,
                 }"
               />
             </div>
@@ -214,17 +225,18 @@ const spinAgain = () => {
                 v-if="winner.image_url" 
                 :src="winner.image_url" 
                 :alt="winner.name" 
-                loading="lazy"
                 decoding="async"
+                width="448"
+                height="208"
                 class="w-full h-full object-cover"
               />
               <div v-else class="flex h-full items-center justify-center">
-                <ChefHat class="h-16 w-16 text-muted-foreground/30" />
+                <ChefHat class="h-16 w-16 text-muted-foreground/30" aria-hidden="true" />
               </div>
 
               <!-- Winner Badge -->
               <div class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full font-bold text-sm shadow-lg flex items-center gap-1.5 z-30">
-                <Sparkles class="h-4 w-4" />
+                <Sparkles class="h-4 w-4" aria-hidden="true" />
                 🎉 الفائز!
               </div>
             </div>
@@ -244,19 +256,19 @@ const spinAgain = () => {
 
               <!-- Action Buttons -->
               <div class="flex flex-col gap-3 pt-2">
-                <Link :href="route('recipes.show', winner.slug)">
-                  <Button size="lg" class="w-full h-12 text-base font-semibold">
-                    <ArrowLeft class="ml-2 h-5 w-5" />
+                <Button as-child size="lg" class="w-full h-12 text-base font-semibold">
+                  <Link :href="route('recipes.show', winner.slug)">
+                    <ArrowLeft class="ms-2 h-5 w-5" aria-hidden="true" />
                     عرض الوصفة
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   class="w-full h-12 text-base font-semibold"
                   @click="spinAgain"
                 >
-                  <RotateCcw class="ml-2 h-5 w-5" />
+                  <RotateCcw class="ms-2 h-5 w-5" aria-hidden="true" />
                   دوّر مرة ثانية
                 </Button>
               </div>
@@ -269,20 +281,22 @@ const spinAgain = () => {
 </template>
 
 <style scoped>
-@keyframes shine {
-  0% { 
-    transform: translateX(-150%) skewX(-15deg); 
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes shine {
+    0% { 
+      transform: translateX(-150%) skewX(-15deg); 
+    }
+    40% { 
+      transform: translateX(150%) skewX(-15deg); 
+    }
+    100% { 
+      transform: translateX(150%) skewX(-15deg); 
+    }
   }
-  40% { 
-    transform: translateX(150%) skewX(-15deg); 
-  }
-  100% { 
-    transform: translateX(150%) skewX(-15deg); 
-  }
-}
 
-.animate-shine {
-  animation: shine 2.5s ease-in-out infinite;
-  transform: skewX(-15deg);
+  .animate-shine {
+    animation: shine 2.5s ease-in-out infinite;
+    transform: skewX(-15deg);
+  }
 }
 </style>

@@ -16,7 +16,7 @@ import {
   CalendarDays,
   Globe
 } from 'lucide-vue-next';
-import { useDark, useToggle } from '@vueuse/core';
+import { useColorScheme } from '@/composables/useColorScheme';
 import Avatar from '@/components/ui/Avatar.vue';
 import AvatarFallback from '@/components/ui/AvatarFallback.vue';
 import AvatarImage from '@/components/ui/AvatarImage.vue';
@@ -45,12 +45,19 @@ const isAdminOrModerator = computed(() => {
 const pathname = computed(() => page.url);
 const showSearchInHeader = computed(() => pathname.value !== '/');
 
-const handleLogout = () => {
-  // We'll use the logout route we defined
+const isNavActive = (href: string) => {
+  const current = pathname.value.split('?')[0];
+  return current === href || current.startsWith(`${href}/`);
 };
 
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
+const primaryNavItems = [
+  { href: '/cities', label: 'المدن', icon: null },
+  { href: '/lists', label: 'القوائم', icon: null },
+  { href: '/meal-plans/browse', label: 'خطط الوجبات', icon: Globe },
+  { href: '/randomizer', label: 'شو نطبخ؟', icon: Dices },
+] as const;
+
+const { isDark, toggleColorScheme } = useColorScheme();
 </script>
 
 <template>
@@ -61,21 +68,37 @@ const toggleDark = useToggle(isDark);
         <div class="flex items-center gap-8">
           <Link href="/" class="flex items-center gap-2 shrink-0">
             <div class="relative h-10 w-32">
-              <img src="/logo-light.svg" alt="وصفاتنا" class="dark:hidden h-full w-auto object-contain" />
-              <img src="/logo-dark.svg" alt="وصفاتنا" class="hidden dark:block h-full w-auto object-contain" />
+              <img
+                src="/logo-light.svg"
+                alt="وصفاتنا"
+                width="128"
+                height="40"
+                decoding="async"
+                class="logo-light h-full w-auto object-contain"
+              />
+              <img
+                src="/logo-dark.svg"
+                alt="وصفاتنا"
+                width="128"
+                height="40"
+                decoding="async"
+                class="logo-dark h-full w-auto object-contain"
+              />
             </div>
           </Link>
 
-          <nav class="hidden md:flex items-center gap-6">
-            <Link href="/cities" class="text-sm font-medium hover:text-primary transition-colors">المدن</Link>
-            <Link href="/lists" class="text-sm font-medium hover:text-primary transition-colors">القوائم</Link>
-            <Link href="/meal-plans/browse" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-              <Globe class="h-4 w-4" />
-              <span>خطط الوجبات</span>
-            </Link>
-            <Link href="/randomizer" class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
-              <Dices class="h-4 w-4" />
-              <span>شو نطبخ؟</span>
+          <nav aria-label="التصفح الرئيسي" class="hidden md:flex items-center gap-6">
+            <Link
+              v-for="item in primaryNavItems"
+              :key="item.href"
+              :href="item.href"
+              prefetch
+              :aria-current="isNavActive(item.href) ? 'page' : undefined"
+              class="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+              :class="isNavActive(item.href) ? 'text-primary' : ''"
+            >
+              <component v-if="item.icon" :is="item.icon" aria-hidden="true" class="h-4 w-4" />
+              <span>{{ item.label }}</span>
             </Link>
           </nav>
         </div>
@@ -92,24 +115,31 @@ const toggleDark = useToggle(isDark);
             variant="ghost"
             size="icon"
             class="h-9 w-9"
-            @click="toggleDark()"
+            :aria-pressed="isDark"
+            :aria-label="isDark ? 'التبديل إلى الوضع الفاتح' : 'التبديل إلى الوضع الداكن'"
+            @click="toggleColorScheme()"
           >
-            <Sun class="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon class="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span class="sr-only">تغيير المظهر</span>
+            <Sun
+              aria-hidden="true"
+              class="h-4 w-4 rotate-0 scale-100 motion-safe:transition-transform motion-safe:duration-200 dark:-rotate-90 dark:scale-0"
+            />
+            <Moon
+              aria-hidden="true"
+              class="absolute h-4 w-4 rotate-90 scale-0 motion-safe:transition-transform motion-safe:duration-200 dark:rotate-0 dark:scale-100"
+            />
           </Button>
 
           <template v-if="isAuthenticated">
-            <Link href="/recipes/new" class="hidden sm:flex">
-              <Button size="sm">
-                <PlusCircle class="ml-2 h-4 w-4" />
+            <Button asChild size="sm" class="hidden sm:inline-flex">
+              <Link href="/recipes/new">
+                <PlusCircle aria-hidden="true" class="me-2 h-4 w-4" />
                 وصفة جديدة
-              </Button>
-            </Link>
+              </Link>
+            </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" class="relative h-9 w-9 rounded-full">
+                <Button variant="ghost" aria-label="قائمة الحساب" class="relative h-9 w-9 rounded-full">
                   <Avatar class="h-9 w-9 border border-border/50">
                     <AvatarImage :src="user.avatar_url || undefined" :alt="user.name" />
                     <AvatarFallback>{{ user.name?.charAt(0) }}</AvatarFallback>
@@ -125,44 +155,44 @@ const toggleDark = useToggle(isDark);
                 <DropdownMenuItem asChild>
                   <Link href="/settings" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>الملف الشخصي</span>
-                    <User class="h-4 w-4" />
+                    <User aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/my/recipes" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>وصفاتي</span>
-                    <Settings class="h-4 w-4" />
+                    <Settings aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/my/lists" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>قوائمي</span>
-                    <BookHeart class="h-4 w-4" />
+                    <BookHeart aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/my/meal-plans" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>خطط الوجبات</span>
-                    <CalendarDays class="h-4 w-4" />
+                    <CalendarDays aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/my/reports" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>بلاغاتي</span>
-                    <Flag class="h-4 w-4" />
+                    <Flag aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild v-if="isAdminOrModerator">
                   <Link href="/dashboard" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full">
                     <span>لوحة التحكم</span>
-                    <LayoutDashboard class="h-4 w-4" />
+                    <LayoutDashboard aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link :href="route('logout')" method="post" as="button" class="cursor-pointer flex items-center justify-end gap-2 text-right w-full text-red-600">
                     <span>تسجيل الخروج</span>
-                    <LogOut class="h-4 w-4" />
+                    <LogOut aria-hidden="true" class="h-4 w-4" />
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -170,65 +200,75 @@ const toggleDark = useToggle(isDark);
           </template>
 
           <template v-else>
-            <a href="/auth/google/redirect">
-              <Button class="gap-2 px-2 md:px-4">
-                  <svg class="w-4 h-4" viewBox="0 0 24 24">
-                      <path
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          fill="#4285F4"
-                      />
-                      <path
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          fill="#34A853"
-                      />
-                      <path
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          fill="#FBBC05"
-                      />
-                      <path
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          fill="#EA4335"
-                      />
-                  </svg>
-                <span class="hidden md:inline">تسجيل الدخول</span>
-              </Button>
-            </a>
+            <Button as="a" href="/auth/google/redirect" class="gap-2 px-2 md:px-4">
+              <svg aria-hidden="true" class="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              <span class="sr-only md:not-sr-only">تسجيل الدخول</span>
+            </Button>
           </template>
 
           <!-- Mobile Menu Trigger -->
           <Sheet v-model:open="isMobileMenuOpen">
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" class="md:hidden">
-                <Menu class="h-6 w-6" />
+              <Button variant="ghost" size="icon" aria-label="فتح القائمة" class="md:hidden">
+                <Menu aria-hidden="true" class="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" class="w-[300px] sm:w-[400px]">
+            <SheetContent side="left" dir="rtl" class="w-[300px] sm:w-[400px]">
               <SheetHeader>
-                <SheetTitle class="text-right">القائمة</SheetTitle>
+                <SheetTitle class="text-start">القائمة</SheetTitle>
               </SheetHeader>
-              <nav class="flex flex-col gap-4 mt-8">
-                <Link href="/cities" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">المدن</Link>
-                <Link href="/lists" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">القوائم</Link>
-                <Link href="/randomizer" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors flex items-center justify-end gap-2">
-                  <span>شو نطبخ؟</span>
-                  <Dices class="h-5 w-5" />
+              <nav aria-label="التصفح الرئيسي للجوال" class="flex flex-col gap-4 mt-8">
+                <Link
+                  v-for="item in primaryNavItems"
+                  :key="item.href"
+                  :href="item.href"
+                  prefetch
+                  :aria-current="isNavActive(item.href) ? 'page' : undefined"
+                  @click="isMobileMenuOpen = false"
+                  class="text-lg font-medium text-start hover:text-primary transition-colors flex items-center gap-2"
+                  :class="isNavActive(item.href) ? 'text-primary' : ''"
+                >
+                  <component v-if="item.icon" :is="item.icon" aria-hidden="true" class="h-5 w-5 me-2" />
+                  <span>{{ item.label }}</span>
                 </Link>
-                <Link href="/meal-plans/browse" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors flex items-center justify-end gap-2">
-                  <span>خطط الوجبات</span>
-                  <Globe class="h-5 w-5" />
+                <Link
+                  href="/recipes"
+                  prefetch
+                  :aria-current="isNavActive('/recipes') ? 'page' : undefined"
+                  @click="isMobileMenuOpen = false"
+                  class="text-lg font-medium text-start hover:text-primary transition-colors"
+                  :class="isNavActive('/recipes') ? 'text-primary' : ''"
+                >
+                  بحث
                 </Link>
-                <Link href="/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">بحث</Link>
                 <div class="h-px bg-border my-2"></div>
                 <template v-if="isAuthenticated">
-                   <Link href="/recipes/new" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right text-primary hover:text-primary/80 transition-colors">+ وصفة جديدة</Link>
-                   <Link href="/my/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">وصفاتي</Link>
-                   <Link href="/my/lists" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">قوائمي</Link>
-                   <Link href="/my/meal-plans" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">خططي</Link>
-                   <Link href="/settings" @click="isMobileMenuOpen = false" class="text-lg font-medium text-right hover:text-primary transition-colors">الملف الشخصي</Link>
-                   <Link :href="route('logout')" method="post" as="button" class="text-lg font-medium text-right text-red-600">تسجيل الخروج</Link>
+                  <Link href="/recipes/new" @click="isMobileMenuOpen = false" class="text-lg font-medium text-start text-primary hover:text-primary/80 transition-colors">+ وصفة جديدة</Link>
+                  <Link href="/my/recipes" @click="isMobileMenuOpen = false" class="text-lg font-medium text-start hover:text-primary transition-colors">وصفاتي</Link>
+                  <Link href="/my/lists" @click="isMobileMenuOpen = false" class="text-lg font-medium text-start hover:text-primary transition-colors">قوائمي</Link>
+                  <Link href="/my/meal-plans" @click="isMobileMenuOpen = false" class="text-lg font-medium text-start hover:text-primary transition-colors">خططي</Link>
+                  <Link href="/settings" @click="isMobileMenuOpen = false" class="text-lg font-medium text-start hover:text-primary transition-colors">الملف الشخصي</Link>
+                  <Link :href="route('logout')" method="post" as="button" class="text-lg font-medium text-start text-red-600">تسجيل الخروج</Link>
                 </template>
                 <template v-else>
-                  <a href="/auth/google/redirect" class="text-lg font-medium text-right text-primary">تسجيل الدخول</a>
+                  <a href="/auth/google/redirect" class="text-lg font-medium text-start text-primary">تسجيل الدخول</a>
                 </template>
               </nav>
             </SheetContent>

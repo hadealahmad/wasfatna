@@ -23,7 +23,7 @@ import {
     SelectValue,
     MultiSelect
 } from '@/components/ui';
-import { Loader2, Save, Upload } from 'lucide-vue-next';
+import { Loader2, Save, Upload, CheckCircle, XCircle } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -156,8 +156,8 @@ const handleImport = () => {
                                 </p>
                             </div>
                             <div class="flex justify-end">
-                                <Button @click="handleSaveSettings" :disabled="settingsForm.processing">
-                                    <Loader2 v-if="settingsForm.processing" class="ml-2 h-4 w-4 animate-spin" />
+                                <Button @click="handleSaveSettings" :disabled="settingsForm.processing" :aria-busy="settingsForm.processing || undefined">
+                                    <Loader2 v-if="settingsForm.processing" class="ms-2 h-4 w-4 animate-spin" aria-hidden="true" />
                                     حفظ التغييرات
                                 </Button>
                             </div>
@@ -198,8 +198,8 @@ const handleImport = () => {
                                 </Select>
                             </div>
                             <div class="flex justify-end">
-                                <Button @click="handleSaveSettings" :disabled="settingsForm.processing">
-                                    <Loader2 v-if="settingsForm.processing" class="ml-2 h-4 w-4 animate-spin" />
+                                <Button @click="handleSaveSettings" :disabled="settingsForm.processing" :aria-busy="settingsForm.processing || undefined">
+                                    <Loader2 v-if="settingsForm.processing" class="ms-2 h-4 w-4 animate-spin" aria-hidden="true" />
                                     حفظ التغييرات
                                 </Button>
                             </div>
@@ -215,27 +215,34 @@ const handleImport = () => {
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="space-y-2 text-right">
-                                <Label>بيانات JSON</Label>
+                                <Label for="import-json">بيانات JSON</Label>
                                 <Textarea
+                                    id="import-json"
                                     v-model="importForm.importJson"
                                     placeholder='[{"name": "...", "ingredients": ...}]'
                                     class="h-64 font-mono text-sm text-left dir-ltr"
                                 />
                             </div>
                             <div class="flex justify-end">
-                                <Button @click="handleImport" :disabled="importForm.processing || !importForm.importJson.trim()">
-                                    <Loader2 v-if="importForm.processing" class="ml-2 h-4 w-4 animate-spin" />
-                                    <Upload v-else class="ml-2 h-4 w-4" />
+                                <Button @click="handleImport" :disabled="importForm.processing || !importForm.importJson.trim()" :aria-busy="importForm.processing || undefined">
+                                    <Loader2 v-if="importForm.processing" class="ms-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                                    <Upload v-else class="ms-2 h-4 w-4" aria-hidden="true" />
                                     {{ importForm.processing ? 'جاري الاستيراد...' : 'استيراد الوصفات' }}
                                 </Button>
                             </div>
 
                             <div v-if="importResult" class="mt-4 p-4 bg-muted rounded-md text-sm text-right">
                                 <p class="font-bold">نتائج الاستيراد:</p>
-                                <ul class="list-disc list-inside mt-2">
+                                <ul class="list-disc list-inside mt-2 space-y-1">
                                     <li>الإجمالي: {{ importResult.results.total }}</li>
-                                    <li class="text-green-600">نجاح: {{ importResult.results.success }}</li>
-                                    <li class="text-red-600">فشل: {{ importResult.results.failed }}</li>
+                                    <li class="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                        <CheckCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        <span>نجاح: {{ importResult.results.success }}</span>
+                                    </li>
+                                    <li class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                        <XCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
+                                        <span>فشل: {{ importResult.results.failed }}</span>
+                                    </li>
                                 </ul>
                                 <div v-if="importResult.results.errors && importResult.results.errors.length > 0" class="mt-2 text-red-600">
                                     <p class="font-semibold">الأخطاء:</p>

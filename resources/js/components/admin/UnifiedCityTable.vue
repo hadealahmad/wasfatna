@@ -50,6 +50,7 @@ const selectedCity = ref<City | null>(null);
 const isLoading = ref(false);
 
 const name = ref('');
+const nameError = ref('');
 const description = ref('');
 const imageFile = ref<File | null>(null);
 const imagePreview = ref<string | null>(null);
@@ -74,6 +75,7 @@ const handleSelectOne = (id: number, checked: boolean) => {
 
 const resetForm = () => {
     name.value = '';
+    nameError.value = '';
     description.value = '';
     imageFile.value = null;
     imagePreview.value = null;
@@ -88,6 +90,7 @@ const handleOpenCreate = () => {
 const handleOpenEdit = (city: City) => {
     selectedCity.value = city;
     name.value = city.name;
+    nameError.value = '';
     description.value = city.description || '';
     imagePreview.value = city.image_url || null;
     imageFile.value = null;
@@ -108,7 +111,11 @@ const handleImageChange = (e: Event) => {
 };
 
 const handleSubmit = () => {
-    if (!name.value.trim()) return;
+    if (!name.value.trim()) {
+        nameError.value = 'يرجى إدخال اسم المدينة';
+        return;
+    }
+    nameError.value = '';
     
     isLoading.value = true;
     const url = selectedCity.value 
@@ -191,33 +198,39 @@ const handleDeleteSingle = (city: City) => {
             <div v-if="selectedIds.length > 0" class="bg-muted px-4 py-2 rounded-lg flex items-center gap-4">
                 <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }}</span>
                 <Button size="sm" variant="destructive" @click="handleBulkDelete" :disabled="isLoading">
-                    <Trash class="w-4 h-4 mr-1" /> حذف المحدد
+                    <Trash class="w-4 h-4 me-1" aria-hidden="true" /> حذف المحدد
                 </Button>
             </div>
             <div v-else></div>
             <Button @click="handleOpenCreate">
-                <Plus class="w-4 h-4 mr-1" /> إضافة مدينة
+                <Plus class="w-4 h-4 me-1" aria-hidden="true" /> إضافة مدينة
             </Button>
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول المدن" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول المدن</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع المدن"
                                 :checked="cities.length > 0 && selectedIds.length === cities.length"
                                 @update:checked="handleSelectAll"
                             />
                         </TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'name')">
-                            المدينة
-                            <span v-if="sortColumn === 'name'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'name' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'name')">
+                                المدينة
+                                <span v-if="sortColumn === 'name'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>الوصف</TableHead>
-                        <TableHead class="cursor-pointer" @click="emits('sort', 'recipes_count')">
-                            الوصفات
-                            <span v-if="sortColumn === 'recipes_count'" class="mr-1 inline-block">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        <TableHead :aria-sort="sortColumn === 'recipes_count' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'">
+                            <button type="button" class="inline-flex items-center gap-1 font-medium cursor-pointer" @click="emits('sort', 'recipes_count')">
+                                الوصفات
+                                <span v-if="sortColumn === 'recipes_count'" aria-hidden="true">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                            </button>
                         </TableHead>
                         <TableHead>الإجراءات</TableHead>
                     </TableRow>
@@ -237,14 +250,15 @@ const handleDeleteSingle = (city: City) => {
                         <TableRow v-for="city in cities" :key="city.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد ${city.name}`"
                                     :checked="selectedIds.includes(city.id)"
                                     @update:checked="(c) => handleSelectOne(city.id, c)"
                                 />
                             </TableCell>
                             <TableCell>
                                 <div class="flex items-center gap-3">
-                                    <img v-if="city.image_url" :src="city.image_url" :alt="city.name" class="w-10 h-10 rounded object-cover" />
-                                    <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg">🏙️</div>
+                                    <img v-if="city.image_url" :src="city.image_url" alt="" width="40" height="40" loading="lazy" decoding="async" class="w-10 h-10 rounded object-cover" />
+                                    <div v-else class="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg" aria-hidden="true">🏙️</div>
                                     <span class="font-medium">{{ city.name }}</span>
                                 </div>
                             </TableCell>
@@ -257,16 +271,16 @@ const handleDeleteSingle = (city: City) => {
                             <TableCell>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal class="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" :aria-label="`إجراءات ${city.name}`">
+                                            <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem @click="handleOpenEdit(city)">
-                                            <Edit class="h-4 w-4" /> تعديل
+                                            <Edit class="h-4 w-4" aria-hidden="true" /> تعديل
                                         </DropdownMenuItem>
                                         <DropdownMenuItem @click="handleDeleteSingle(city)" class="text-red-600 focus:text-red-600">
-                                            <Trash class="h-4 w-4" /> حذف
+                                            <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -296,15 +310,21 @@ const handleDeleteSingle = (city: City) => {
                 </DialogHeader>
                 <div class="space-y-4 py-4">
                     <div class="space-y-2">
-                        <label class="text-sm font-medium">اسم المدينة</label>
+                        <label for="city-name" class="text-sm font-medium">اسم المدينة</label>
                         <Input
+                            id="city-name"
                             v-model="name"
                             placeholder="مثال: دمشق"
+                            :aria-invalid="Boolean(nameError) || undefined"
+                            :aria-describedby="nameError ? 'city-name-error' : undefined"
+                            @input="nameError = ''"
                         />
+                        <p v-if="nameError" id="city-name-error" class="text-sm text-red-600 dark:text-red-400">{{ nameError }}</p>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-medium">صورة المدينة (اختياري)</label>
+                        <label for="city-image" class="text-sm font-medium">صورة المدينة (اختياري)</label>
                         <Input
+                            id="city-image"
                             type="file"
                             accept="image/*"
                             @change="handleImageChange"
@@ -312,14 +332,18 @@ const handleDeleteSingle = (city: City) => {
                         <div v-if="imagePreview" class="mt-2 relative h-40 w-full overflow-hidden rounded-md border text-center">
                             <img
                                 :src="imagePreview"
-                                alt="Preview"
+                                alt="معاينة صورة المدينة"
+                                width="450"
+                                height="160"
+                                decoding="async"
                                 class="h-full w-full object-cover inline-block"
                             />
                         </div>
                     </div>
                     <div class="space-y-2">
-                        <label class="text-sm font-medium">وصف (اختياري)</label>
+                        <label for="city-description" class="text-sm font-medium">وصف (اختياري)</label>
                         <Textarea
+                            id="city-description"
                             v-model="description"
                             placeholder="وصف قصير عن المدينة ومطبخها..."
                             :rows="3"
@@ -330,7 +354,7 @@ const handleDeleteSingle = (city: City) => {
                     <Button variant="outline" @click="isDialogOpen = false">
                         إلغاء
                     </Button>
-                    <Button @click="handleSubmit" :disabled="!name.trim() || isLoading">
+                    <Button @click="handleSubmit" :disabled="isLoading" :aria-busy="isLoading || undefined">
                         {{ selectedCity ? 'حفظ التعديلات' : 'إنشاء' }}
                     </Button>
                 </DialogFooter>

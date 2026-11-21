@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         $middleware->web(append: [
             \App\Http\Middleware\HandleInertiaRequests::class,
         ]);
@@ -21,9 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'moderator' => \App\Http\Middleware\EnsureUserCanModerate::class,
             'not-banned' => \App\Http\Middleware\EnsureUserNotBanned::class,
         ]);
-        
+
         $middleware->statefulApi();
-        
+
         $middleware->redirectTo(
             guests: '/login',
             users: '/'
@@ -32,4 +34,3 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-

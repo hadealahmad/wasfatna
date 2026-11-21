@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import { Badge } from '@/components/ui';
+import { safeJsonLd, formatPaginationLabel } from '@/lib/utils';
 import { MapPin } from 'lucide-vue-next';
 
 interface City {
@@ -80,8 +81,8 @@ const breadcrumbSchema = computed(() => ({
       <meta head-key="twitter:title" name="twitter:title" :content="`وصفات وأكلات ${city.name} | وصفاتنا`" />
       <meta head-key="twitter:description" name="twitter:description" :content="cityDescription" />
       <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-collection" v-html="JSON.stringify(collectionSchema)" />
-      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-breadcrumb" v-html="JSON.stringify(breadcrumbSchema)" />
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-collection">{{ safeJsonLd(collectionSchema) }}</component>
+      <component :is="'script'" type="application/ld+json" head-key="jsonld-city-breadcrumb">{{ safeJsonLd(breadcrumbSchema) }}</component>
     </Head>
     
     <!-- Hero Section -->
@@ -122,8 +123,9 @@ const breadcrumbSchema = computed(() => ({
               'bg-background hover:bg-muted': !link.active && link.url,
               'opacity-50 cursor-default': !link.url 
             }"
-            v-html="link.label" 
-          />
+          >
+            {{ formatPaginationLabel(link.label) }}
+          </component>
         </template>
       </div>
     </section>

@@ -129,7 +129,8 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
+        (env('APP_ENV') === 'production' && env('SESSION_DOMAIN') === null && env('SESSION_PATH', '/') === '/' ? '__Host-' : '')
+        .Str::slug((string) env('APP_NAME', 'laravel')).'-session'
     ),
 
     /*
@@ -169,7 +170,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
 
     /*
     |--------------------------------------------------------------------------

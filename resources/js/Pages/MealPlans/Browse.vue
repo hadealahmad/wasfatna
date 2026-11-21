@@ -64,22 +64,22 @@ const props = defineProps<{
                     :key="plan.id"
                     :href="route('meal-plans.shared', plan.share_token)"
                 >
-                    <Card class="h-full hover:shadow-lg transition-all hover:border-primary/50 cursor-pointer">
+                    <Card class="h-full hover:shadow-lg transition-[box-shadow,border-color] hover:border-primary/50 cursor-pointer">
                         <CardContent class="p-5 space-y-4">
                             <!-- Title & Description -->
                             <div>
-                                <h3 class="font-bold text-lg line-clamp-1">{{ plan.name }}</h3>
+                                <h2 class="font-bold text-lg line-clamp-1">{{ plan.name }}</h2>
                                 <p v-if="plan.description" class="text-sm text-muted-foreground line-clamp-2 mt-1">{{ plan.description }}</p>
                             </div>
 
                             <!-- Meta -->
                             <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                 <Badge variant="secondary" class="gap-1">
-                                    <CalendarDays class="w-3 h-3" />
+                                    <CalendarDays class="w-3 h-3" aria-hidden="true" />
                                     {{ plan.days_count }} يوم
                                 </Badge>
                                 <Badge variant="outline" class="gap-1">
-                                    <Utensils class="w-3 h-3" />
+                                    <Utensils class="w-3 h-3" aria-hidden="true" />
                                     {{ plan.entries_count }} وجبة
                                 </Badge>
                             </div>
@@ -92,7 +92,7 @@ const props = defineProps<{
                             <!-- Author -->
                             <div v-if="plan.user" class="flex items-center gap-2 pt-2 border-t">
                                 <Avatar class="w-6 h-6">
-                                    <AvatarImage :src="plan.user.avatar_url || undefined" />
+                                    <AvatarImage :src="plan.user.avatar_url || undefined" :alt="plan.user.display_name" width="24" height="24" />
                                     <AvatarFallback class="text-xs">{{ plan.user.display_name.charAt(0) }}</AvatarFallback>
                                 </Avatar>
                                 <span class="text-sm text-muted-foreground">{{ plan.user.display_name }}</span>
@@ -104,8 +104,8 @@ const props = defineProps<{
 
             <!-- Empty State -->
             <div v-else class="text-center py-20">
-                <CalendarDays class="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 class="text-lg font-semibold mb-2">لا توجد خطط عامة بعد</h3>
+                <CalendarDays class="w-12 h-12 mx-auto mb-4 text-muted-foreground" aria-hidden="true" />
+                <h2 class="text-lg font-semibold mb-2">لا توجد خطط عامة بعد</h2>
                 <p class="text-muted-foreground mb-6">كن أول من يشارك خطة وجباته مع المجتمع</p>
             </div>
 

@@ -36,20 +36,19 @@ const getCardDimensions = () => {
     };
 };
 
-// Multiply recipes to create long strip for scrolling
+// Cap strip length to ~36-40 cards to avoid rendering hundreds of DOM nodes
+const MAX_STRIP_CARDS = 36;
 const displayRecipes = ref<Recipe[]>([]);
 
 watch(() => props.recipes, (newRecipes) => {
     if (newRecipes.length > 0) {
-        // Repeat enough times for smooth long spin
-        displayRecipes.value = [
-            ...newRecipes,
-            ...newRecipes,
-            ...newRecipes,
-            ...newRecipes,
-            ...newRecipes,
-            ...newRecipes,
-        ];
+        const strip: Recipe[] = [];
+        while (strip.length < MAX_STRIP_CARDS) {
+            strip.push(...newRecipes);
+        }
+        displayRecipes.value = strip.slice(0, MAX_STRIP_CARDS);
+    } else {
+        displayRecipes.value = [];
     }
 }, { immediate: true });
 
@@ -61,24 +60,35 @@ watch(() => props.spinning, (spinning) => {
 });
 
 const startSpin = () => {
-    if (props.recipes.length === 0) return;
+    if (props.recipes.length === 0 || displayRecipes.value.length === 0) return;
 
     const { width: CARD_WIDTH, gap: CARD_GAP } = getCardDimensions();
     const TOTAL_CARD_WIDTH = CARD_WIDTH + CARD_GAP;
 
-    isAnimating.value = true;
-
-    // Pick a random winner from the middle section (3rd or 4th repeat)
-    const minIndex = props.recipes.length * 2;
-    const maxIndex = props.recipes.length * 4;
+    // Pick a random winner from the middle-to-late section of the capped strip
+    const stripLength = displayRecipes.value.length;
+    const minIndex = Math.min(Math.floor(stripLength * 0.4), stripLength - 1);
+    const maxIndex = Math.max(minIndex + 1, Math.floor(stripLength * 0.8));
     const winningIndex = Math.floor(Math.random() * (maxIndex - minIndex)) + minIndex;
     const winningRecipe = displayRecipes.value[winningIndex];
 
     // Calculate exact position to center the winning card
     const containerWidth = containerRef.value?.offsetWidth || 600;
     const centerOffset = (containerWidth / 2) - (CARD_WIDTH / 2);
-    // In RTL, flex starts from right, so we need positive translateX to move content right (showing items further in the list)
     const targetPosition = (winningIndex * TOTAL_CARD_WIDTH) - centerOffset;
+
+    const prefersReducedMotion = typeof window !== 'undefined'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        scrollPosition.value = targetPosition;
+        isAnimating.value = false;
+        emit('spinComplete', winningRecipe);
+        return;
+    }
+
+    isAnimating.value = true;
 
     const startTime = performance.now();
     const duration = 5000; // 5 seconds spin
@@ -151,12 +161,14 @@ onUnmounted(() => {
                                 v-if="recipe.image_url" 
                                 :src="recipe.image_url" 
                                 :alt="recipe.name" 
-                                loading="lazy"
+                                width="220"
+                                height="144"
                                 decoding="async"
+                                fetchpriority="low"
                                 class="w-full h-full object-cover"
                             />
                             <div v-else class="flex h-full items-center justify-center text-muted-foreground">
-                                <ChefHat class="h-8 w-8 md:h-12 md:w-12 opacity-20" />
+                                <ChefHat class="h-8 w-8 md:h-12 md:w-12 opacity-20" aria-hidden="true" />
                             </div>
                         </div>
                         <CardContent class="p-2.5 md:p-3 text-center">

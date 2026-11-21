@@ -174,23 +174,25 @@ const getReportableLink = (report: AdminReport) => {
             <span class="font-medium text-sm">تم تحديد {{ selectedIds.length }} عنصر</span>
             <div class="flex gap-2">
                 <Button size="sm" variant="outline" @click="handleBulkStatus('fixed')" :disabled="isLoading">
-                    <CheckCircle class="ml-2 w-4 h-4" /> تم الحل
+                    <CheckCircle class="me-2 w-4 h-4" aria-hidden="true" /> تم الحل
                 </Button>
                 <Button size="sm" variant="outline" @click="handleBulkStatus('rejected')" :disabled="isLoading">
-                    <XCircle class="ml-2 w-4 h-4" /> رفض
+                    <XCircle class="me-2 w-4 h-4" aria-hidden="true" /> رفض
                 </Button>
                 <Button v-if="isAdmin" size="sm" variant="destructive" @click="handleBulkDelete" :disabled="isLoading">
-                    <Trash class="ml-2 w-4 h-4" /> حذف
+                    <Trash class="me-2 w-4 h-4" aria-hidden="true" /> حذف
                 </Button>
             </div>
         </div>
 
         <div class="rounded-md border">
-            <Table>
+            <Table aria-label="جدول البلاغات" :aria-busy="loading || undefined">
+                <caption class="sr-only">جدول البلاغات</caption>
                 <TableHeader>
                     <TableRow>
                         <TableHead class="w-12">
                             <Checkbox
+                                aria-label="تحديد جميع البلاغات"
                                 :checked="reports.length > 0 && selectedIds.length === reports.length"
                                 @update:checked="handleSelectAll"
                             />
@@ -200,7 +202,7 @@ const getReportableLink = (report: AdminReport) => {
                         <TableHead>النوع</TableHead>
                         <TableHead>الحالة</TableHead>
                         <TableHead>تاريخ البلاغ</TableHead>
-                        <TableHead class="text-left">الإجراءات</TableHead>
+                        <TableHead class="text-end">الإجراءات</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -218,6 +220,7 @@ const getReportableLink = (report: AdminReport) => {
                         <TableRow v-for="report in reports" :key="report.id">
                             <TableCell>
                                 <Checkbox
+                                    :aria-label="`تحديد البلاغ #${report.id}`"
                                     :checked="selectedIds.includes(report.id)"
                                     @update:checked="(c) => handleSelectOne(report.id, c)"
                                 />
@@ -225,9 +228,9 @@ const getReportableLink = (report: AdminReport) => {
                             <TableCell>
                                 <div class="flex items-center gap-2">
                                     <div v-if="report.user.avatar" class="w-8 h-8 rounded-full overflow-hidden">
-                                        <img :src="report.user.avatar" class="w-full h-full object-cover" />
+                                        <img :src="report.user.avatar" alt="" width="32" height="32" loading="lazy" decoding="async" class="w-full h-full object-cover" />
                                     </div>
-                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs">👤</div>
+                                    <div v-else class="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs" aria-hidden="true">👤</div>
                                     <div class="flex flex-col">
                                         <span class="text-sm font-medium">{{ report.user.name }}</span>
                                         <span class="text-xs text-muted-foreground">{{ report.user.email }}</span>
@@ -235,14 +238,14 @@ const getReportableLink = (report: AdminReport) => {
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <a v-if="report.reportable" :href="getReportableLink(report)" target="_blank" class="flex items-center gap-1 text-primary hover:underline text-sm">
+                                <a v-if="report.reportable" :href="getReportableLink(report)" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1 text-primary hover:underline text-sm">
                                     {{ report.reportable.name }}
-                                    <ExternalLink class="w-3 h-3" />
+                                    <ExternalLink class="w-3 h-3" aria-hidden="true" />
                                 </a>
                                 <span v-else class="text-muted-foreground text-sm">محتوى محذوف</span>
                             </TableCell>
                             <TableCell>
-                                <Badge variant="outline" class="text-[10px]">
+                                <Badge variant="outline" class="text-xs">
                                     {{ report.type === 'content_issue' ? 'مشكلة محتوى' : 'اقتراح' }}
                                 </Badge>
                             </TableCell>
@@ -251,7 +254,7 @@ const getReportableLink = (report: AdminReport) => {
                                     report.status === 'fixed' ? 'bg-green-100 text-green-800' :
                                     report.status === 'pending' ? 'bg-amber-100 text-amber-800' :
                                     'bg-red-100 text-red-800'
-                                ]" class="text-[10px]">
+                                ]" class="text-xs">
                                     {{ report.status === 'fixed' ? 'تم الحل' : report.status === 'pending' ? 'مراجعة' : 'مرفوض' }}
                                 </Badge>
                             </TableCell>
@@ -260,18 +263,18 @@ const getReportableLink = (report: AdminReport) => {
                             </TableCell>
                             <TableCell>
                                 <div class="flex justify-end gap-2">
-                                    <Button variant="ghost" size="icon" @click="openDetails(report)">
-                                        <MessageSquare class="w-4 h-4 text-blue-600" />
+                                    <Button variant="ghost" size="icon" :aria-label="`عرض تفاصيل البلاغ #${report.id}`" @click="openDetails(report)">
+                                        <MessageSquare class="w-4 h-4 text-blue-600" aria-hidden="true" />
                                     </Button>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal class="h-4 w-4" />
+                                            <Button variant="ghost" size="icon" :aria-label="`إجراءات البلاغ #${report.id}`">
+                                                <MoreHorizontal class="h-4 w-4" aria-hidden="true" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem @click="handleDeleteSingle(report)" class="text-red-600 focus:text-red-600">
-                                                <Trash class="h-4 w-4" /> حذف
+                                                <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -301,33 +304,33 @@ const getReportableLink = (report: AdminReport) => {
                 <div v-if="selectedReport" class="grid gap-6 py-4">
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <Label class="text-muted-foreground">المرسل:</Label>
+                            <span class="text-sm font-medium text-muted-foreground block">المرسل:</span>
                             <div class="font-medium">{{ selectedReport.user.name }}</div>
                         </div>
                         <div>
-                            <Label class="text-muted-foreground">التاريخ:</Label>
+                            <span class="text-sm font-medium text-muted-foreground block">التاريخ:</span>
                             <div class="font-medium">{{ formatRelativeTime(selectedReport.created_at) }}</div>
                         </div>
                         <div>
-                            <Label class="text-muted-foreground">النوع:</Label>
+                            <span class="text-sm font-medium text-muted-foreground block">النوع:</span>
                             <div class="font-medium">{{ selectedReport.type === 'content_issue' ? 'مشكلة محتوى' : 'اقتراح' }}</div>
                         </div>
                         <div>
-                            <Label class="text-muted-foreground">المحتوى:</Label>
+                            <span class="text-sm font-medium text-muted-foreground block">المحتوى:</span>
                             <div v-if="selectedReport.reportable">
-                                <a :href="getReportableLink(selectedReport)" target="_blank" class="text-primary hover:underline">{{ selectedReport.reportable.name }}</a>
+                                <a :href="getReportableLink(selectedReport)" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">{{ selectedReport.reportable.name }}</a>
                             </div>
                             <div v-else class="text-muted-foreground">محتوى محذوف</div>
                         </div>
                     </div>
 
                     <div class="bg-muted p-4 rounded-md">
-                        <Label class="mb-2 block">الرسالة:</Label>
+                        <span class="text-sm font-medium mb-2 block">الرسالة:</span>
                         <p class="text-sm whitespace-pre-wrap">{{ selectedReport.message }}</p>
                     </div>
 
                     <div class="space-y-4 border-t pt-4">
-                        <Label>إجراءات الإدارة</Label>
+                        <span class="text-sm font-medium block">إجراءات الإدارة</span>
 
                         <div class="grid grid-cols-3 gap-2">
                             <Button
@@ -356,16 +359,18 @@ const getReportableLink = (report: AdminReport) => {
                         </div>
 
                         <div class="space-y-2">
-                            <Label>ملاحظات إدارية (خاصة)</Label>
+                            <Label for="report-admin-note">ملاحظات إدارية (خاصة)</Label>
                             <Textarea
+                                id="report-admin-note"
                                 v-model="adminNote"
                                 placeholder="ملاحظات للفريق فقط..."
                             />
                         </div>
 
                         <div class="space-y-2">
-                            <Label>رد على المستخدم (سيظهر للمستخدم)</Label>
+                            <Label for="report-admin-reply">رد على المستخدم (سيظهر للمستخدم)</Label>
                             <Textarea
+                                id="report-admin-reply"
                                 v-model="adminReply"
                                 placeholder="اكتب رداً للمستخدم..."
                                 class="min-h-[100px]"
@@ -376,7 +381,7 @@ const getReportableLink = (report: AdminReport) => {
 
                 <DialogFooter>
                     <Button variant="outline" @click="detailDialogOpen = false">إغلاق</Button>
-                    <Button @click="handleSaveDetails" :disabled="isLoading">حفظ التغييرات</Button>
+                    <Button @click="handleSaveDetails" :disabled="isLoading" :aria-busy="isLoading || undefined">حفظ التغييرات</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

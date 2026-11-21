@@ -6,9 +6,12 @@ import { cn } from '@/lib/utils';
 import AddToFavoritesModal from '@/components/features/lists/AddToFavoritesModal.vue';
 import type { Recipe } from '@/types';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   recipe: Recipe;
-}>();
+  priority?: 'lcp' | 'eager' | 'lazy';
+}>(), {
+  priority: 'lazy',
+});
 
 const difficultyColors: Record<string, string> = {
   'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -39,81 +42,84 @@ const formatTimeNeeded = (time: any): string => {
 </script>
 
 <template>
-  <Link :href="`/recipes/${recipe.slug}`" class="block h-full">
-    <Card class="h-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer flex flex-col">
-      <!-- Image -->
-      <div class="relative aspect-video bg-muted overflow-hidden shrink-0">
-        <img
-          v-if="recipe.image_url"
-          :src="recipe.image_url"
-          :alt="recipe.name"
-          loading="lazy"
-          decoding="async"
-          width="640"
-          height="360"
-          class="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-        />
-        <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950">
-          <span class="text-5xl">🍽️</span>
+  <Card class="relative h-full overflow-hidden motion-safe:transition-[transform,box-shadow] duration-300 hover:shadow-xl motion-safe:hover:-translate-y-1 group cursor-pointer flex flex-col">
+    <!-- Image -->
+    <div class="relative aspect-video bg-muted overflow-hidden shrink-0">
+      <img
+        v-if="recipe.image_url"
+        :src="recipe.image_url"
+        :alt="recipe.name"
+        :loading="priority === 'lazy' ? 'lazy' : undefined"
+        :decoding="priority === 'lcp' ? undefined : 'async'"
+        :fetchpriority="priority === 'lcp' ? 'high' : undefined"
+        width="640"
+        height="360"
+        class="object-cover w-full h-full motion-safe:group-hover:scale-105 motion-safe:transition-transform duration-300"
+      />
+      <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950">
+        <span class="text-5xl" aria-hidden="true">🍽️</span>
+      </div>
+
+      <!-- Difficulty Badge -->
+      <Badge
+        :class="cn(
+          'absolute top-3 left-3',
+          difficultyColors[recipe.difficulty] || difficultyColors['متوسطة']
+        )"
+      >
+        {{ recipe.difficulty }}
+      </Badge>
+    </div>
+
+    <!-- Favorite Action -->
+    <div class="absolute top-3 right-3 z-10">
+      <div class="relative z-10">
+        <AddToFavoritesModal :recipe-id="recipe.id" variant="icon" />
+      </div>
+    </div>
+
+    <CardHeader class="pb-2">
+      <h3 class="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
+        <Link :href="`/recipes/${recipe.slug}`" prefetch class="after:absolute after:inset-0">
+          {{ recipe.name }}
+        </Link>
+      </h3>
+    </CardHeader>
+
+    <CardContent class="space-y-3 flex-1 flex flex-col justify-between">
+      <div class="space-y-2">
+        <!-- Meta Info -->
+        <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span v-if="recipe.city" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
+            <MapPin class="w-3 h-3 text-primary" aria-hidden="true" />
+            {{ recipe.city }}
+          </span>
+          <span v-if="recipe.time_needed" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
+            <Clock class="w-3 h-3 text-primary" aria-hidden="true" />
+            <span class="truncate max-w-[120px]">{{ formatTimeNeeded(recipe.time_needed) }}</span>
+          </span>
         </div>
 
-        <!-- Difficulty Badge -->
-        <Badge
-          :class="cn(
-            'absolute top-3 left-3',
-            difficultyColors[recipe.difficulty] || difficultyColors['متوسطة']
-          )"
-        >
-          {{ recipe.difficulty }}
-        </Badge>
-
-        <!-- Favorite Action -->
-        <div class="absolute top-3 right-3 z-10" @click.prevent.stop>
-            <AddToFavoritesModal :recipe-id="recipe.id" variant="icon" />
+        <!-- Tags -->
+        <div v-if="recipe.tags && recipe.tags.length > 0" class="flex flex-wrap gap-1">
+          <Badge 
+            v-for="tag in recipe.tags.slice(0, 3)" 
+            :key="tag.id" 
+            variant="secondary" 
+            class="text-xs px-1.5 py-0 min-h-5 font-normal bg-secondary/50"
+          >
+            {{ tag.name }}
+          </Badge>
+          <span v-if="recipe.tags.length > 3" class="text-xs text-muted-foreground self-center">
+            +{{ recipe.tags.length - 3 }}
+          </span>
         </div>
       </div>
 
-      <CardHeader class="pb-2">
-        <h3 class="font-bold text-lg line-clamp-1 group-hover:text-primary transition-colors">
-          {{ recipe.name }}
-        </h3>
-      </CardHeader>
-
-      <CardContent class="space-y-3 flex-1 flex flex-col justify-between">
-        <div class="space-y-2">
-          <!-- Meta Info -->
-          <div class="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-            <span v-if="recipe.city" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
-              <MapPin class="w-3 h-3 text-primary" />
-              {{ recipe.city }}
-            </span>
-            <span v-if="recipe.time_needed" class="flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-md">
-              <Clock class="w-3 h-3 text-primary" />
-              <span class="truncate max-w-[120px]">{{ formatTimeNeeded(recipe.time_needed) }}</span>
-            </span>
-          </div>
-
-          <!-- Tags -->
-          <div v-if="recipe.tags && recipe.tags.length > 0" class="flex flex-wrap gap-1">
-            <Badge 
-              v-for="tag in recipe.tags.slice(0, 3)" 
-              :key="tag.id" 
-              variant="secondary" 
-              class="text-[10px] px-1.5 py-0 h-5 font-normal bg-secondary/50"
-            >
-              {{ tag.name }}
-            </Badge>
-            <span v-if="recipe.tags.length > 3" class="text-[10px] text-muted-foreground self-center">
-              +{{ recipe.tags.length - 3 }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Author -->
-        <p class="text-xs text-muted-foreground pt-2 border-t border-border/50">
-          بواسطة <span class="text-foreground font-medium">{{ recipe.author_name }}</span>
-        </p>
-      </CardContent>
-    </Card>
-  </Link>
+      <!-- Author -->
+      <p class="text-xs text-muted-foreground pt-2 border-t border-border/50">
+        بواسطة <span class="text-foreground font-medium">{{ recipe.author_name }}</span>
+      </p>
+    </CardContent>
+  </Card>
 </template>

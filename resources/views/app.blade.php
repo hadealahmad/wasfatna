@@ -3,13 +3,19 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <!-- Pre-paint dark mode script to prevent FOUC -->
-        <script>
+        <script nonce="{{ $cspNonce ?? '' }}">
             (function() {
                 try {
-                    if (localStorage.getItem('vueuse-color-scheme') === 'dark') {
+                    var s = localStorage.getItem('color-scheme') || localStorage.getItem('vueuse-color-scheme');
+                    var meta = document.querySelector('meta[name="color-scheme"]');
+                    if (s === 'light' || s === 'dark') {
+                        if (meta) meta.setAttribute('content', s);
+                    }
+                    if (s === 'dark' || ((!s || s === 'auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                         document.documentElement.classList.add('dark');
                     }
                 } catch (e) {}
@@ -45,26 +51,29 @@
 
         <title inertia>وصفاتنا</title>
 
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JKT27FY67J"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-JKT27FY67J');
-        </script>
-
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
         <!-- Scripts -->
-        @routes
+        @routes(nonce: $cspNonce ?? '')
         @vite(['resources/js/app.ts', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
         @inertia
+
+        @unless(request()->is('login', 'settings', 'dashboard*', 'meal-plans/shared*'))
+            <!-- Google tag (gtag.js) -->
+            <script async fetchpriority="low" referrerpolicy="no-referrer" nonce="{{ $cspNonce ?? '' }}" src="https://www.googletagmanager.com/gtag/js?id=G-JKT27FY67J"></script>
+            <script nonce="{{ $cspNonce ?? '' }}">
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-JKT27FY67J');
+            </script>
+        @endunless
     </body>
 </html>
