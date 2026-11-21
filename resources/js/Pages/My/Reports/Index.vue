@@ -21,8 +21,7 @@ defineProps<{
 
 const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-        case 'fixed': return 'default'; // Using default (primary) for success? Or maybe create a custom class.
-        // Shadcn badge variants: default, secondary, destructive, outline.
+        case 'fixed': return 'success';
         case 'rejected': return 'destructive';
         default: return 'secondary';
     }
@@ -69,7 +68,7 @@ const getReportableLink = (report: any) => {
                          <div class="flex justify-between items-start">
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 mb-2">
-                                    <Badge :variant="getStatusBadgeVariant(report.status)" :class="{'bg-green-500 hover:bg-green-600 border-transparent text-primary-foreground': report.status === 'fixed'}">
+                                    <Badge :variant="getStatusBadgeVariant(report.status)">
                                         {{ getStatusLabel(report.status) }}
                                     </Badge>
                                     <Badge variant="outline">{{ getTypeLabel(report.type) }}</Badge>
@@ -79,13 +78,13 @@ const getReportableLink = (report: any) => {
                                         بخصوص: 
                                         <Link :href="getReportableLink(report)" class="text-primary hover:underline inline-flex items-center gap-1" v-if="getReportableLink(report)">
                                             {{ report.reportable.name }}
-                                            <ExternalLink class="w-3 h-3" />
+                                            <ExternalLink class="w-3 h-3" aria-hidden="true" />
                                         </Link>
                                         <span v-else class="text-muted-foreground">محتوى غير متاح</span>
                                     </span>
                                     <span v-else class="text-muted-foreground">بخصوص: محتوى محذوف</span>
                                 </CardTitle>
-                                <CardDescription>
+                                <CardDescription class="tabular-nums">
                                     {{ new Date(report.created_at).toLocaleDateString('ar-SY') }}
                                 </CardDescription>
                             </div>
@@ -96,12 +95,12 @@ const getReportableLink = (report: any) => {
                             {{ report.message }}
                         </div>
 
-                        <div v-if="report.admin_reply" class="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-md border border-blue-100 dark:border-blue-900">
-                            <h2 class="font-semibold text-sm text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-2">
+                        <div v-if="report.admin_reply" class="bg-info/10 p-4 rounded-md border border-info/30">
+                            <h2 class="font-semibold text-sm text-info mb-1 flex items-center gap-2">
                                 <AlertCircle class="w-4 h-4" aria-hidden="true" />
                                 رد الإدارة
                             </h2>
-                            <p class="text-sm text-blue-900 dark:text-blue-200">
+                            <p class="text-sm text-foreground">
                                 {{ report.admin_reply }}
                             </p>
                         </div>

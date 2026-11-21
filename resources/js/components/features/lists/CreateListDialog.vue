@@ -61,7 +61,7 @@ const handleSubmit = () => {
                         placeholder="مثال: وصفات الفطور"
                         required
                     />
-                    <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
+                    <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
                 </div>
                 <div class="space-y-2">
                     <Label htmlFor="description">وصف (اختياري)</Label>
@@ -70,7 +70,7 @@ const handleSubmit = () => {
                         v-model="form.description"
                         placeholder="وصف مختصر للقائمة..."
                     />
-                     <div v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</div>
+                     <div v-if="form.errors.description" class="text-sm text-destructive">{{ form.errors.description }}</div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <Button type="button" variant="ghost" @click="open = false">

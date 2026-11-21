@@ -57,12 +57,12 @@ const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
                 </div>
 
                 <!-- Status Badges -->
-                <div class="absolute top-3 left-3 flex gap-1">
+                <div class="absolute top-3 end-3 flex gap-1">
                     <Badge v-if="list.is_public && list.status === 'approved'" variant="secondary" class="bg-background/80 backdrop-blur-sm gap-1">
-                        <Globe class="w-3 h-3 text-green-600" aria-hidden="true" />
+                        <Globe class="w-3 h-3 text-success" aria-hidden="true" />
                         <span class="text-xs">عامة</span>
                     </Badge>
-                    <Badge v-if="list.is_public && list.status === 'review'" variant="secondary" class="bg-yellow-100/90 text-yellow-800 gap-1">
+                    <Badge v-if="list.is_public && list.status === 'review'" variant="secondary" class="bg-card/90 backdrop-blur-sm border-warning/40 text-warning gap-1">
                         <AlertCircle class="w-3 h-3" aria-hidden="true" />
                         <span class="text-xs">قيد المراجعة</span>
                     </Badge>
@@ -73,7 +73,7 @@ const coverImage = props.list.cover_image || props.list.recipes?.[0]?.image_url;
                 </div>
 
                 <!-- Recipe Count -->
-                <div class="absolute bottom-3 right-3 bg-black/60 text-white px-2 py-1 rounded text-xs backdrop-blur-sm">
+                <div class="absolute bottom-3 start-3 bg-black/60 text-white px-2 py-1 rounded text-xs backdrop-blur-sm tabular-nums">
                     {{ list.recipes_count || 0 }} وصفة
                 </div>
             </div>

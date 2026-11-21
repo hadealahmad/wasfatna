@@ -250,11 +250,7 @@ const getReportableLink = (report: AdminReport) => {
                                 </Badge>
                             </TableCell>
                             <TableCell>
-                                <Badge :class="[
-                                    report.status === 'fixed' ? 'bg-green-100 text-green-800' :
-                                    report.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                    'bg-red-100 text-red-800'
-                                ]" class="text-xs">
+                                <Badge :variant="report.status === 'fixed' ? 'success' : report.status === 'pending' ? 'warning' : 'destructive'" class="text-xs">
                                     {{ report.status === 'fixed' ? 'تم الحل' : report.status === 'pending' ? 'مراجعة' : 'مرفوض' }}
                                 </Badge>
                             </TableCell>
@@ -264,7 +260,7 @@ const getReportableLink = (report: AdminReport) => {
                             <TableCell>
                                 <div class="flex justify-end gap-2">
                                     <Button variant="ghost" size="icon" :aria-label="`عرض تفاصيل البلاغ #${report.id}`" @click="openDetails(report)">
-                                        <MessageSquare class="w-4 h-4 text-blue-600" aria-hidden="true" />
+                                        <MessageSquare class="w-4 h-4 text-info" aria-hidden="true" />
                                     </Button>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
@@ -273,7 +269,7 @@ const getReportableLink = (report: AdminReport) => {
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem @click="handleDeleteSingle(report)" class="text-red-600 focus:text-red-600">
+                                            <DropdownMenuItem @click="handleDeleteSingle(report)" class="text-destructive focus:text-destructive">
                                                 <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -344,15 +340,14 @@ const getReportableLink = (report: AdminReport) => {
                                 :variant="navAction === 'fixed' ? 'default' : 'outline'"
                                 @click="navAction = 'fixed'"
                                 size="sm"
-                                :class="navAction === 'fixed' ? 'bg-green-600 hover:bg-green-700' : ''"
+                                :class="navAction === 'fixed' ? 'bg-success text-success-foreground hover:bg-success/90' : ''"
                             >
                                 تم الحل
                             </Button>
                             <Button
-                                :variant="navAction === 'rejected' ? 'default' : 'outline'"
+                                :variant="navAction === 'rejected' ? 'destructive' : 'outline'"
                                 @click="navAction = 'rejected'"
                                 size="sm"
-                                :class="navAction === 'rejected' ? 'bg-red-600 hover:bg-red-700' : ''"
                             >
                                 مرفوض
                             </Button>

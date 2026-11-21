@@ -221,7 +221,7 @@ const handleDeleteSingle = (tag: Tag) => {
                             <TableCell class="font-medium">
                                 {{ tag.name }}
                             </TableCell>
-                            <TableCell>
+                            <TableCell class="tabular-nums">
                                 {{ tag.recipes_count }}
                             </TableCell>
                             <TableCell>
@@ -235,7 +235,7 @@ const handleDeleteSingle = (tag: Tag) => {
                                         <DropdownMenuItem @click="handleOpenEdit(tag)">
                                             <Edit class="h-4 w-4" aria-hidden="true" /> تعديل
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleDeleteSingle(tag)" class="text-red-600 focus:text-red-600">
+                                        <DropdownMenuItem @click="handleDeleteSingle(tag)" class="text-destructive focus:text-destructive">
                                             <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -275,7 +275,7 @@ const handleDeleteSingle = (tag: Tag) => {
                             :aria-describedby="nameError ? 'tag-name-error' : undefined"
                             @input="nameError = ''"
                         />
-                        <p v-if="nameError" id="tag-name-error" class="text-sm text-red-600 dark:text-red-400">{{ nameError }}</p>
+                        <p v-if="nameError" id="tag-name-error" class="text-sm text-destructive">{{ nameError }}</p>
                     </div>
                 </div>
                 <DialogFooter>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui';
+import { Avatar, AvatarFallback, AvatarImage, Badge } from '@/components/ui';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
 import { formatPaginationLabel } from '@/lib/utils';
 
@@ -45,9 +45,9 @@ const props = defineProps<{
                             </AvatarFallback>
                         </Avatar>
                         <h1 class="text-3xl md:text-4xl font-bold mb-2 tracking-tight">{{ profile.name }}</h1>
-                        <div class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground">
+                        <Badge variant="outline" class="tabular-nums">
                             {{ profile.recipes_count }} وصفة
-                        </div>
+                        </Badge>
                     </div>
                 </div>
             </section>

@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { Link, Head, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Badge, Card, CardContent, CardHeader, CardTitle, Button, Avatar, AvatarImage, AvatarFallback } from '@/components/ui';
+import { Badge, Card, CardContent, CardHeader, CardTitle, Button, Avatar, AvatarImage, AvatarFallback, Alert, AlertDescription } from '@/components/ui';
 import { MapPin, Clock, Utensils, Tag as TagIcon, Info } from 'lucide-vue-next';
 import { cn, safeJsonLd } from '@/lib/utils';
 import AddRecipeButton from '@/components/recipes/AddRecipeButton.vue';
@@ -49,13 +49,13 @@ const user = computed(() => page.props.auth?.user);
 
 const getDifficultyColor = (difficulty: string) => {
   const colors: Record<string, string> = {
-    'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'سهلة': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'متوسطة': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    'صعبة': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-    'صعبة جداً': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    'سهلة جداً': 'bg-success/15 text-success border-success/30',
+    'سهلة': 'bg-success/15 text-success border-success/30',
+    'متوسطة': 'bg-warning/15 text-warning border-warning/30',
+    'صعبة': 'bg-chart-6/15 text-chart-6 border-chart-6/30',
+    'صعبة جداً': 'bg-destructive/15 text-destructive border-destructive/30',
   };
-  return colors[difficulty] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
+  return colors[difficulty] || 'bg-secondary text-secondary-foreground border-transparent';
 };
 
 const formatTimeNeeded = (time: any) => {
@@ -395,7 +395,7 @@ const breadcrumbSchema = computed(() => {
                 height="675"
                 class="w-full h-full object-cover"
               />
-              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
+              <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-muted to-accent">
                 <span class="text-9xl" aria-hidden="true">🍽️</span>
               </div>
             </div>
@@ -410,15 +410,15 @@ const breadcrumbSchema = computed(() => {
             </div>
 
             <!-- Variations Alert -->
-            <div v-if="has_variations" class="mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800 flex items-start gap-3">
-              <Info class="w-5 h-5 text-amber-700 dark:text-amber-300 shrink-0 mt-0.5" aria-hidden="true" />
-              <p class="text-amber-800 dark:text-amber-200">
+            <Alert v-if="has_variations" variant="warning" class="mb-4">
+              <Info class="w-4 h-4" aria-hidden="true" />
+              <AlertDescription class="tabular-nums">
                 يوجد {{ variations_count }} طريقة أخرى لتحضير هذا الطبق!
-                <Link :href="`/recipes/${recipe.slug}/variations`" class="font-semibold underline">
+                <Link :href="`/recipes/${recipe.slug}/variations`" class="font-semibold underline underline-offset-4">
                   شاهد جميع الطرق
                 </Link>
-              </p>
-            </div>
+              </AlertDescription>
+            </Alert>
 
             <!-- Meta Info -->
             <div class="flex flex-col gap-4 mb-6">
@@ -426,13 +426,13 @@ const breadcrumbSchema = computed(() => {
               <div v-if="recipe.city || (recipe.tags && recipe.tags.length)" class="flex flex-wrap items-center gap-2 text-sm">
                 <Link v-if="recipe.city" :href="`/cities/${recipe.city.slug || recipe.city_slug}`">
                   <Badge variant="secondary" class="cursor-pointer hover:bg-muted gap-1 px-3 py-1 bg-muted/50 border-muted-foreground/20">
-                    <MapPin class="w-3.5 h-3.5" />
+                    <MapPin class="w-3.5 h-3.5" aria-hidden="true" />
                     {{ recipe.city.name }}
                   </Badge>
                 </Link>
                 <Link v-for="tag in recipe.tags" :key="tag.id" :href="`/search?tags=${tag.slug}`">
                   <Badge variant="outline" class="cursor-pointer hover:bg-muted gap-1 px-3 py-1 border-muted-foreground/20">
-                    <TagIcon class="w-3.5 h-3.5" />
+                    <TagIcon class="w-3.5 h-3.5" aria-hidden="true" />
                     {{ tag.name }}
                   </Badge>
                 </Link>
@@ -441,8 +441,8 @@ const breadcrumbSchema = computed(() => {
               <!-- Time & Servings -->
               <div v-if="recipe.time_needed || recipe.servings" class="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <div v-if="recipe.time_needed" class="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                  <Clock class="w-4 h-4 text-primary" />
-                  <div class="flex gap-1.5 flex-wrap">
+                  <Clock class="w-4 h-4 text-primary" aria-hidden="true" />
+                  <div class="flex gap-1.5 flex-wrap tabular-nums">
                     <template v-if="Array.isArray(formatTimeNeeded(recipe.time_needed))">
                       <span 
                         v-for="(time, idx) in formatTimeNeeded(recipe.time_needed)" 
@@ -456,8 +456,8 @@ const breadcrumbSchema = computed(() => {
                   </div>
                 </div>
                 <div v-if="recipe.servings" class="flex items-center gap-2 bg-muted/30 px-3 py-1.5 rounded-full border border-border/50">
-                  <Utensils class="w-4 h-4 text-primary" />
-                  <span class="font-medium">{{ recipe.servings }}{{ String(recipe.servings).includes('شخص') ? '' : ' أشخاص' }}</span>
+                  <Utensils class="w-4 h-4 text-primary" aria-hidden="true" />
+                  <span class="font-medium tabular-nums">{{ recipe.servings }}{{ String(recipe.servings).includes('شخص') ? '' : ' أشخاص' }}</span>
                 </div>
                 <Badge :class="cn('ms-auto', getDifficultyColor(recipe.difficulty))">
                   {{ recipe.difficulty }}
@@ -549,7 +549,7 @@ const breadcrumbSchema = computed(() => {
                     <h4 v-if="group.name" class="font-semibold text-lg mb-4 text-primary">{{ group.name }}</h4>
                     <ol class="space-y-4">
                       <li v-for="(step, idx) in group.items" :key="idx" class="flex gap-4">
-                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm tabular-nums">
                           {{ idx + 1 }}
                         </span>
                         <p class="pt-1">{{ typeof step === 'string' ? step : (step.text || step.name || step) }}</p>

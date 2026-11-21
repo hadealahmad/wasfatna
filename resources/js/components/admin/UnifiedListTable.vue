@@ -193,17 +193,17 @@ const handleUpdateStatus = (list: List, status: string) => {
                                 <div class="flex items-center gap-2 justify-end">
                                     <span class="text-sm">{{ list.user?.name }}</span>
                                     <img v-if="list.user?.avatar" :src="list.user.avatar" alt="" width="24" height="24" loading="lazy" decoding="async" class="w-6 h-6 rounded-full object-cover" />
-                                    <div v-else class="w-6 h-6 rounded-full bg-gray-300" aria-hidden="true" />
+                                    <div v-else class="w-6 h-6 rounded-full bg-muted" aria-hidden="true" />
                                 </div>
                             </TableCell>
                             <TableCell>
-                                <Badge v-if="list.status === 'approved'" class="bg-green-100 text-green-800">منشورة</Badge>
-                                <Badge v-else-if="list.status === 'review'" class="bg-amber-100 text-amber-800">بانتظار الموافقة</Badge>
-                                <Badge v-else-if="list.status === 'rejected'" class="bg-red-100 text-red-800">مرفوضة</Badge>
-                                <Badge v-else-if="list.status === 'private'" class="bg-gray-100 text-gray-800">خاصة</Badge>
+                                <Badge v-if="list.status === 'approved'" variant="success">منشورة</Badge>
+                                <Badge v-else-if="list.status === 'review'" variant="warning">بانتظار الموافقة</Badge>
+                                <Badge v-else-if="list.status === 'rejected'" variant="destructive">مرفوضة</Badge>
+                                <Badge v-else-if="list.status === 'private'" variant="secondary">خاصة</Badge>
                             </TableCell>
                             <TableCell>
-                                <Badge variant="outline">{{ list.recipes_count }}</Badge>
+                                <Badge variant="outline" class="tabular-nums">{{ list.recipes_count }}</Badge>
                             </TableCell>
                             <TableCell class="text-sm text-muted-foreground">
                                 {{ formatRelativeTime(list.updated_at) }}
@@ -220,7 +220,7 @@ const handleUpdateStatus = (list: List, status: string) => {
                                             <DropdownMenuItem @click="handleUpdateStatus(list, 'approved')">
                                                 <CheckCircle class="h-4 w-4 me-2" aria-hidden="true" /> موافقة
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem @click="handleUpdateStatus(list, 'rejected')" class="text-red-600">
+                                            <DropdownMenuItem @click="handleUpdateStatus(list, 'rejected')" class="text-destructive focus:text-destructive">
                                                 <XCircle class="h-4 w-4 me-2" aria-hidden="true" /> رفض
                                             </DropdownMenuItem>
                                         </template>
@@ -234,7 +234,7 @@ const handleUpdateStatus = (list: List, status: string) => {
                                                 <CheckCircle class="h-4 w-4 me-2" aria-hidden="true" /> نشر
                                             </DropdownMenuItem>
                                         </template>
-                                        <DropdownMenuItem @click="handleDelete(list)" class="text-red-600 focus:text-red-600">
+                                        <DropdownMenuItem @click="handleDelete(list)" class="text-destructive focus:text-destructive">
                                             <Trash class="h-4 w-4 me-2" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>

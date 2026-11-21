@@ -137,7 +137,7 @@ const getSelectedTagName = () => {
               variant="outline"
               role="combobox"
               aria-label="تصفية حسب المدينة"
-              class="h-12 justify-between bg-background font-normal w-full md:w-48 text-right flex-row-reverse"
+              class="h-12 justify-between bg-background font-normal w-full md:w-48 text-start"
               :class="{ 'md:flex-1': showSearchButton }"
             >
               <span class="truncate">{{ getSelectedCityName() }}</span>
@@ -146,27 +146,27 @@ const getSelectedTagName = () => {
           </PopoverTrigger>
           <PopoverContent class="w-[200px] p-0" align="end">
             <Command>
-              <CommandInput placeholder="بحث عن مدينة..." class="text-right" dir="rtl" />
+              <CommandInput placeholder="بحث عن مدينة..." class="text-start" dir="rtl" />
               <CommandList>
                 <CommandEmpty>لم يتم العثور على نتائج.</CommandEmpty>
                 <CommandGroup>
                   <CommandItem
                     value="all"
                     @select="city = 'all'; isCityOpen = false; onFilterChange()"
-                    class="text-right flex-row-reverse cursor-pointer"
+                    class="text-start justify-between cursor-pointer"
                   >
                     <span>كل المدن</span>
-                    <Check :class="cn('h-4 w-4 ml-2', city === 'all' || !city ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
+                    <Check :class="cn('h-4 w-4 ms-2', city === 'all' || !city ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
                   </CommandItem>
                   <CommandItem
                     v-for="c in cities"
                     :key="c.id"
                     :value="c.name"
                     @select="city = String(c.id); isCityOpen = false; onFilterChange()"
-                    class="text-right flex-row-reverse cursor-pointer"
+                    class="text-start justify-between cursor-pointer"
                   >
                     <span>{{ c.name }}</span>
-                    <Check :class="cn('h-4 w-4 ml-2', String(city) === String(c.id) ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
+                    <Check :class="cn('h-4 w-4 ms-2', String(city) === String(c.id) ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -182,7 +182,7 @@ const getSelectedTagName = () => {
               variant="outline"
               role="combobox"
               aria-label="تصفية حسب الوسم"
-              class="h-12 justify-between bg-background font-normal w-full md:w-48 text-right flex-row-reverse"
+              class="h-12 justify-between bg-background font-normal w-full md:w-48 text-start"
               :class="{ 'md:flex-1': showSearchButton }"
             >
               <span class="truncate">{{ getSelectedTagName() }}</span>
@@ -191,27 +191,27 @@ const getSelectedTagName = () => {
           </PopoverTrigger>
           <PopoverContent class="w-[200px] p-0" align="end">
             <Command>
-              <CommandInput placeholder="بحث عن وسم..." class="text-right" dir="rtl" />
+              <CommandInput placeholder="بحث عن وسم..." class="text-start" dir="rtl" />
               <CommandList>
                 <CommandEmpty>لم يتم العثور على نتائج.</CommandEmpty>
                 <CommandGroup>
                   <CommandItem
                     value="all"
                     @select="tag = 'all'; isTagOpen = false; onFilterChange()"
-                    class="text-right flex-row-reverse cursor-pointer"
+                    class="text-start justify-between cursor-pointer"
                   >
                     <span>كل الوسوم</span>
-                    <Check :class="cn('h-4 w-4 ml-2', tag === 'all' || !tag ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
+                    <Check :class="cn('h-4 w-4 ms-2', tag === 'all' || !tag ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
                   </CommandItem>
                   <CommandItem
                     v-for="t in tags"
                     :key="t.id"
                     :value="t.name"
                     @select="tag = String(t.id); isTagOpen = false; onFilterChange()"
-                    class="text-right flex-row-reverse cursor-pointer"
+                    class="text-start justify-between cursor-pointer"
                   >
                     <span>{{ t.name }}</span>
-                    <Check :class="cn('h-4 w-4 ml-2', String(tag) === String(t.id) ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
+                    <Check :class="cn('h-4 w-4 ms-2', String(tag) === String(t.id) ? 'opacity-100' : 'opacity-0')" aria-hidden="true" />
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
@@ -221,11 +221,11 @@ const getSelectedTagName = () => {
         
         <!-- Difficulty Filter -->
          <Select v-model="difficulty" @update:modelValue="onFilterChange()">
-            <SelectTrigger aria-label="تصفية حسب مستوى الصعوبة" class="h-12 bg-background w-full md:w-48 text-right flex-row-reverse" :class="{ 'md:flex-1': showSearchButton }">
+            <SelectTrigger aria-label="تصفية حسب مستوى الصعوبة" class="h-12 bg-background w-full md:w-48 text-start" :class="{ 'md:flex-1': showSearchButton }">
                 <SelectValue placeholder="مستوى الصعوبة" />
             </SelectTrigger>
             <SelectContent>
-                <SelectItem v-for="d in difficulties" :key="d.value" :value="d.value" class="text-right flex-row-reverse cursor-pointer">
+                <SelectItem v-for="d in difficulties" :key="d.value" :value="d.value" class="text-start cursor-pointer">
                     {{ d.label }}
                 </SelectItem>
             </SelectContent>

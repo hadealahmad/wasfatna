@@ -89,7 +89,7 @@ const breadcrumbSchema = computed(() => ({
     <section class="border-b bg-background py-16 md:py-24">
       <div class="container mx-auto px-4 md:px-6 text-center">
         <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-6 text-primary">
-          <MapPin class="w-10 h-10" />
+          <MapPin class="w-10 h-10" aria-hidden="true" />
         </div>
         <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
           وصفات {{ city.name }}
@@ -97,7 +97,7 @@ const breadcrumbSchema = computed(() => ({
         <p class="mx-auto max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-4">
           {{ cityDescription }}
         </p>
-        <Badge variant="outline" class="text-sm">
+        <Badge variant="outline" class="text-sm tabular-nums">
           {{ recipes.meta?.total || recipes.data.length }} وصفة
         </Badge>
       </div>

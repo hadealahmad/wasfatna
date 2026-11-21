@@ -73,8 +73,8 @@ class SecurityHeaders
                 "object-src 'none'",
                 "base-uri 'none'",
                 "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* https:",
-                "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://fonts.googleapis.com{$extraOriginsString}",
-                "font-src 'self' https://fonts.gstatic.com data:{$extraOriginsString}",
+                "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:*{$extraOriginsString}",
+                "font-src 'self' data:{$extraOriginsString}",
                 "img-src 'self' data: blob: https:",
                 "connect-src 'self' ws://localhost:* ws://127.0.0.1:* http://localhost:* http://127.0.0.1:* {$analyticsConnect}{$extraOriginsString}",
             ];
@@ -84,8 +84,8 @@ class SecurityHeaders
                 "object-src 'none'",
                 "base-uri 'none'",
                 "script-src 'nonce-{$nonce}' 'strict-dynamic' https: 'unsafe-inline'",
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com{$extraOriginsString}",
-                "font-src 'self' https://fonts.gstatic.com data:{$extraOriginsString}",
+                "style-src 'self' 'unsafe-inline'{$extraOriginsString}",
+                "font-src 'self' data:{$extraOriginsString}",
                 "img-src 'self' data: blob: https:",
                 "connect-src 'self' {$analyticsConnect}{$extraOriginsString}",
             ];

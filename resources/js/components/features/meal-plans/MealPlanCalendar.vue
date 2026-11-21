@@ -133,7 +133,7 @@ const handleEntryToggled = (entryId: number, isDone: boolean) => {
     if (entry) entry.is_done = isDone;
 };
 
-const dotColors = ['bg-sky-500', 'bg-amber-500', 'bg-violet-500', 'bg-rose-400', 'bg-emerald-500', 'bg-orange-500'];
+const dotColors = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5', 'bg-chart-6'];
 const getDotColor = (mealType: string) => {
     let hash = 0;
     for (let i = 0; i < mealType.length; i++) hash = mealType.charCodeAt(i) + ((hash << 5) - hash);
@@ -193,7 +193,7 @@ onMounted(() => {
                     @click="selectDay(day)"
                     :disabled="!day.inRange"
                     :class="[
-                        'relative p-1 md:p-1.5 min-h-12 md:min-h-22 transition-colors duration-100 text-right',
+                        'relative p-1 md:p-1.5 min-h-12 md:min-h-22 transition-colors duration-100 text-start',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset',
                         day.inRange && selectedDate !== day.date && !day.isToday ? 'bg-card' : '',
                         !day.inRange ? 'bg-muted/30' : '',
@@ -203,7 +203,7 @@ onMounted(() => {
                     ]"
                 >
                     <span :class="[
-                        'inline-flex items-center justify-center rounded-full text-xs md:text-sm leading-none',
+                        'inline-flex items-center justify-center rounded-full text-xs md:text-sm leading-none tabular-nums',
                         'w-6 h-6 md:w-7 md:h-7',
                         day.isToday ? 'bg-primary text-primary-foreground font-bold' : '',
                         !day.isToday && day.inRange ? 'text-foreground font-medium' : '',

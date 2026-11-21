@@ -71,7 +71,7 @@ onUnmounted(() => {
             rel="noopener noreferrer"
             variant="outline"
             size="sm"
-            :class="['gap-1.5 text-green-600 hover:text-green-700', !whatsappUrl && 'pointer-events-none opacity-50']"
+            :class="['gap-1.5 text-success hover:text-success/80', !whatsappUrl && 'pointer-events-none opacity-50']"
             :aria-disabled="!whatsappUrl || undefined"
         >
             <Share2 class="h-3.5 w-3.5" aria-hidden="true" />

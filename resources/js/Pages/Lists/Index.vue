@@ -32,8 +32,8 @@ defineProps<{
 
       <!-- Empty State -->
       <div v-if="lists.data.length === 0" class="flex flex-col items-center justify-center py-16 text-center space-y-6 border-2 border-dashed rounded-3xl bg-muted/20">
-        <div class="bg-red-100 dark:bg-red-900/30 p-4 rounded-full">
-          <Heart class="w-12 h-12 text-red-500 fill-red-500" />
+        <div class="bg-destructive/10 p-4 rounded-full">
+          <Heart class="w-12 h-12 text-destructive fill-destructive" aria-hidden="true" />
         </div>
         <div class="max-w-md space-y-2">
           <h2 class="text-2xl font-bold">لا توجد قوائم عامة بعد</h2>
@@ -84,7 +84,7 @@ defineProps<{
                     </CardContent>
                     
                     <CardFooter class="p-4 pt-2">
-                        <Badge variant="secondary">{{ list.recipes_count || 0 }} وصفة</Badge>
+                        <Badge variant="secondary" class="tabular-nums">{{ list.recipes_count || 0 }} وصفة</Badge>
                     </CardFooter>
               </Card>
           </Link>

@@ -176,14 +176,14 @@ const handleDelete = (recipe: AdminRecipe) => {
     });
 };
 
-const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-        approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-        pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-        rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-        unpublished: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
+const getStatusVariant = (status: string): 'success' | 'warning' | 'destructive' | 'secondary' => {
+    const variants: Record<string, 'success' | 'warning' | 'destructive' | 'secondary'> = {
+        approved: 'success',
+        pending: 'warning',
+        rejected: 'destructive',
+        unpublished: 'secondary',
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return variants[status] || 'secondary';
 };
 
 const getStatusLabel = (status: string) => {
@@ -307,7 +307,7 @@ const getStatusLabel = (status: string) => {
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" class="h-auto p-0 hover:bg-transparent">
-                                            <Badge :class="getStatusColor(recipe.status)">{{ getStatusLabel(recipe.status) }}</Badge>
+                                            <Badge :variant="getStatusVariant(recipe.status)">{{ getStatusLabel(recipe.status) }}</Badge>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
@@ -348,7 +348,7 @@ const getStatusLabel = (status: string) => {
                                         </DropdownMenuItem>
                                         <template v-if="isAdmin">
                                             <DropdownMenuSeparator />
-                                            <DropdownMenuItem @click="handleDelete(recipe)" class="text-red-600 focus:text-red-600">
+                                            <DropdownMenuItem @click="handleDelete(recipe)" class="text-destructive focus:text-destructive">
                                                 <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                             </DropdownMenuItem>
                                         </template>
@@ -386,7 +386,7 @@ const getStatusLabel = (status: string) => {
                         :aria-describedby="rejectError ? 'reject-reason-error' : undefined"
                         @input="rejectError = ''"
                     />
-                    <p v-if="rejectError" id="reject-reason-error" class="text-sm text-red-600 dark:text-red-400">{{ rejectError }}</p>
+                    <p v-if="rejectError" id="reject-reason-error" class="text-sm text-destructive">{{ rejectError }}</p>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" @click="rejectDialogOpen = false">إلغاء</Button>

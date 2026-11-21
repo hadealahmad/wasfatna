@@ -89,8 +89,8 @@ const handleUnpublish = () => {
 <template>
     <div v-if="isOwner" class="flex items-center gap-2">
         <!-- Share Button -->
-        <Button variant="outline" size="icon" @click="handleShare" title="مشاركة">
-            <Share class="w-4 h-4" />
+        <Button variant="outline" size="icon" @click="handleShare" title="مشاركة" aria-label="مشاركة القائمة">
+            <Share class="w-4 h-4" aria-hidden="true" />
         </Button>
 
         <!-- Edit Button -->
@@ -124,10 +124,10 @@ const handleUnpublish = () => {
         <Button 
             v-if="list.is_public && list.status === 'approved'"
             variant="secondary" 
-            class="gap-2 text-orange-600 hover:text-orange-700" 
+            class="gap-2 text-warning hover:text-warning/80" 
             @click="unpublishConfirmOpen = true"
         >
-            <Upload class="w-4 h-4 rotate-180" />
+            <Upload class="w-4 h-4 rotate-180" aria-hidden="true" />
             إلغاء النشر
         </Button>
 
@@ -156,7 +156,7 @@ const handleUnpublish = () => {
                             v-model="form.name"
                             required
                         />
-                        <div v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</div>
+                        <div v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</div>
                     </div>
                     <div class="space-y-2">
                         <Label htmlFor="edit-description">وصف</Label>
@@ -164,7 +164,7 @@ const handleUnpublish = () => {
                             id="edit-description"
                             v-model="form.description"
                         />
-                         <div v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</div>
+                         <div v-if="form.errors.description" class="text-sm text-destructive">{{ form.errors.description }}</div>
                     </div>
                      <div class="flex items-center gap-2 py-2">
                         <Button 
@@ -173,8 +173,8 @@ const handleUnpublish = () => {
                             size="sm"
                             @click="form.is_public = !form.is_public"
                         >
-                            <Globe v-if="form.is_public" class="w-4 h-4 ml-2 text-green-600" />
-                            <Lock v-else class="w-4 h-4 ml-2" />
+                            <Globe v-if="form.is_public" class="w-4 h-4 me-2 text-success" aria-hidden="true" />
+                            <Lock v-else class="w-4 h-4 me-2" aria-hidden="true" />
                             {{ form.is_public ? 'القائمة عامة' : 'القائمة خاصة' }}
                         </Button>
                     </div>
@@ -201,7 +201,7 @@ const handleUnpublish = () => {
                     </DialogDescription>
                 </DialogHeader>
                 <div class="py-4">
-                    <p class="text-xs text-orange-500">تأكد من وجود صورة غلاف ووجود أكثر من وصفة.</p>
+                    <p class="text-xs text-warning">تأكد من وجود صورة غلاف ووجود أكثر من وصفة.</p>
                 </div>
                 <DialogFooter>
                     <Button variant="ghost" @click="publishConfirmOpen = false">إلغاء</Button>

@@ -76,19 +76,20 @@ const handlePerPageChange = (perPage: number) => {
 
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <div class="relative flex-1 sm:w-64">
-                        <Search class="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search class="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <Input
                             type="search"
+                            aria-label="بحث عن مستخدم"
                             placeholder="بحث عن مستخدم..."
-                            class="pr-9"
+                            class="ps-9"
                             v-model="searchQuery"
                         />
                     </div>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" :class="roleFilter ? 'border-primary text-primary' : ''">
-                                <Filter class="h-4 w-4" />
+                            <Button variant="outline" size="icon" aria-label="تصفية حسب الدور" :class="roleFilter ? 'border-primary text-primary' : ''">
+                                <Filter class="h-4 w-4" aria-hidden="true" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-56">

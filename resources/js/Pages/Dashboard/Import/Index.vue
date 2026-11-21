@@ -237,14 +237,14 @@ const jsonExample = `[
                             <AlertTriangle v-else class="h-4 w-4" aria-hidden="true" />
                             <AlertTitle>نتيجة الاستيراد</AlertTitle>
                             <AlertDescription>
-                                <div class="mt-2 space-y-1">
+                                <div class="mt-2 space-y-1 tabular-nums">
                                     <div>الإجمالي: {{ result.total }}</div>
-                                    <div class="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                    <div class="flex items-center gap-1.5 text-success">
                                         <CheckCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
                                         <span>نجحت: {{ result.success }}</span>
                                     </div>
                                     <template v-if="result.failed > 0">
-                                        <div class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                        <div class="flex items-center gap-1.5 text-destructive">
                                             <XCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
                                             <span>فشلت: {{ result.failed }}</span>
                                         </div>

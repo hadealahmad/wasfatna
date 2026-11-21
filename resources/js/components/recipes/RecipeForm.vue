@@ -17,7 +17,8 @@ import {
     SelectContent,
     SelectItem,
     SelectValue,
-    Badge
+    Checkbox,
+    FilterChip
 } from '@/components/ui';
 import { Plus, Trash, X, Eye, GripVertical } from 'lucide-vue-next';
 import draggable from 'vuedraggable';
@@ -750,7 +751,7 @@ const submit = async () => {
                         class="text-base bg-background resize-y"
                         rows="3"
                     />
-                    <p id="description-counter" class="text-xs text-muted-foreground mt-1 text-left" dir="ltr">{{ description.length }}/280</p>
+                    <p id="description-counter" class="text-xs text-muted-foreground mt-1 text-left tabular-nums" dir="ltr">{{ description.length }}/280</p>
                 </div>
 
                 <!-- City & Difficulty -->
@@ -798,30 +799,25 @@ const submit = async () => {
                 <div v-if="tags && tags.length > 0">
                     <Label class="text-base mb-2 block">الوسوم</Label>
                     <div class="flex flex-wrap gap-2">
-                        <Badge
+                        <FilterChip
                             v-for="tag in tags"
                             :key="tag.id"
-                            as="button"
-                            type="button"
-                            variant="outline"
-                            :aria-pressed="selectedTags.includes(tag.id)"
-                            class="cursor-pointer hover:bg-secondary/50 transition-colors px-3 py-1.5"
-                            :class="{ 'bg-primary text-primary-foreground hover:bg-primary/90': selectedTags.includes(tag.id) }"
+                            :active="selectedTags.includes(tag.id)"
+                            class="px-3 py-1.5"
                             @click="toggleTag(tag.id)"
                         >
                             {{ tag.name }}
-                        </Badge>
+                        </FilterChip>
                     </div>
                 </div>
 
                 <!-- Admin Author Section -->
                 <div v-if="isAdmin && users && users.length > 0" class="mt-4 p-4 border rounded-lg bg-muted/10">
                     <div class="flex items-center gap-2 mb-4">
-                        <input
-                            type="checkbox"
+                        <Checkbox
                             id="isManualAuthor"
-                            v-model="isManualAuthor"
-                            class="w-4 h-4 accent-primary"
+                            :checked="isManualAuthor"
+                            @update:checked="isManualAuthor = $event"
                         />
                         <Label for="isManualAuthor" class="cursor-pointer">
                             مؤلف خارجي / غير مسجل

@@ -99,9 +99,9 @@ const handleTogglePublic = async (value: boolean) => {
                         </Badge>
                     </div>
                     <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CalendarDays class="h-4 w-4" />
-                        <span>{{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}</span>
-                        <span>({{ plan.days_count }} يوم)</span>
+                        <CalendarDays class="h-4 w-4" aria-hidden="true" />
+                        <span class="tabular-nums">{{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}</span>
+                        <span class="tabular-nums">({{ plan.days_count }} يوم)</span>
                     </div>
                     <p v-if="plan.description" class="text-sm text-muted-foreground mt-1">{{ plan.description }}</p>
                 </div>
@@ -116,7 +116,7 @@ const handleTogglePublic = async (value: boolean) => {
                     <Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground" aria-label="تعديل الخطة" @click="editOpen = true">
                         <Pencil class="h-4 w-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" size="icon" class="h-8 w-8 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" aria-label="حذف الخطة" @click="handleDelete">
+                    <Button variant="ghost" size="icon" class="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10" aria-label="حذف الخطة" @click="handleDelete">
                         <Trash2 class="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
@@ -153,7 +153,7 @@ const handleTogglePublic = async (value: boolean) => {
                     <div class="space-y-2">
                         <Label for="edit-plan-name">اسم الخطة</Label>
                         <Input id="edit-plan-name" v-model="editForm.name" required />
-                        <div v-if="editForm.errors.name" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.name }}</div>
+                        <div v-if="editForm.errors.name" class="text-sm text-destructive">{{ editForm.errors.name }}</div>
                     </div>
                     <div class="space-y-2">
                         <Label for="edit-plan-description">الوصف (اختياري)</Label>
@@ -163,12 +163,12 @@ const handleTogglePublic = async (value: boolean) => {
                         <div class="space-y-2">
                             <Label for="edit-plan-start-date">تاريخ البداية</Label>
                             <Input id="edit-plan-start-date" type="date" v-model="editForm.start_date" required />
-                            <div v-if="editForm.errors.start_date" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.start_date }}</div>
+                            <div v-if="editForm.errors.start_date" class="text-sm text-destructive">{{ editForm.errors.start_date }}</div>
                         </div>
                         <div class="space-y-2">
                             <Label for="edit-plan-end-date">تاريخ النهاية</Label>
                             <Input id="edit-plan-end-date" type="date" v-model="editForm.end_date" required />
-                            <div v-if="editForm.errors.end_date" class="text-sm text-red-600 dark:text-red-400">{{ editForm.errors.end_date }}</div>
+                            <div v-if="editForm.errors.end_date" class="text-sm text-destructive">{{ editForm.errors.end_date }}</div>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2">

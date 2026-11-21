@@ -63,9 +63,9 @@ const shareWhatsApp = () => {
                         </Badge>
                     </div>
                     <div class="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CalendarDays class="h-4 w-4" />
-                        <span>{{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}</span>
-                        <span>({{ plan.days_count }} يوم)</span>
+                        <CalendarDays class="h-4 w-4" aria-hidden="true" />
+                        <span class="tabular-nums">{{ formatDate(plan.start_date) }} - {{ formatDate(plan.end_date) }}</span>
+                        <span class="tabular-nums">({{ plan.days_count }} يوم)</span>
                     </div>
                     <p v-if="plan.description" class="text-sm text-muted-foreground mt-1">{{ plan.description }}</p>
                     <p v-if="plan.user" class="text-xs text-muted-foreground mt-1">بواسطة {{ plan.user.name }}</p>
@@ -73,12 +73,12 @@ const shareWhatsApp = () => {
 
                 <div class="flex items-center gap-2 shrink-0">
                     <Button variant="outline" size="sm" @click="copyLink" class="gap-1.5">
-                        <Check v-if="copied" class="h-3.5 w-3.5" />
-                        <Copy v-else class="h-3.5 w-3.5" />
+                        <Check v-if="copied" class="h-3.5 w-3.5" aria-hidden="true" />
+                        <Copy v-else class="h-3.5 w-3.5" aria-hidden="true" />
                         نسخ الرابط
                     </Button>
-                    <Button variant="outline" size="sm" @click="shareWhatsApp" class="gap-1.5 text-green-600 hover:text-green-700">
-                        <Share2 class="h-3.5 w-3.5" />
+                    <Button variant="outline" size="sm" @click="shareWhatsApp" class="gap-1.5 text-success hover:text-success/80">
+                        <Share2 class="h-3.5 w-3.5" aria-hidden="true" />
                         واتساب
                     </Button>
                 </div>

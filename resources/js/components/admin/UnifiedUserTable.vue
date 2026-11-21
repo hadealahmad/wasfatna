@@ -268,14 +268,14 @@ const handleDelete = (user: AdminUser) => {
                             <TableCell>
                                 <Badge variant="outline" :class="[
                                     'text-xs uppercase font-bold px-1.5 py-0',
-                                    user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                                    user.role === 'moderator' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'
+                                    user.role === 'admin' ? 'bg-primary/15 text-primary border-primary/30' :
+                                    user.role === 'moderator' ? 'bg-info/15 text-info border-info/30' : 'bg-secondary text-secondary-foreground'
                                 ]">
                                     {{ user.role }}
                                 </Badge>
                             </TableCell>
                             <TableCell>
-                                <span class="text-sm">{{ user.recipes_count }}</span>
+                                <span class="text-sm tabular-nums">{{ user.recipes_count }}</span>
                             </TableCell>
                             <TableCell>
                                 <span class="text-xs">{{ formatRelativeTime(user.created_at) }}</span>
@@ -305,10 +305,10 @@ const handleDelete = (user: AdminUser) => {
                                         <DropdownMenuItem v-if="user.is_banned" @click="handleUnban(user)">
                                             <CheckCircle class="h-4 w-4" aria-hidden="true" /> إلغاء الحظر
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem v-else @click="handleBanClick(user)" class="text-red-600">
+                                        <DropdownMenuItem v-else @click="handleBanClick(user)" class="text-destructive focus:text-destructive">
                                             <Ban class="h-4 w-4" aria-hidden="true" /> حظر
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleDelete(user)" class="text-red-600">
+                                        <DropdownMenuItem @click="handleDelete(user)" class="text-destructive focus:text-destructive">
                                             <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -345,7 +345,7 @@ const handleDelete = (user: AdminUser) => {
                         :aria-describedby="banError ? 'ban-reason-error' : undefined"
                         @input="banError = ''"
                     />
-                    <p v-if="banError" id="ban-reason-error" class="text-sm text-red-600 dark:text-red-400">{{ banError }}</p>
+                    <p v-if="banError" id="ban-reason-error" class="text-sm text-destructive">{{ banError }}</p>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" @click="banDialogOpen = false">إلغاء</Button>

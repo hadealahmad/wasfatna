@@ -11,6 +11,7 @@ import CardDescription from '@/components/ui/CardDescription.vue';
 import Dialog from '@/components/ui/Dialog.vue';
 import DialogContent from '@/components/ui/DialogContent.vue';
 import { Sparkles, ChefHat, RotateCcw, ArrowLeft, Loader2 } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 import IngredientSelector from '@/components/randomizer/IngredientSelector.vue';
 import RecipeSpinner from '@/components/randomizer/RecipeSpinner.vue';
 
@@ -90,12 +91,12 @@ const startSpin = async () => {
             }, 100);
         } else {
             loading.value = false;
-            alert('لم يتم العثور على وصفات بهذه المعايير!');
+            toast.error('لم يتم العثور على وصفات بهذه المعايير!');
         }
     } catch (e) {
         console.error(e);
         loading.value = false;
-        alert('حدث خطأ ما');
+        toast.error('حدث خطأ ما');
     }
 };
 
@@ -186,7 +187,7 @@ const spinAgain = () => {
             @click="showModal = true"
             class="h-12"
           >
-            <Sparkles class="ml-2 h-5 w-5" />
+            <Sparkles class="me-2 h-5 w-5" aria-hidden="true" />
             عرض الفائز
           </Button>
         </div>
@@ -198,7 +199,7 @@ const spinAgain = () => {
           <div v-if="winner" class="relative">
             <!-- Shine Animation Overlay -->
             <div class="absolute inset-0 z-20 pointer-events-none overflow-hidden rounded-lg">
-              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shine"></div>
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-background/30 to-transparent animate-shine"></div>
             </div>
 
             <!-- Sparkle Decorations -->
@@ -207,7 +208,7 @@ const spinAgain = () => {
                 v-for="(sparkle, idx) in sparkleDecorations" 
                 :key="idx"
                 aria-hidden="true"
-                class="absolute text-yellow-400 motion-safe:animate-pulse"
+                class="absolute text-warning motion-safe:animate-pulse"
                 :style="{
                   top: sparkle.top,
                   left: sparkle.left,
@@ -235,7 +236,7 @@ const spinAgain = () => {
               </div>
 
               <!-- Winner Badge -->
-              <div class="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full font-bold text-sm shadow-lg flex items-center gap-1.5 z-30">
+              <div class="absolute top-3 start-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full font-bold text-sm shadow-lg flex items-center gap-1.5 z-30">
                 <Sparkles class="h-4 w-4" aria-hidden="true" />
                 🎉 الفائز!
               </div>

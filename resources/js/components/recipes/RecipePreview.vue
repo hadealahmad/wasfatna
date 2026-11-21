@@ -59,13 +59,13 @@ const userName = computed(() => page.props.auth?.user?.name || '');
 
 const getDifficultyColor = (difficulty: string) => {
     const colors: Record<string, string> = {
-        'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-        'سهلة': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-        'متوسطة': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-        'صعبة': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-        'صعبة جداً': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+        'سهلة جداً': 'bg-success/15 text-success border-success/30',
+        'سهلة': 'bg-success/15 text-success border-success/30',
+        'متوسطة': 'bg-warning/15 text-warning border-warning/30',
+        'صعبة': 'bg-chart-6/15 text-chart-6 border-chart-6/30',
+        'صعبة جداً': 'bg-destructive/15 text-destructive border-destructive/30',
     };
-    return colors[difficulty] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400';
+    return colors[difficulty] || 'bg-secondary text-secondary-foreground border-transparent';
 };
 
 const formatIngredient = (item: IngredientItem) => {
@@ -112,7 +112,7 @@ const today = new Date().toLocaleDateString('ar-SY', {
                 <!-- Image -->
                 <div class="relative aspect-video rounded-xl overflow-hidden bg-muted">
                     <img v-if="imagePreview" :src="imagePreview" :alt="name" width="720" height="405" decoding="async" fetchpriority="low" class="w-full h-full object-cover" />
-                    <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/20 dark:to-red-900/20">
+                    <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-muted to-accent">
                         <span class="text-7xl" aria-hidden="true">🍽️</span>
                     </div>
                 </div>

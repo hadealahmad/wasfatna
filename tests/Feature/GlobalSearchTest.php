@@ -8,6 +8,7 @@ use App\Models\Recipe;
 use App\Models\RecipeList;
 use App\Models\Tag;
 use App\Models\User;
+use App\Support\ArabicSearch;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -121,5 +122,50 @@ class GlobalSearchTest extends TestCase
 
         $this->get('/search?q=ارز')->assertStatus(200);
         $this->get('/recipes?search=ارز')->assertStatus(200);
+    }
+
+    public function test_like_wildcards_are_escaped_and_percent_does_not_match_everything(): void
+    {
+        $user = User::factory()->create();
+
+        $plainRecipe = Recipe::create([
+            'name' => 'كبة مشوية شامية',
+            'steps' => ['الخطوة الأولى'],
+            'difficulty' => 'متوسطة',
+            'user_id' => $user->id,
+        ]);
+        $plainRecipe->forceFill(['status' => 'approved'])->save();
+
+        $percentRecipe = Recipe::create([
+            'name' => 'عصير طبيعي 100%',
+            'steps' => ['الخطوة الأولى'],
+            'difficulty' => 'سهلة',
+            'user_id' => $user->id,
+        ]);
+        $percentRecipe->forceFill(['status' => 'approved'])->save();
+
+        $percentMatches = Recipe::query()
+            ->where(fn ($q) => ArabicSearch::whereLikeFolded($q, 'recipes.name', '%'))
+            ->pluck('name')
+            ->all();
+
+        $this->assertSame(['عصير طبيعي 100%'], $percentMatches);
+
+        $underscoreMatches = Recipe::query()
+            ->where(fn ($q) => ArabicSearch::whereLikeFolded($q, 'recipes.name', '_'))
+            ->pluck('name')
+            ->all();
+
+        $this->assertSame([], $underscoreMatches);
+
+        $globalResponse = $this->getJson('/api/search/global?q=%%');
+        $globalResponse->assertOk()
+            ->assertExactJson([
+                'recipes' => [],
+                'cities' => [],
+                'lists' => [],
+                'tags' => [],
+                'ingredients' => [],
+            ]);
     }
 }

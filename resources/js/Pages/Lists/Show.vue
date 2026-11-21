@@ -87,11 +87,11 @@ const listImage = computed(() =>
             <div class="flex items-center gap-3">
               <h1 class="text-3xl font-bold">{{ list.name }}</h1>
               <Badge v-if="list.is_public" variant="secondary" class="gap-1">
-                <Globe class="w-3 h-3" />
+                <Globe class="w-3 h-3" aria-hidden="true" />
                 عامة
               </Badge>
               <Badge v-else variant="outline" class="gap-1">
-                <Lock class="w-3 h-3" />
+                <Lock class="w-3 h-3" aria-hidden="true" />
                 خاصة
               </Badge>
             </div>
@@ -110,15 +110,15 @@ const listImage = computed(() =>
                 <span>{{ list.user.name }}</span>
               </div>
               <span>•</span>
-              <span>{{ list.recipes.length }} وصفة</span>
+              <span class="tabular-nums">{{ list.recipes.length }} وصفة</span>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="flex items-center gap-2">
             <!-- Share functionality can be added later -->
-            <Button v-if="list.is_public" variant="outline" size="icon">
-              <Share2 class="w-4 h-4" />
+            <Button v-if="list.is_public" variant="outline" size="icon" aria-label="مشاركة القائمة">
+              <Share2 class="w-4 h-4" aria-hidden="true" />
             </Button>
             <ListActions :list="list" />
             <ReportModal :reportable-id="list.id" reportable-type="list" />

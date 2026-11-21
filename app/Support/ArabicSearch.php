@@ -85,14 +85,22 @@ final class ArabicSearch
         }
 
         $folded = self::fold($raw);
-        $rawLike = '%'.addcslashes(mb_strtolower($raw), '%_\\').'%';
-        $foldLike = '%'.addcslashes($folded === '' ? mb_strtolower($raw) : $folded, '%_\\').'%';
+        $rawEscaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], mb_strtolower($raw));
+        $foldSource = $folded === '' ? mb_strtolower($raw) : $folded;
+        $foldEscaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $foldSource);
+        $rawLike = '%'.$rawEscaped.'%';
+        $foldLike = '%'.$foldEscaped.'%';
         $foldedExpr = self::sqlFoldExpression($column);
 
+        $driver = $query->getConnection()->getDriverName();
+        $escapeClause = in_array($driver, ['mysql', 'mariadb'], true)
+            ? "ESCAPE '\\\\'"
+            : "ESCAPE '\\'";
+
         $method = $or ? 'orWhere' : 'where';
-        $query->{$method}(function (Builder $sub) use ($column, $rawLike, $foldedExpr, $foldLike) {
-            $sub->whereRaw("LOWER({$column}) LIKE ?", [$rawLike])
-                ->orWhereRaw("{$foldedExpr} LIKE ?", [$foldLike]);
+        $query->{$method}(function (Builder $sub) use ($column, $rawLike, $foldedExpr, $foldLike, $escapeClause) {
+            $sub->whereRaw("LOWER({$column}) LIKE ? {$escapeClause}", [$rawLike])
+                ->orWhereRaw("{$foldedExpr} LIKE ? {$escapeClause}", [$foldLike]);
         });
     }
 }

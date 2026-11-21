@@ -23,12 +23,12 @@ const emit = defineEmits<{
 const loading = ref(false);
 
 const tagColors = [
-    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+    'bg-chart-1/15 text-chart-1 border-chart-1/30',
+    'bg-chart-2/15 text-chart-2 border-chart-2/30',
+    'bg-chart-3/15 text-chart-3 border-chart-3/30',
+    'bg-chart-4/15 text-chart-4 border-chart-4/30',
+    'bg-chart-5/15 text-chart-5 border-chart-5/30',
+    'bg-chart-6/15 text-chart-6 border-chart-6/30',
 ];
 
 const getTagColor = (mealType: string) => {
@@ -134,7 +134,7 @@ const removeEntry = async () => {
             variant="ghost"
             size="icon"
             :aria-label="`حذف ${entry.title}`"
-            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-red-600 dark:hover:text-red-400"
+            class="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
             @click.stop="removeEntry"
             :disabled="loading"
         >

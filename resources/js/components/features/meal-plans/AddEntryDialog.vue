@@ -154,7 +154,7 @@ const resetForm = () => {
                             v-for="recipe in searchResults"
                             :key="recipe.id"
                             type="button"
-                            class="flex items-center gap-3 w-full p-2 hover:bg-muted text-right transition-colors"
+                            class="flex items-center gap-3 w-full p-2 hover:bg-muted text-start transition-colors"
                             @click="selectRecipe(recipe)"
                         >
                             <img v-if="recipe.image_url" :src="recipe.image_url" alt="" decoding="async" class="w-8 h-8 rounded object-cover" loading="lazy" width="32" height="32" />

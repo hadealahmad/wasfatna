@@ -33,7 +33,7 @@ defineProps<{
 
       <!-- Empty State -->
       <div v-if="cities.length === 0" class="flex flex-col items-center justify-center py-20 text-center border rounded-lg bg-muted/20">
-        <MapPin class="w-16 h-16 mb-4 text-muted-foreground/30" />
+        <MapPin class="w-16 h-16 mb-4 text-muted-foreground/30" aria-hidden="true" />
         <p class="text-xl font-medium text-muted-foreground">لا توجد مدن مسجلة بعد</p>
       </div>
 
@@ -46,10 +46,10 @@ defineProps<{
           class="group flex flex-col items-center justify-center p-8 rounded-lg border bg-card text-card-foreground shadow-sm transition-[box-shadow,border-color] hover:shadow-md hover:border-primary/50"
         >
           <div class="h-16 w-16 mb-4 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
-            <MapPin class="w-8 h-8" />
+            <MapPin class="w-8 h-8" aria-hidden="true" />
           </div>
           <h2 class="text-xl font-semibold mb-2">{{ city.name }}</h2>
-          <p class="text-sm text-muted-foreground">{{ city.recipes_count || 0 }} وصفة</p>
+          <p class="text-sm text-muted-foreground tabular-nums">{{ city.recipes_count || 0 }} وصفة</p>
         </Link>
       </div>
     </div>

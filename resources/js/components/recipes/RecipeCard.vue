@@ -14,11 +14,11 @@ const props = withDefaults(defineProps<{
 });
 
 const difficultyColors: Record<string, string> = {
-  'سهلة جداً': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  'سهلة': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  'متوسطة': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  'صعبة': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  'صعبة جداً': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+  'سهلة جداً': 'bg-success text-success-foreground border-transparent',
+  'سهلة': 'bg-success text-success-foreground border-transparent',
+  'متوسطة': 'bg-warning text-warning-foreground border-transparent',
+  'صعبة': 'bg-chart-6 text-primary-foreground border-transparent',
+  'صعبة جداً': 'bg-destructive text-destructive-foreground border-transparent',
 };
 
 const formatTimeNeeded = (time: any): string => {
@@ -56,14 +56,14 @@ const formatTimeNeeded = (time: any): string => {
         height="360"
         class="object-cover w-full h-full motion-safe:group-hover:scale-105 motion-safe:transition-transform duration-300"
       />
-      <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-950 dark:to-red-950">
+      <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 via-muted to-accent">
         <span class="text-5xl" aria-hidden="true">🍽️</span>
       </div>
 
       <!-- Difficulty Badge -->
       <Badge
         :class="cn(
-          'absolute top-3 left-3',
+          'absolute top-3 end-3',
           difficultyColors[recipe.difficulty] || difficultyColors['متوسطة']
         )"
       >
@@ -72,7 +72,7 @@ const formatTimeNeeded = (time: any): string => {
     </div>
 
     <!-- Favorite Action -->
-    <div class="absolute top-3 right-3 z-10">
+    <div class="absolute top-3 start-3 z-10">
       <div class="relative z-10">
         <AddToFavoritesModal :recipe-id="recipe.id" variant="icon" />
       </div>

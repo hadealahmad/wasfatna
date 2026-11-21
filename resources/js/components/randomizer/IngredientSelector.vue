@@ -71,14 +71,14 @@ watch(query, (newVal) => {
           class="w-full justify-between"
         >
           اختر مكونات لاستبعادها...
-          <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown class="ms-2 h-4 w-4 shrink-0 opacity-50" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
       <PopoverContent class="w-[300px] p-0" align="start">
         <Command v-model:searchTerm="query">
           <CommandInput
             placeholder="ابحث عن مكون..."
-            class="text-right"
+            class="text-start"
             dir="rtl"
           />
           <CommandList>
@@ -98,15 +98,16 @@ watch(query, (newVal) => {
                   open = false;
                   query = '';
                 }"
-                class="cursor-pointer text-right flex-row-reverse"
+                class="cursor-pointer text-start justify-between"
               >
+                <span>{{ ingredient.name }}</span>
                 <Check
                   :class="cn(
-                    'mr-2 h-4 w-4',
+                    'ms-2 h-4 w-4',
                     selectedIngredients.some(i => i.id === ingredient.id) ? 'opacity-100' : 'opacity-0'
                   )"
+                  aria-hidden="true"
                 />
-                {{ ingredient.name }}
               </CommandItem>
             </CommandGroup>
           </CommandList>
@@ -123,11 +124,12 @@ watch(query, (newVal) => {
       >
         {{ ingredient.name }}
         <button
+          type="button"
           class="rounded-full hover:bg-muted p-0.5"
+          :aria-label="`إزالة ${ingredient.name}`"
           @click="emit('remove', ingredient.id)"
         >
-          <X class="h-3 w-3" />
-          <span class="sr-only">إزالة {{ ingredient.name }}</span>
+          <X class="h-3 w-3" aria-hidden="true" />
         </button>
       </Badge>
     </div>

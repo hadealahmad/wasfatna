@@ -131,27 +131,28 @@ const handlePerPageChange = (perPage: number) => {
 
     <DashboardLayout>
         <div class="space-y-6">
-            <div class="flex flex-col sm:flex-row-reverse justify-between items-start sm:items-center gap-4">
-                <h2 class="text-2xl font-bold tracking-tight text-right w-full sm:w-auto">إدارة القوائم</h2>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <h2 class="text-2xl font-bold tracking-tight w-full sm:w-auto">إدارة القوائم</h2>
 
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <div class="relative flex-1 sm:w-64">
-                        <Search class="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search class="absolute start-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                         <Input
                             type="search"
+                            aria-label="بحث عن قائمة"
                             placeholder="بحث عن قائمة..."
-                            class="pr-9 text-right"
+                            class="ps-9"
                             v-model="searchQuery"
                         />
                     </div>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" :class="statusFilter.length > 0 ? 'border-primary text-primary' : ''">
-                                <Filter class="h-4 w-4" />
+                            <Button variant="outline" size="icon" aria-label="تصفية حسب الحالة" :class="statusFilter.length > 0 ? 'border-primary text-primary' : ''">
+                                <Filter class="h-4 w-4" aria-hidden="true" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-56 text-right">
+                        <DropdownMenuContent align="end" class="w-56 text-start">
                             <DropdownMenuLabel>تصفية حسب الحالة</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuCheckboxItem

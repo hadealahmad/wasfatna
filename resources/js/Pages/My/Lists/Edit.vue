@@ -3,6 +3,7 @@ import { useForm, Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import Button from '@/components/ui/Button.vue';
+import Checkbox from '@/components/ui/Checkbox.vue';
 import Input from '@/components/ui/Input.vue';
 import Textarea from '@/components/ui/Textarea.vue';
 import Label from '@/components/ui/Label.vue';
@@ -82,13 +83,13 @@ const removeRecipe = (recipeId: number) => {
         <div class="container py-8 max-w-4xl">
             <div class="mb-6 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <Link :href="route('my.lists.index')" class="text-muted-foreground hover:text-foreground">
-                        <ArrowRight class="w-5 h-5" />
+                    <Link :href="route('my.lists.index')" aria-label="العودة إلى قوائمي" class="text-muted-foreground hover:text-foreground">
+                        <ArrowRight class="w-5 h-5" aria-hidden="true" />
                     </Link>
                     <h1 class="text-2xl font-bold">تعديل القائمة: {{ list.name }}</h1>
                 </div>
                 <Button v-if="!list.is_default" variant="destructive" size="sm" @click="deleteList">
-                    <Trash2 class="w-4 h-4 ml-2" />
+                    <Trash2 class="w-4 h-4 me-2" aria-hidden="true" />
                     حذف القائمة
                 </Button>
             </div>
@@ -117,13 +118,12 @@ const removeRecipe = (recipeId: number) => {
 
                                 <div class="space-y-2" v-if="!list.is_default">
                                     <div class="flex items-center gap-2">
-                                        <input 
-                                            type="checkbox" 
-                                            id="is_public" 
-                                            v-model="form.is_public"
-                                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        <Checkbox
+                                            id="is_public"
+                                            :checked="form.is_public"
+                                            @update:checked="form.is_public = $event"
                                         />
-                                        <Label for="is_public">قائمة عامة (يمكن للجميع رؤيتها بعد الموافقة)</Label>
+                                        <Label for="is_public" class="cursor-pointer">قائمة عامة (يمكن للجميع رؤيتها بعد الموافقة)</Label>
                                     </div>
                                     <span v-if="form.errors.is_public" class="text-destructive text-xs">{{ form.errors.is_public }}</span>
                                 </div>

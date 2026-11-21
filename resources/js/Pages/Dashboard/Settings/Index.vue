@@ -109,7 +109,7 @@ const handleImport = () => {
 
     <DashboardLayout>
         <div class="space-y-6">
-            <h2 class="text-2xl font-bold tracking-tight text-right">الإعدادات</h2>
+            <h2 class="text-2xl font-bold tracking-tight text-start">الإعدادات</h2>
 
             <Tabs default-value="general" class="w-full">
                 <TabsList class="flex flex-row-reverse">
@@ -120,17 +120,17 @@ const handleImport = () => {
 
                 <TabsContent value="general" class="mt-4">
                     <Card>
-                        <CardHeader class="text-right">
+                        <CardHeader class="text-start">
                             <CardTitle>الإعدادات العامة</CardTitle>
                             <CardDescription>تكوين الإعدادات الأساسية للموقع</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                            <div class="space-y-2 text-right">
+                            <div class="space-y-2 text-start">
                                 <Label for="default_city">المدينة الافتراضية</Label>
                                 <Select
                                     v-model="settingsForm.default_city_id"
                                 >
-                                    <SelectTrigger class="w-full text-right">
+                                    <SelectTrigger id="default_city" class="w-full text-start">
                                         <SelectValue placeholder="اختر مدينة" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -144,7 +144,7 @@ const handleImport = () => {
                                 </p>
                             </div>
 
-                            <div class="space-y-2 text-right">
+                            <div class="space-y-2 text-start">
                                 <Label>الوسوم المستخدمة في العشوائي</Label>
                                 <MultiSelect
                                     :options="tagOptions"
@@ -167,27 +167,28 @@ const handleImport = () => {
 
                 <TabsContent value="ai" class="mt-4">
                     <Card>
-                        <CardHeader class="text-right">
+                        <CardHeader class="text-start">
                             <CardTitle>إعدادات الذكاء الاصطناعي</CardTitle>
                             <CardDescription>تكوين مفتاح API ونموذج Gemini</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                            <div class="space-y-2 text-right">
+                            <div class="space-y-2 text-start">
                                 <Label for="api_key">Gemini API Key</Label>
                                 <Input
                                     id="api_key"
                                     type="password"
                                     v-model="settingsForm.gemini_api_key"
                                     placeholder="AIza..."
+                                    dir="ltr"
                                     class="text-left"
                                 />
                             </div>
-                            <div class="space-y-2 text-right">
+                            <div class="space-y-2 text-start">
                                 <Label for="model">Gemini Model</Label>
                                 <Select
                                     v-model="settingsForm.gemini_model"
                                 >
-                                    <SelectTrigger class="w-full text-right">
+                                    <SelectTrigger id="model" class="w-full text-start">
                                         <SelectValue placeholder="اختر النموذج" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -209,18 +210,19 @@ const handleImport = () => {
 
                 <TabsContent value="import" class="mt-4">
                     <Card>
-                        <CardHeader class="text-right">
+                        <CardHeader class="text-start">
                             <CardTitle>استيراد وصفات</CardTitle>
                             <CardDescription>استيراد وصفات من ملف JSON</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
-                            <div class="space-y-2 text-right">
+                            <div class="space-y-2 text-start">
                                 <Label for="import-json">بيانات JSON</Label>
                                 <Textarea
                                     id="import-json"
                                     v-model="importForm.importJson"
                                     placeholder='[{"name": "...", "ingredients": ...}]'
-                                    class="h-64 font-mono text-sm text-left dir-ltr"
+                                    dir="ltr"
+                                    class="h-64 font-mono text-sm text-left"
                                 />
                             </div>
                             <div class="flex justify-end">
@@ -231,20 +233,20 @@ const handleImport = () => {
                                 </Button>
                             </div>
 
-                            <div v-if="importResult" class="mt-4 p-4 bg-muted rounded-md text-sm text-right">
+                            <div v-if="importResult" class="mt-4 p-4 bg-muted rounded-md text-sm text-start">
                                 <p class="font-bold">نتائج الاستيراد:</p>
-                                <ul class="list-disc list-inside mt-2 space-y-1">
+                                <ul class="list-disc list-inside mt-2 space-y-1 tabular-nums">
                                     <li>الإجمالي: {{ importResult.results.total }}</li>
-                                    <li class="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                                    <li class="flex items-center gap-1.5 text-success">
                                         <CheckCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
                                         <span>نجاح: {{ importResult.results.success }}</span>
                                     </li>
-                                    <li class="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                    <li class="flex items-center gap-1.5 text-destructive">
                                         <XCircle class="h-4 w-4 shrink-0" aria-hidden="true" />
                                         <span>فشل: {{ importResult.results.failed }}</span>
                                     </li>
                                 </ul>
-                                <div v-if="importResult.results.errors && importResult.results.errors.length > 0" class="mt-2 text-red-600">
+                                <div v-if="importResult.results.errors && importResult.results.errors.length > 0" class="mt-2 text-destructive">
                                     <p class="font-semibold">الأخطاء:</p>
                                     <ul class="list-disc list-inside max-h-40 overflow-y-auto">
                                         <li v-for="(err, idx) in importResult.results.errors" :key="idx">

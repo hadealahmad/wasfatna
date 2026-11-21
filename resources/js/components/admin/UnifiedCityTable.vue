@@ -265,7 +265,7 @@ const handleDeleteSingle = (city: City) => {
                             <TableCell class="max-w-xs truncate text-muted-foreground">
                                 {{ city.description || '-' }}
                             </TableCell>
-                            <TableCell>
+                            <TableCell class="tabular-nums">
                                 {{ city.recipes_count }}
                             </TableCell>
                             <TableCell>
@@ -279,7 +279,7 @@ const handleDeleteSingle = (city: City) => {
                                         <DropdownMenuItem @click="handleOpenEdit(city)">
                                             <Edit class="h-4 w-4" aria-hidden="true" /> تعديل
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem @click="handleDeleteSingle(city)" class="text-red-600 focus:text-red-600">
+                                        <DropdownMenuItem @click="handleDeleteSingle(city)" class="text-destructive focus:text-destructive">
                                             <Trash class="h-4 w-4" aria-hidden="true" /> حذف
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -319,7 +319,7 @@ const handleDeleteSingle = (city: City) => {
                             :aria-describedby="nameError ? 'city-name-error' : undefined"
                             @input="nameError = ''"
                         />
-                        <p v-if="nameError" id="city-name-error" class="text-sm text-red-600 dark:text-red-400">{{ nameError }}</p>
+                        <p v-if="nameError" id="city-name-error" class="text-sm text-destructive">{{ nameError }}</p>
                     </div>
                     <div class="space-y-2">
                         <label for="city-image" class="text-sm font-medium">صورة المدينة (اختياري)</label>

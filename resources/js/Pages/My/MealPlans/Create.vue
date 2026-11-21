@@ -84,25 +84,25 @@ const submit = () => {
                     <div class="space-y-2">
                         <Label for="name">اسم الخطة</Label>
                         <Input id="name" v-model="form.name" required placeholder="مثال: خطة رمضان، وجبات الأسبوع..." />
-                        <p v-if="form.errors.name" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.name }}</p>
+                        <p v-if="form.errors.name" class="text-sm text-destructive">{{ form.errors.name }}</p>
                     </div>
 
                     <div class="space-y-2">
                         <Label for="description">الوصف (اختياري)</Label>
                         <Textarea id="description" v-model="form.description" placeholder="وصف مختصر للخطة..." />
-                        <p v-if="form.errors.description" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.description }}</p>
+                        <p v-if="form.errors.description" class="text-sm text-destructive">{{ form.errors.description }}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="start_date">تاريخ البداية</Label>
                             <Input id="start_date" type="date" v-model="form.start_date" required />
-                            <p v-if="form.errors.start_date" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.start_date }}</p>
+                            <p v-if="form.errors.start_date" class="text-sm text-destructive">{{ form.errors.start_date }}</p>
                         </div>
                         <div class="space-y-2">
                             <Label for="end_date">تاريخ النهاية</Label>
                             <Input id="end_date" type="date" v-model="form.end_date" required />
-                            <p v-if="form.errors.end_date" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.end_date }}</p>
+                            <p v-if="form.errors.end_date" class="text-sm text-destructive">{{ form.errors.end_date }}</p>
                         </div>
                     </div>
 

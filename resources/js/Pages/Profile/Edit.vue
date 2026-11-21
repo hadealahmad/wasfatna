@@ -13,6 +13,7 @@ import CardFooter from '@/components/ui/CardFooter.vue';
 import Avatar from '@/components/ui/Avatar.vue';
 import AvatarImage from '@/components/ui/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/AvatarFallback.vue';
+import { Alert, AlertDescription } from '@/components/ui';
 import { ref, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import { AlertTriangle } from 'lucide-vue-next';
@@ -131,7 +132,7 @@ const getRoleDisplay = (role: string) => {
                                     :aria-invalid="Boolean(form.errors.avatar) || undefined"
                                     :aria-describedby="form.errors.avatar ? 'avatar-error' : undefined"
                                  />
-                                 <p v-if="form.errors.avatar" id="avatar-error" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.avatar }}</p>
+                                 <p v-if="form.errors.avatar" id="avatar-error" class="text-sm text-destructive">{{ form.errors.avatar }}</p>
                             </div>
 
                             <div class="space-y-2">
@@ -146,7 +147,7 @@ const getRoleDisplay = (role: string) => {
                                     :aria-describedby="form.errors.display_name ? 'display-name-hint display-name-error' : 'display-name-hint'"
                                 />
                                 <p id="display-name-hint" class="text-sm text-muted-foreground">هذا الاسم سيظهر في وصفاتك</p>
-                                <p v-if="form.errors.display_name" id="display-name-error" class="text-sm text-red-600 dark:text-red-400">{{ form.errors.display_name }}</p>
+                                <p v-if="form.errors.display_name" id="display-name-error" class="text-sm text-destructive">{{ form.errors.display_name }}</p>
                             </div>
 
                             <Button type="submit" :disabled="form.processing" size="lg">
@@ -168,7 +169,7 @@ const getRoleDisplay = (role: string) => {
                         </div>
                         <div class="flex justify-between">
                             <span class="text-muted-foreground">تاريخ التسجيل</span>
-                            <span class="font-medium">
+                            <span class="font-medium tabular-nums">
                                 {{ user?.created_at ? new Date(user.created_at).toLocaleDateString('ar-SA') : 'غير متوفر' }}
                             </span>
                         </div>
@@ -178,9 +179,9 @@ const getRoleDisplay = (role: string) => {
                 <hr class="my-8 border-border" />
 
                 <!-- Danger Zone -->
-                <Card class="border-red-200 dark:border-red-900/50">
+                <Card class="border-destructive/40">
                     <CardHeader>
-                        <CardTitle class="text-red-600">منطقة الخطر</CardTitle>
+                        <CardTitle class="text-destructive">منطقة الخطر</CardTitle>
                         <CardDescription>إجراءات لا يمكن التراجع عنها</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
@@ -188,13 +189,13 @@ const getRoleDisplay = (role: string) => {
                             تسجيل الخروج
                         </Button>
 
-                        <div v-if="user?.deletion_requested" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg">
-                            <div class="flex items-start gap-3 mb-4">
-                                <AlertTriangle class="w-5 h-5 text-red-700 dark:text-red-400 shrink-0 mt-0.5" aria-hidden="true" />
-                                <p class="text-red-800 dark:text-red-400">
+                        <div v-if="user?.deletion_requested" class="space-y-4">
+                            <Alert variant="destructive">
+                                <AlertTriangle class="w-5 h-5" aria-hidden="true" />
+                                <AlertDescription>
                                     تم إرسال طلب حذف حسابك. سيتم مراجعته من قبل المسؤول.
-                                </p>
-                            </div>
+                                </AlertDescription>
+                            </Alert>
                             <Button variant="outline" @click="handleCancelDeletion" :disabled="isRequestingDeletion" size="lg">
                                 إلغاء طلب الحذف
                             </Button>
