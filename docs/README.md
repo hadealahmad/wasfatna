@@ -2,7 +2,7 @@
 
 Documentation for **Wasfatna**, a full-stack Syrian recipe platform (discover, share, plan meals) built with Laravel 12 + Vue 3 via Inertia.js, plus a Sanctum REST API for mobile clients.
 
-> Production: `food.syrian.zone` — deployed automatically on push to `main` via GitHub Actions (self-hosted runner).
+> Production: `food.syrian.zone` — every push to `main` is built from the `Dockerfile` and deployed automatically.
 
 ## Documentation Map
 
@@ -18,8 +18,8 @@ docs/
 │   └── api-reference.md             ← Sanctum REST API endpoint map
 ├── guides/
 │   ├── development.md               ← Local dev setup, commands, workflows
-│   └── deployment-and-updates.md    ← Requirements, deploy pipeline, maintenance
-├── design-guidelines.md             ← Styling, theming, RTL, component conventions
+│   └── deployment-and-updates.md    ← Docker image, env vars, deploys, checklist
+├── design-guidelines.md             ← Tokens & themes, fonts, icons, search, RTL, components
 └── history/
     └── audit_report.md              ← 2026-08 repo audit & optimization record
 ```
@@ -40,7 +40,7 @@ docs/
 ## The Stack at a Glance
 
 - **Backend:** PHP ^8.2, Laravel 12, Sanctum 4, Socialite (Google), Intervention Image, Ziggy
-- **Frontend:** Vue 3.5 + TypeScript, Inertia.js 2 (with SSR), Tailwind CSS 4, Radix Vue/shadcn-style UI, Lucide icons
-- **Build:** Vite 7 (`bun run build` in CI; `npm` also works)
-- **Database:** SQLite (default) / MySQL / PostgreSQL
+- **Frontend:** Vue 3.5 + TypeScript, Inertia.js 2 (SSR bundle, optional), Tailwind CSS 4 with SyrianZone-style tokens and 9 themes, Radix Vue/shadcn-style UI, Lucide + project icons
+- **Build:** Vite 7 via Bun (`bun run build`); production ships as a Docker image (`Dockerfile`, `docker/`)
+- **Database:** SQLite (local default) / MySQL (production) / PostgreSQL
 - **Tests:** PHPUnit 11 (`composer test`)

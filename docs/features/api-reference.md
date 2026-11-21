@@ -7,7 +7,8 @@ Base prefix: `/api` (`routes/api.php`). Token auth via Laravel Sanctum; `not-ban
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/api/recipes` | Paginated recipe list (filters: search, city, tags) |
-| GET | `/api/recipes/randomizer` | Random recipe(s) |
+| GET | `/api/recipes/randomizer` | Random recipes for the loot crate (`count`, `city`, `difficulty`, `tag`, `exclude`/`exclude_ingredients[]`); returns `recipes`, `total_matching` |
+| GET | `/api/search/global?q=` | Global search (recipes, cities, public lists, tags, ingredients; Arabic-folded; empty for `q` < 2 chars) |
 | GET | `/api/recipes/{slug}` | Recipe detail |
 | GET | `/api/recipes/{slug}/variations` | Revision history |
 | GET | `/api/cities` | City list with counts |

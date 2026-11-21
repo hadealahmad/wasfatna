@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
-# Runs before nginx/php-fpm start. A failed migration must stop the boot so
-# Coolify keeps the previous container serving.
+# Runs before nginx/php-fpm start. A failed migration must stop the boot so a
+# rolling deploy keeps the previous container serving.
 
 # Wait (up to ~60s) for the database: after a host or DB restart the app can
 # start first, and a migration against a closed port would fail the boot.

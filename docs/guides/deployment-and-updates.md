@@ -1,208 +1,140 @@
-# Deployment and Update Guide
+# Deployment and Updates
 
-This document outlines the requirements, deployment process, server configuration, and maintenance routines for deploying **Wasfatna (وصفاتنا)** to staging or production environments.
-
----
-
-## 1. System Requirements
-
-### Server Environment
-- **Operating System**: Linux (Ubuntu 22.04 / 24.04 LTS recommended)
-- **PHP**: `^8.2` or higher
-  - Required PHP Extensions: `pdo`, `pdo_sqlite` (or `pdo_mysql`), `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`, `fileinfo`, `gd` or `imagick`, `curl`.
-- **Node.js**: `^18.0` or `^20.0` (with `npm` v9+). CI/CD uses **Bun** (`bun install --frozen-lockfile`, `bun run build`) — keep `bun.lock` in sync with `package.json`.
-- **Database**: SQLite (default / small setups) or MySQL 8.0+ / MariaDB 10.6+ / PostgreSQL 14+.
-- **Web Server**: Nginx or Apache with `mod_rewrite`.
-- **Composer**: `v2.5+`
+Wasfatna ships as a single Docker image built from the repository `Dockerfile`.
+Pushes to `main` are built and deployed automatically; there is no deploy
+workflow in `.github/workflows/`.
 
 ---
 
-## 2. Fresh Installation & Initial Deployment
+## 1. The container image
 
-### Step 1: Clone Repository
-```bash
-git clone https://github.com/your-org/wasfatna.git /var/www/wasfatna
-cd /var/www/wasfatna
-```
+`Dockerfile` (multi-stage):
 
-### Step 2: Install PHP & Node Dependencies
-```bash
-# Install PHP dependencies without development packages
-composer install --no-dev --optimize-autoloader
+| Stage | Base | Does |
+|---|---|---|
+| `frontend-builder` | `oven/bun:1` | `bun install --frozen-lockfile` + `bun run build` (client **and** SSR bundles) |
+| `ssr-deps` | `oven/bun:1` | production `node_modules` for the optional SSR server |
+| runtime | `serversideup/php:8.4-fpm-nginx` | nginx + php-fpm, `composer install --no-dev`, PHP extensions `gd exif intl`, Node 22 for SSR, `mariadb-client` |
 
-# Install Node dependencies (npm) — CI uses: bun install --frozen-lockfile
-npm ci
-```
+The app listens on **port 8080**. Health check: `GET /up` (Laravel's built-in route).
 
-### Step 3: Configure Environment Variables
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+### Startup (`docker/10-startup.sh`, runs before nginx/php-fpm)
 
-Edit `.env` to configure production settings:
-```ini
-APP_NAME=وصفاتنا
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://wasfatna.com
+1. Waits up to ~60 s for the database (`artisan db:show`).
+2. `php artisan migrate --force` — a failed migration stops the boot, so a rolling
+   deploy keeps the previous container serving.
+3. `storage:link --force`, then `optimize:clear` and `config/route/view/event:cache`.
 
-DB_CONNECTION=sqlite
-# Or for MySQL:
-# DB_CONNECTION=mysql
-# DB_HOST=127.0.0.1
-# DB_PORT=3306
-# DB_DATABASE=wasfatna
-# DB_USERNAME=wasfatna_user
-# DB_PASSWORD=your_secure_password
+### Long-running services (S6 Overlay, `docker/s6/`)
 
-SESSION_DRIVER=database
-QUEUE_CONNECTION=database
+| Service | Command |
+|---|---|
+| `queue-worker` | `php artisan queue:work --tries=3 --timeout=300` |
+| `laravel-scheduler` | `php artisan schedule:run` every 60 s |
+| `inertia-ssr` | `node bootstrap/ssr/ssr.js` — **only when `INERTIA_SSR_ENABLED=true`**, otherwise idles |
 
-# Google Auth Credentials
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_REDIRECT_URI=https://wasfatna.com/auth/google/callback
-```
+### Persistent data
 
-### Step 4: Run Database Migrations & Seeders
-```bash
-# Run database migrations
-php artisan migrate --force
+- **Uploads:** mount a persistent volume at `/var/www/html/storage/app/public`
+  (recipe and avatar images). Without it every deploy loses uploaded files.
+- **Database:** external MySQL/PostgreSQL (sessions, cache and queue also use
+  the database by default).
+- Logs: set `LOG_CHANNEL=stderr` so they appear in the container logs.
 
-# (Optional) Seed initial Syrian cities and default admin
-php artisan db:seed --force
-```
+### Environment variables that matter for the container
 
-### Step 5: Build Frontend Production Assets
-```bash
-npm run build
-```
+Start from `.env.example`; pass values as container environment variables (no
+`.env` file is baked into the image — `.dockerignore` excludes it).
 
-### Step 6: Create Storage Symlink & Set File Permissions
-```bash
-# Create public storage symlink
-php artisan storage:link
+| Variable | Notes |
+|---|---|
+| `APP_ENV` | **`production`**. `local` enables the passwordless `/dev-login` admin route and the relaxed CSP — never use it on a public host. |
+| `APP_KEY` | Keep it stable across deploys; changing it invalidates sessions and encrypted values. |
+| `APP_URL` | Public HTTPS URL. |
+| `TRUSTED_PROXIES` | `*` when behind a reverse proxy that terminates TLS, so Laravel sees HTTPS and the real client IP. Empty = trust none. |
+| `INERTIA_SSR_ENABLED` | Image default `false`. Set `true` to run the SSR server and have Laravel use it. |
+| `GA_MEASUREMENT_ID` | Google Analytics id (consent-gated, see `resources/js/lib/analyticsConsent.ts`). Empty disables analytics and the consent banner. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URI` | Google sign-in (Socialite). |
+| `DB_*`, `SESSION_DRIVER`, `CACHE_STORE`, `QUEUE_CONNECTION`, `FILESYSTEM_DISK=public` | As in `.env.example`. |
 
-# Set proper ownership and write permissions
-chown -R www-data:www-data /var/www/wasfatna
-chmod -R 775 /var/www/wasfatna/storage /var/www/wasfatna/bootstrap/cache
-```
+With `APP_ENV=production` the app also sends HSTS, uses the strict CSP
+(`'strict-dynamic'` + nonce) and names the session cookie with the `__Host-`
+prefix (requires HTTPS, no `SESSION_DOMAIN`).
 
 ---
 
-## 3. Nginx Server Configuration
+## 2. Run the production image locally
 
-Create an Nginx configuration file (e.g., `/etc/nginx/sites-available/wasfatna`):
-
-```nginx
-server {
-    listen 80;
-    listen [::]:80;
-    server_name wasfatna.com www.wasfatna.com;
-    root /var/www/wasfatna/public;
-
-    add_header X-Frame-Options "SAMEORIGIN";
-    add_header X-Content-Type-Options "nosniff";
-
-    index index.php;
-    charset utf-8;
-
-    # Gzip Compression
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
-}
-```
-
-Enable site and restart Nginx:
 ```bash
-sudo ln -s /etc/nginx/sites-available/wasfatna /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+docker build -t wasfatna .
+
+docker network create wasfatna-test
+docker run -d --name wt-db --network wasfatna-test \
+  -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=wasfatna \
+  -e MYSQL_USER=wasfatna -e MYSQL_PASSWORD=secret mysql:8.4
+
+docker run -d --name wt-app --network wasfatna-test -p 18080:8080 \
+  -e APP_ENV=production -e APP_DEBUG=false \
+  -e APP_KEY="base64:$(head -c32 /dev/urandom | base64)" \
+  -e APP_URL=http://localhost:18080 \
+  -e DB_CONNECTION=mysql -e DB_HOST=wt-db -e DB_DATABASE=wasfatna \
+  -e DB_USERNAME=wasfatna -e DB_PASSWORD=secret \
+  -e SESSION_DRIVER=database -e CACHE_STORE=database -e QUEUE_CONNECTION=database \
+  -e FILESYSTEM_DISK=public -e LOG_CHANNEL=stderr -e GA_MEASUREMENT_ID= \
+  wasfatna
+
+docker inspect -f '{{.State.Health.Status}}' wt-app   # → healthy
+curl -I http://localhost:18080/up
 ```
+
+`APP_ENV=production` sets secure session cookies, so signing in over plain
+`http://localhost` will not stick; use `APP_ENV=local` for interactive testing
+of authenticated pages, or put the container behind HTTPS.
+
+Clean up: `docker rm -f wt-app wt-db && docker network rm wasfatna-test`.
 
 ---
 
-## 4. Application Update Protocol
+## 3. Updating production
 
-### Automated CI/CD (production — active)
+1. Merge to `main` (CI-quality checks first: `bun run build`, `npx tsc --noEmit`,
+   `php artisan test`, `./vendor/bin/pint --test` on touched PHP files).
+2. The push triggers an image build and a rolling deploy; the new container
+   runs migrations on boot and only receives traffic once `/up` is healthy.
+3. Migrations must be safe to run while the previous release is still serving
+   (additive changes first, destructive clean-ups in a later release).
 
-Pushes to `main` trigger `.github/workflows/deploy.yml` on a self-hosted runner (`cooking-runner`):
+---
 
-1. `composer install --no-dev --optimize-autoloader`
-2. `bun install --frozen-lockfile` && `bun run build` (client + SSR bundles)
-3. `rsync` to `/home/syrian/domains/food.syrian.zone/public_html/` (excludes `.git`, `.env`, storage runtime dirs, `public/storage`)
-4. Post-deploy: `php artisan migrate --force`, `config:cache`, `route:cache`, `view:cache`, `event:cache`, `storage:link --force`, `queue:restart`, `inertia:stop-ssr` (forces SSR reload), permission fixes (`chmod 711` on parent dirs to avoid 403s).
+## 4. Deploying without containers (generic server)
 
-### Manual update script (generic servers)
-
-When deploying updates or pull requests to production, run the following automated deployment script:
+Requirements: PHP 8.2+ (`pdo_mysql`/`pdo_sqlite`, `mbstring`, `openssl`,
+`tokenizer`, `xml`, `ctype`, `json`, `fileinfo`, `gd`, `exif`, `curl`, `intl`),
+Composer 2, Bun (or Node 20+), a web server with the document root at `public/`.
+`proc_open` must be allowed for the CLI (Composer and Artisan need it).
 
 ```bash
-#!/bin/bash
-set -e
-
-echo "Starting deployment..."
-
-# Enable maintenance mode
-php artisan down --refresh=15 --retry=60
-
-# Fetch latest code
+php artisan down --retry=60
 git pull origin main
-
-# Update PHP dependencies
 composer install --no-dev --optimize-autoloader
-
-# Update Node dependencies & Build Frontend Assets
-npm ci
-npm run build
-
-# Run database migrations
+bun install --frozen-lockfile && bun run build
 php artisan migrate --force
-
-# Clear and optimize application caches
-php artisan config:cache
-php artisan event:cache
-php artisan route:cache
-php artisan view:cache
-
-# Restart queue workers (if background queues are used)
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
+php artisan storage:link --force
 php artisan queue:restart
-
-# Reload Inertia SSR with the fresh bundle
-php artisan inertia:stop-ssr || true
-
-# Disable maintenance mode
+php artisan inertia:stop-ssr || true   # only if an SSR server is running
 php artisan up
-
-echo "Deployment completed successfully!"
 ```
+
+Keep a queue worker (`php artisan queue:work`) and the scheduler
+(`php artisan schedule:run` every minute) running under a process manager.
 
 ---
 
-## 5. Security & Performance Maintenance Checklist
+## 5. Production checklist
 
-- [ ] Ensure `APP_DEBUG=false` in production `.env`.
-- [ ] Confirm `/dev-login` route is disabled in production (automatically scoped to `local` environment).
-- [ ] Ensure `.env` and sensitive production credential files are outside web root and restricted (`chmod 600`).
-- [ ] Schedule regular database backups (`database/database.sqlite` or MySQL dumps).
-- [ ] Monitor log storage in `storage/logs/laravel.log`.
+- [ ] `APP_ENV=production`, `APP_DEBUG=false` (`/dev-login` must return 404).
+- [ ] `APP_KEY` unchanged between releases.
+- [ ] Uploads directory on persistent storage.
+- [ ] Regular database backups.
+- [ ] `TRUSTED_PROXIES` set when behind a TLS-terminating proxy.

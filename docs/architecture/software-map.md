@@ -27,7 +27,7 @@ Architecture: a modern Laravel monolith using **Inertia.js** to bridge the Larav
 | Utilities | @vueuse/core, clsx, tailwind-merge, class-variance-authority, vuedraggable | – | Composables, styling helpers, drag-and-drop |
 | Database | SQLite / MySQL / PostgreSQL | – | Storage (SQLite default) |
 | Testing | PHPUnit | `^11.5` | Feature/unit tests |
-| CI/CD | GitHub Actions → self-hosted runner → rsync | – | Auto-deploy on push to `main` |
+| Deployment | Docker image (`Dockerfile`: Bun build → `serversideup/php:8.4-fpm-nginx`, S6 services) | – | Built and deployed on every push to `main` |
 
 ## 3. Directory Map
 
@@ -50,36 +50,42 @@ cooking/
 │   │                            # RecipeList, ListItem, RecipeRevision, Report, Setting,
 │   │                            # MealPlan, MealPlanEntry, MealPlanPreset
 │   ├── Providers/
-│   └── Services/ImageService.php# Image processing/compression
+│   ├── Services/ImageService.php# Image processing/compression
+│   └── Support/ArabicSearch.php # Arabic-folded LIKE search (hamza, ة/ه, ى/ي, tashkeel)
 ├── config/                      # Laravel config (app, auth, sanctum, services, …)
+├── docker/                      # Container startup script + S6 service run scripts
 ├── database/
 │   ├── migrations/              # See architecture/database-schema.md
 │   ├── factories/  seeders/
 ├── docs/                        # This documentation
 ├── public/                      # Web entry (index.php), assets, og-image.webp
 ├── resources/
-│   ├── css/app.css              # Tailwind v4 theme (@theme), dark mode variant, fonts
+│   ├── css/app.css              # Tailwind v4 tokens (@theme), 9 theme blocks, fonts
+│   ├── data/                    # themes.json (theme registry), project-icons.json (section icons)
 │   ├── js/
 │   │   ├── app.ts / ssr.ts      # Client & SSR entry points
 │   │   ├── Pages/               # Inertia pages: Welcome, Recipes/, Cities/, Lists/,
 │   │   │                        # MealPlans/, Randomizer/, Search/, Users/, Profile/,
 │   │   │                        # Dashboard/ (admin), My/ (recipes, lists, meal-plans, reports),
-│   │   │                        # Auth/, Privacy, Terms
+│   │   │                        # Auth/, About, Privacy, Terms
 │   │   ├── components/
 │   │   │   ├── admin/           # Dashboard widgets/tables
 │   │   │   ├── features/        # lists/, meal-plans/ feature components
-│   │   │   ├── layout/          # App shell, nav, footer
+│   │   │   ├── layout/          # PublicHeader (navbar), UserNav (account menu)
 │   │   │   ├── randomizer/
 │   │   │   ├── recipes/         # RecipeForm, RecipeGrid, SearchFilters, ShareButtons, …
 │   │   │   ├── reports/         # ReportModal, …
+│   │   │   ├── search/          # GlobalSearch (command palette), SmartFilterSearch
+│   │   │   ├── AppearanceMenu.vue, ProjectIcon.vue, AnalyticsConsentBanner.vue
 │   │   │   └── ui/              # shadcn-style primitives (Button, Dialog, Table, …)
-│   │   └── lib/                 # utils.ts (cn helper), image-utils.ts
+│   │   ├── composables/         # useTheme, useColorScheme (compat), useGlobalSearch
+│   │   └── lib/                 # utils.ts (cn), image-utils.ts, theme.ts, arabic.ts, analyticsConsent.ts
 ├── routes/
 │   ├── web.php                  # Inertia pages + /web-api/* fetch endpoints
 │   ├── api.php                  # Sanctum REST API (/api)
 │   └── console.php              # Artisan closures
 ├── tests/                       # PHPUnit tests
-├── .github/workflows/deploy.yml # Deploy pipeline (Bun build → rsync → artisan optimize)
+├── Dockerfile / .dockerignore   # Production image
 ├── vite.config.js               # Client + SSR builds, manualChunks splitting
 └── composer.json / package.json
 ```

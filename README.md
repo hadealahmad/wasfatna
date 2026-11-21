@@ -79,52 +79,16 @@ To get Wasfatna running locally on your machine, follow these steps:
 
 ---
 
-## Dev Deployment
+## Deployment
 
-For deploying to production, Wasfatna uses GitHub Actions for automation.
+Production runs the Docker image built from the repository `Dockerfile`
+(PHP 8.4 fpm + nginx, queue worker and scheduler under S6). Every push to `main`
+is built and deployed automatically, and the container runs migrations on boot —
+so run the checks below before merging.
 
-### Automated Deployment (GitHub Actions)
-
-The project is configured with a self-hosted runner workflow. To deploy:
-
-1.  Push your changes to the `main` branch.
-2.  The `Deploy Application` workflow in `.github/workflows/deploy.yml` will trigger automatically.
-3.  It performs the following:
-    -   Installs PHP dependencies (Composer) and Node dependencies (Bun, frozen lockfile).
-    -   Builds frontend assets (client + SSR bundles).
-    -   Rsyncs files to the production directory on the server.
-    -   Runs migrations, caches config/routes/views, restarts queues, and reloads the Inertia SSR server.
-
-### Manual Dev Deployment
-
-If you need to deploy manually to a dev server:
-
-1.  **Pull the latest changes**:
-    ```bash
-    git pull origin main
-    ```
-
-2.  **Update dependencies**:
-    ```bash
-    composer install --no-dev --optimize-autoloader
-    bun install --frozen-lockfile
-    ```
-
-3.  **Build assets**:
-    ```bash
-    bun run build
-    ```
-
-4.  **Finalize deployment**:
-    ```bash
-    php artisan migrate --force
-    php artisan config:cache
-    php artisan route:cache
-    php artisan view:cache
-    php artisan storage:link --force
-    php artisan queue:restart
-    php artisan inertia:stop-ssr || true
-    ```
+- Image, environment variables, persistent storage and the production checklist:
+  [docs/guides/deployment-and-updates.md](docs/guides/deployment-and-updates.md)
+- Run the production image locally: same guide, section 2.
 
 ---
 

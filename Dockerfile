@@ -1,6 +1,6 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# وصفاتنا (food.syrian.zone) — production image for Coolify.
-# Pattern follows SyrianZone's Dockerfile (serversideup/php + S6 Overlay v3).
+# وصفاتنا — production image (serversideup/php + S6 Overlay v3).
+# Build: docker build -t wasfatna . — see docs/guides/deployment-and-updates.md
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Stage 1: client + SSR bundles (vite build && vite build --ssr)
@@ -30,7 +30,8 @@ ENV PHP_FPM_PM=ondemand \
     PHP_UPLOAD_MAX_FILE_SIZE=20M \
     NGINX_CLIENT_MAX_BODY_SIZE=24M \
     NGINX_FASTCGI_READ_TIMEOUT=65s \
-    NGINX_WEBROOT=/var/www/html/public
+    NGINX_WEBROOT=/var/www/html/public \
+    INERTIA_SSR_ENABLED=false
 
 USER root
 

@@ -8,8 +8,8 @@ This document describes all user-facing features, administrative capabilities, a
 
 ### A. Recipe Hub & Discovery
 - **Homepage ([resources/js/Pages/Welcome.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/Pages/Welcome.vue))**:
-  - Hero header with dark/light logo support.
-  - Interactive search bar & city/tag filtering ([SearchFilters.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/components/recipes/SearchFilters.vue)).
+  - Hero header with theme-aware logo, call-to-action buttons and section shortcut tiles (project icons).
+  - Interactive search card with city/tag/difficulty filtering ([SearchFilters.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/components/recipes/SearchFilters.vue)).
   - Grid view of latest community recipes ([RecipeGrid.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/components/recipes/RecipeGrid.vue)).
   - Explore recipes grouped by Syrian cities (Damascus, Aleppo, Homs, Lattakia, etc.).
 - **Recipe Details View ([resources/js/Pages/Recipes/Show.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/Pages/Recipes/Show.vue))**:
@@ -56,10 +56,35 @@ This document describes all user-facing features, administrative capabilities, a
 
 ---
 
-### E. Interactive Recipe Randomizer
-- **Randomizer Wheel Page ([resources/js/Pages/Randomizer/Index.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/Pages/Randomizer/Index.vue))**:
-  - Interactive pantry ingredient selector ([IngredientSelector.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/components/randomizer/IngredientSelector.vue)).
-  - Animated spinning wheel ([RecipeSpinner.vue](file:///run/media/hadi/SSD2/Coding/cooking/resources/js/components/randomizer/RecipeSpinner.vue)) that picks matching recipes based on selected ingredients.
+### E. Recipe Randomizer — "شو نطبخ؟" loot crate (`/randomizer`)
+- **Page:** `resources/js/Pages/Randomizer/Index.vue`, three steps:
+  1. Customise the crate — difficulty chips, city, and ingredients to exclude
+     (`components/randomizer/IngredientSelector.vue`, live search + popular quick-excludes).
+  2. Open the crate — a horizontal reel (`RecipeSpinner.vue`) decelerates onto the winner;
+     rarity tiers come from difficulty (`randomizer/rarity.ts`).
+  3. Reveal — winner card, "open another crate", "go to recipe", and a history of the last 6 drops.
+- `prefers-reduced-motion` skips the reel; the result is announced via `aria-live`;
+  sound is off by default.
+- Data: `GET /api/recipes/randomizer` (`count`, `city`, `difficulty`, `tag`,
+  `exclude=1,2` or `exclude_ingredients[]`) returns `recipes` + `total_matching`.
+
+### F. Search
+- **Global search** in the navbar (`components/search/GlobalSearch.vue`): command palette
+  opened with Ctrl/Cmd+K or `/`, grouped results (recipes, cities, lists, tags, ingredients)
+  from `GET /api/search/global?q=`, quick links and recent searches (`localStorage`).
+- **Page search** on `/search` and `/recipes` (`SmartFilterSearch.vue`): search field with
+  facet chips; accepts `search` or `q`.
+- Arabic spelling variants match each other (hamza forms, ة/ه, ى/ي, diacritics).
+
+### G. Appearance, About and Privacy
+- **Appearance menu** in the navbar: 9 themes (default `dark-blue` / "داكن أزرق") and
+  IBM Plex vs. system font, stored in `localStorage`.
+- **About** (`/about`): mission, maintainer, GitHub contributors (cached 1 h), top community
+  cooks by approved recipes, and credits/licences (Lucide, SyrianZone project icons and
+  design system, IBM Plex Sans Arabic, open-source stack).
+- **Terms** (`/terms`) and **Privacy** (`/privacy`), including a control to change the
+  analytics choice.
+- **Analytics consent banner:** Google Analytics loads only after the visitor accepts.
 
 ---
 

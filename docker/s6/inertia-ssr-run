@@ -1,6 +1,6 @@
 #!/bin/sh
-# Inertia SSR render server. Off unless INERTIA_SSR_ENABLED=true, to match the
-# current production behaviour (client-side rendering only).
+# Inertia SSR render server. Off unless INERTIA_SSR_ENABLED=true (the image
+# defaults it to false, which also stops Laravel from calling the SSR server).
 if [ "${INERTIA_SSR_ENABLED}" != "true" ]; then
     echo "Inertia SSR disabled; idling."
     exec sleep infinity
