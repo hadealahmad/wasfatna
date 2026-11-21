@@ -1,0 +1,9 @@
+#!/bin/sh
+# Inertia SSR render server. Off unless INERTIA_SSR_ENABLED=true, to match the
+# current production behaviour (client-side rendering only).
+if [ "${INERTIA_SSR_ENABLED}" != "true" ]; then
+    echo "Inertia SSR disabled; idling."
+    exec sleep infinity
+fi
+echo "Starting Inertia SSR server..."
+exec node /var/www/html/bootstrap/ssr/ssr.js
