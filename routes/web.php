@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\AdminReportController;
 use App\Http\Controllers\Web\AdminSettingController;
 use App\Http\Controllers\Web\AdminTagController;
 use App\Http\Controllers\Web\AdminUserController;
+use App\Http\Controllers\Web\CalorieCalculatorController;
 use App\Http\Controllers\Web\CityController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\HomeController;
@@ -69,6 +70,7 @@ Route::get('/lists', [ListController::class, 'index'])->name('lists.index');
 Route::get('/lists/{list}', [ListController::class, 'show'])->name('lists.show');
 
 Route::get('/randomizer', [RandomizerController::class, 'index'])->name('randomizer.index');
+Route::get('/calories', [CalorieCalculatorController::class, 'index'])->name('calories.index');
 
 Route::get('/privacy', function () {
     return Inertia::render('Privacy');
@@ -120,6 +122,7 @@ Route::middleware(['auth', 'not-banned'])->group(function () {
     Route::post('/web-api/meal-plans/{mealPlan}/random-fill', [\App\Http\Controllers\Api\MealPlanController::class, 'randomFill'])->name('web-api.meal-plans.random-fill');
     Route::post('/web-api/meal-plans/{mealPlan}/toggle-public', [\App\Http\Controllers\Api\MealPlanController::class, 'togglePublic'])->name('web-api.meal-plans.toggle-public');
     Route::get('/web-api/recipes/search', [\App\Http\Controllers\Api\MealPlanController::class, 'searchRecipes'])->name('web-api.recipes.search');
+    Route::put('/web-api/calorie-profile', [CalorieCalculatorController::class, 'update'])->name('web-api.calorie-profile.update');
 });
 
 Route::middleware(['auth', 'not-banned', 'moderator'])->group(function () {

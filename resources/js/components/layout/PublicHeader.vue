@@ -14,7 +14,8 @@ import {
   BookHeart,
   Flag,
   CalendarDays,
-  Globe
+  Globe,
+  Flame
 } from 'lucide-vue-next';
 import { useColorScheme } from '@/composables/useColorScheme';
 import Avatar from '@/components/ui/Avatar.vue';
@@ -55,6 +56,7 @@ const primaryNavItems = [
   { href: '/lists', label: 'القوائم', icon: null },
   { href: '/meal-plans/browse', label: 'خطط الوجبات', icon: Globe },
   { href: '/randomizer', label: 'شو نطبخ؟', icon: Dices },
+  { href: '/calories', label: 'حاسبة السعرات', icon: Flame },
 ] as const;
 
 const { isDark, toggleColorScheme } = useColorScheme();

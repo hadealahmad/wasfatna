@@ -37,6 +37,7 @@ export default defineConfig(({ isSsrBuild }) => ({
                     'vendor-vue': ['vue', '@inertiajs/vue3'],
                     'vendor-ui': ['radix-vue', 'lucide-vue-next', 'clsx', 'tailwind-merge', 'class-variance-authority'],
                     'vendor-draggable': ['vuedraggable'],
+                    'vendor-three': ['three'],
                 },
             },
         },
