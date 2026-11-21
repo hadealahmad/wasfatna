@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface Props {
   class?: string;
@@ -12,8 +12,8 @@ defineProps<Props>();
   <div
     data-slot="card"
     :class="cn(
-      'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm',
-      $props.class
+      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      $props.class,
     )"
   >
     <slot />

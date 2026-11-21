@@ -9,8 +9,8 @@ const props = defineProps<TabsListProps & { class?: string }>();
   <TabsList
     v-bind="props"
     :class="cn(
-      'bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]',
-      props.class
+      'inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground',
+      props.class,
     )"
   >
     <slot />

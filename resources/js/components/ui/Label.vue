@@ -9,8 +9,8 @@ const props = defineProps<LabelProps & { class?: string }>();
   <Label
     v-bind="props"
     :class="cn(
-      'text-sm font-medium leading-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50',
-      props.class
+      'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50',
+      props.class,
     )"
   >
     <slot />

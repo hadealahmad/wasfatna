@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
+import { computed, toRef } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RecipeGrid from '@/components/recipes/RecipeGrid.vue';
-import SearchFilters from '@/components/recipes/SearchFilters.vue';
-
+import SmartFilterSearch from '@/components/search/SmartFilterSearch.vue';
+import {
+  DIFFICULTY_OPTIONS,
+  useRecipeFilterPage,
+  type FilterEntity,
+  type RecipePageFilters,
+} from '@/components/search/useRecipeFilterPage';
+import { FilterChip, Skeleton } from '@/components/ui';
 import PaginationControls from '@/components/ui/PaginationControls.vue';
 
 interface Recipe {
@@ -29,25 +36,30 @@ interface Props {
     per_page: number;
     total: number;
   };
-  cities: Array<{ id: number; name: string; slug: string }>;
-  tags: Array<{ id: number; name: string; slug: string }>;
-  filters: {
-    search?: string;
-    city?: string;
-    tag?: string;
-    per_page?: number;
-  };
+  cities: FilterEntity[];
+  tags: FilterEntity[];
+  filters: RecipePageFilters;
 }
 
 const props = defineProps<Props>();
 
-function handlePageChange(page: number) {
-  router.get(route('recipes.index'), { ...props.filters, page }, { preserveState: true, preserveScroll: false });
-}
+const {
+  isLoading,
+  filterValue,
+  facets,
+  activeDifficulty,
+  onSmartFilterChange,
+  selectDifficulty,
+  handlePageChange,
+  handlePerPageChange,
+} = useRecipeFilterPage({
+  routeName: 'recipes.index',
+  cities: toRef(props, 'cities'),
+  tags: toRef(props, 'tags'),
+  filters: toRef(props, 'filters'),
+});
 
-function handlePerPageChange(perPage: number) {
-  router.get(route('recipes.index'), { ...props.filters, per_page: perPage, page: 1 }, { preserveState: true, preserveScroll: false });
-}
+const totalResults = computed(() => props.recipes.total ?? props.recipes.data.length);
 </script>
 
 <template>
@@ -62,7 +74,7 @@ function handlePerPageChange(perPage: number) {
       <meta head-key="twitter:description" name="twitter:description" content="تصفح مئات الوصفات المجربة والمضمونة من مختلف المطابخ السورية." />
       <meta head-key="twitter:image" name="twitter:image" content="https://food.syrian.zone/og-image.webp" />
     </Head>
-    
+
     <div class="container mx-auto py-12 px-4 md:px-6">
       <!-- Header -->
       <div class="flex flex-col items-center gap-4 text-center mb-10">
@@ -74,18 +86,52 @@ function handlePerPageChange(perPage: number) {
         </p>
       </div>
 
-      <!-- Filters -->
-      <div class="mb-10 max-w-4xl mx-auto p-4 bg-muted/50 rounded-lg">
-        <SearchFilters 
-          :cities="cities" 
-          :tags="tags" 
-          :initial-filters="filters"
+      <!-- Smart Filter Search + Quick Difficulty Chips -->
+      <div class="mb-10 max-w-4xl mx-auto space-y-3 rounded-2xl border border-border/70 bg-muted/30 p-4">
+        <SmartFilterSearch
+          :facets="facets"
+          :model-value="filterValue"
+          :result-count="totalResults"
+          result-label="وصفة"
+          :loading="isLoading"
+          mobile-filters-scroll
+          placeholder="ابحث عن وصفة أو مكون، أو اكتب المدينة: / الوسم: / الصعوبة:"
+          aria-label="تصفية الوصفات"
+          @update:model-value="onSmartFilterChange"
         />
+
+        <div
+          role="group"
+          aria-label="تصفية سريعة حسب مستوى الصعوبة"
+          class="flex items-center gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <span class="shrink-0 text-xs font-medium text-muted-foreground me-1">الصعوبة:</span>
+          <FilterChip
+            :active="!activeDifficulty"
+            @click="selectDifficulty('')"
+          >
+            كل المستويات
+          </FilterChip>
+          <FilterChip
+            v-for="level in DIFFICULTY_OPTIONS"
+            :key="level.value"
+            :active="activeDifficulty === level.value"
+            @click="selectDifficulty(level.value)"
+          >
+            {{ level.label }}
+          </FilterChip>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <Skeleton v-for="i in 8" :key="i" class="h-64 rounded-xl" />
       </div>
 
       <!-- Results -->
-      <RecipeGrid 
-        :recipes="recipes.data" 
+      <RecipeGrid
+        v-else
+        :recipes="recipes.data"
         empty-message="لم يتم العثور على وصفات تطابق معايير البحث."
       />
 

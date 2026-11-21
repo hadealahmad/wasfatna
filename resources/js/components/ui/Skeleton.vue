@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 interface SkeletonProps {
   class?: string;
@@ -11,6 +11,6 @@ defineProps<SkeletonProps>();
 <template>
   <div
     data-slot="skeleton"
-    :class="cn('bg-accent motion-safe:animate-pulse rounded-md', $props.class)"
+    :class="cn('rounded-md bg-muted motion-safe:animate-pulse', $props.class)"
   />
 </template>

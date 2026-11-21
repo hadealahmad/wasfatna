@@ -37,7 +37,7 @@ const handleSearch = () => {
         autocapitalize="none"
         spellcheck="false"
         placeholder="بحث عن وصفة..."
-        class="ps-10 min-h-10 w-[200px] lg:w-[300px] bg-background text-start"
+        class="ps-10 h-10 w-[200px] lg:w-[300px] bg-background text-start"
         dir="rtl"
       />
       <Search class="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />

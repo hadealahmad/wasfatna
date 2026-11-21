@@ -1,36 +1,39 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from 'vue'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from '@/lib/utils'
+import { type HTMLAttributes, computed } from 'vue';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
 const alertVariants = cva(
-  'relative w-full rounded-lg border p-4 [&>svg~*]:ps-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:start-4 [&>svg]:top-4 [&>svg]:text-foreground',
+  'relative w-full rounded-md border p-4 text-sm [&>svg~*]:ps-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:start-4 [&>svg]:top-4',
   {
     variants: {
       variant: {
-        default: 'bg-background text-foreground',
+        default: 'bg-card text-card-foreground border-border [&>svg]:text-foreground',
         destructive:
-          'border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive',
+          'bg-destructive/10 text-destructive border-destructive/30 [&>svg]:text-destructive',
+        success:
+          'bg-primary/10 text-primary border-primary/30 [&>svg]:text-primary',
+        warning:
+          'bg-accent text-accent-foreground border-border [&>svg]:text-accent-foreground',
       },
     },
     defaultVariants: {
       variant: 'default',
     },
   },
-)
+);
 
-type AlertVariants = VariantProps<typeof alertVariants>
+type AlertVariants = VariantProps<typeof alertVariants>;
 
 const props = defineProps<{
-  class?: HTMLAttributes['class']
-  variant?: AlertVariants['variant']
-}>()
+  class?: HTMLAttributes['class'];
+  variant?: AlertVariants['variant'];
+}>();
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-
-  return delegated
-})
+  const { class: _, variant: __, ...delegated } = props;
+  return delegated;
+});
 </script>
 
 <template>

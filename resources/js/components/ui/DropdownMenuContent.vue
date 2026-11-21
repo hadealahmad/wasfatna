@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { DropdownMenuContent, type DropdownMenuContentEmits, type DropdownMenuContentProps, DropdownMenuPortal, useForwardPropsEmits } from 'radix-vue'
-import { cn } from '@/lib/utils'
+import {
+  DropdownMenuContent,
+  type DropdownMenuContentEmits,
+  type DropdownMenuContentProps,
+  DropdownMenuPortal,
+  useForwardPropsEmits,
+} from 'radix-vue';
+import { cn } from '@/lib/utils';
 
 const props = withDefaults(defineProps<DropdownMenuContentProps & { class?: string }>(), {
   sideOffset: 4,
-})
-const emits = defineEmits<DropdownMenuContentEmits>()
+});
+const emits = defineEmits<DropdownMenuContentEmits>();
 
-const forwarded = useForwardPropsEmits(props, emits)
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>
@@ -15,8 +21,8 @@ const forwarded = useForwardPropsEmits(props, emits)
     <DropdownMenuContent
       v-bind="forwarded"
       :class="cn(
-        'bg-popover text-popover-foreground motion-safe:transition-[opacity,transform] duration-150 z-50 min-w-[8rem] max-h-[var(--radix-dropdown-menu-content-available-height)] origin-[var(--radix-dropdown-menu-content-transform-origin)] overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md',
-        props.class
+        'z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md origin-[var(--radix-dropdown-menu-content-transform-origin)] motion-safe:transition-[opacity,transform] duration-150',
+        props.class,
       )"
     >
       <slot />

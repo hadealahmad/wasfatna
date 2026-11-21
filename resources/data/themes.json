@@ -1,0 +1,131 @@
+{
+  "theme": {
+    "key": "wasfatna-theme",
+    "system": "system"
+  },
+  "font": {
+    "key": "wasfatna-font",
+    "default": "ibm-plex",
+    "options": [
+      {
+        "id": "ibm-plex",
+        "label": "Plex"
+      },
+      {
+        "id": "system",
+        "label": "محلي"
+      }
+    ]
+  },
+  "legacyKeys": [
+    "color-scheme",
+    "vueuse-color-scheme"
+  ],
+  "themes": [
+    {
+      "id": "system",
+      "nameAr": "تلقائي (حسب الجهاز)",
+      "nameEn": "System",
+      "emoji": "🌓",
+      "icon": "monitor",
+      "isDark": false,
+      "bg": "linear-gradient(90deg, #ffffff 50%, #1a1f22 50%)",
+      "primary": "#556a4e",
+      "group": "system"
+    },
+    {
+      "id": "light",
+      "nameAr": "فاتح",
+      "nameEn": "Light",
+      "emoji": "☀️",
+      "icon": "sun",
+      "isDark": false,
+      "bg": "#ffffff",
+      "primary": "#556a4e",
+      "group": "standard"
+    },
+    {
+      "id": "dark",
+      "nameAr": "داكن",
+      "nameEn": "Dark",
+      "emoji": "🌑",
+      "icon": "moon",
+      "isDark": true,
+      "bg": "#1a1f22",
+      "primary": "#7fae6f",
+      "group": "standard"
+    },
+    {
+      "id": "dark-blue",
+      "nameAr": "داكن أزرق",
+      "nameEn": "Dark Blue",
+      "shortNameAr": "أزرق",
+      "emoji": "🔵",
+      "icon": "palette",
+      "isDark": true,
+      "bg": "#0f141f",
+      "primary": "#5593f7",
+      "group": "standard"
+    },
+    {
+      "id": "dark-purple",
+      "nameAr": "داكن بنفسجي",
+      "nameEn": "Dark Purple",
+      "shortNameAr": "بنفسجي",
+      "emoji": "🟣",
+      "icon": "palette",
+      "isDark": true,
+      "bg": "#140e1b",
+      "primary": "#cc70eb",
+      "group": "standard"
+    },
+    {
+      "id": "dark-green",
+      "nameAr": "داكن أخضر",
+      "nameEn": "Dark Green",
+      "shortNameAr": "أخضر",
+      "emoji": "🟢",
+      "icon": "palette",
+      "isDark": true,
+      "bg": "#0e1a11",
+      "primary": "#4abf61",
+      "group": "standard"
+    },
+    {
+      "id": "high-contrast",
+      "nameAr": "تباين عالي",
+      "nameEn": "High Contrast",
+      "shortNameAr": "تباين",
+      "emoji": "⚡",
+      "icon": "palette",
+      "isDark": true,
+      "bg": "#000000",
+      "primary": "#00ff00",
+      "group": "standard"
+    },
+    {
+      "id": "damascus-rose",
+      "nameAr": "الورد الدمشقي",
+      "nameEn": "Damascus Rose",
+      "shortNameAr": "دمشقي",
+      "emoji": "🌹",
+      "icon": "palette",
+      "isDark": true,
+      "bg": "#1a0f12",
+      "primary": "#e05c88",
+      "group": "heritage"
+    },
+    {
+      "id": "jasmine",
+      "nameAr": "ياسمين",
+      "nameEn": "Jasmine",
+      "shortNameAr": "ياسمين",
+      "emoji": "🌸",
+      "icon": "palette",
+      "isDark": false,
+      "bg": "#fcfaf3",
+      "primary": "#9e5e0a",
+      "group": "heritage"
+    }
+  ]
+}

@@ -1,26 +1,92 @@
+@php
+    $themeRegistry = json_decode((string) file_get_contents(resource_path('data/themes.json')), true) ?: [];
+    $themeKey = $themeRegistry['theme']['key'] ?? 'wasfatna-theme';
+    $systemTheme = $themeRegistry['theme']['system'] ?? 'system';
+    $fontKey = $themeRegistry['font']['key'] ?? 'wasfatna-font';
+    $defaultFont = $themeRegistry['font']['default'] ?? 'ibm-plex';
+    $validFonts = array_values(array_map(
+        static fn (array $opt): string => (string) $opt['id'],
+        $themeRegistry['font']['options'] ?? [['id' => 'ibm-plex'], ['id' => 'system']],
+    ));
+    $legacyThemeKeys = $themeRegistry['legacyKeys'] ?? ['color-scheme', 'vueuse-color-scheme'];
+    $themesList = $themeRegistry['themes'] ?? [];
+    $validThemeIds = array_values(array_map(
+        static fn (array $theme): string => (string) $theme['id'],
+        $themesList,
+    ));
+    $darkThemeIds = array_values(array_map(
+        static fn (array $theme): string => (string) $theme['id'],
+        array_filter($themesList, static fn (array $theme): bool => ! empty($theme['isDark'])),
+    ));
+@endphp
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light" data-scheme="light" data-font="{{ $defaultFont }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Pre-paint dark mode script to prevent FOUC -->
+        <!-- Theme & Font Flash Prevention: resolves theme/font from resources/data/themes.json before first paint -->
         <script nonce="{{ $cspNonce ?? '' }}">
             (function() {
                 try {
-                    var s = localStorage.getItem('color-scheme') || localStorage.getItem('vueuse-color-scheme');
+                    var root = document.documentElement;
+                    var themeKey = @json($themeKey);
+                    var systemTheme = @json($systemTheme);
+                    var legacyKeys = @json($legacyThemeKeys);
+                    var validThemeIds = @json($validThemeIds);
+                    var darkThemeIds = @json($darkThemeIds);
+                    var fontKey = @json($fontKey);
+                    var defaultFont = @json($defaultFont);
+                    var validFonts = @json($validFonts);
+
+                    var theme = localStorage.getItem(themeKey);
+                    if (!theme || validThemeIds.indexOf(theme) === -1) {
+                        theme = null;
+                        for (var i = 0; i < legacyKeys.length; i++) {
+                            var legacy = localStorage.getItem(legacyKeys[i]);
+                            if (legacy === 'dark' || legacy === 'light') {
+                                theme = legacy;
+                                localStorage.setItem(themeKey, legacy);
+                                for (var j = 0; j < legacyKeys.length; j++) {
+                                    localStorage.removeItem(legacyKeys[j]);
+                                }
+                                break;
+                            }
+                            if (legacy === 'auto') {
+                                theme = systemTheme;
+                                localStorage.setItem(themeKey, systemTheme);
+                                localStorage.removeItem(legacyKeys[i]);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!theme || theme === systemTheme || validThemeIds.indexOf(theme) === -1) {
+                        theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                    }
+
+                    var scheme = darkThemeIds.indexOf(theme) !== -1 ? 'dark' : 'light';
+                    root.setAttribute('data-theme', theme);
+                    root.setAttribute('data-scheme', scheme);
+
                     var meta = document.querySelector('meta[name="color-scheme"]');
-                    if (s === 'light' || s === 'dark') {
-                        if (meta) meta.setAttribute('content', s);
+                    if (meta) {
+                        meta.setAttribute('content', scheme);
                     }
-                    if (s === 'dark' || ((!s || s === 'auto') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                        document.documentElement.classList.add('dark');
+
+                    var font = localStorage.getItem(fontKey);
+                    if (!font || validFonts.indexOf(font) === -1) {
+                        font = defaultFont;
                     }
+                    root.setAttribute('data-font', font);
                 } catch (e) {}
             })();
         </script>
+
+        <!-- Self-hosted IBM Plex Sans Arabic (400 weight preload) -->
+        <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2">
 
         <!-- Favicons -->
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -51,10 +117,6 @@
 
         <title inertia>وصفاتنا</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
         <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
         <!-- Scripts -->

@@ -4,191 +4,314 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../**/*.ts';
 @source '../**/*.vue';
 
-@custom-variant dark {
-  &:where(.dark, .dark *) {
-    @slot;
-  }
-  &:where(:root:has(> head > meta[name="color-scheme"][content="dark"]), :root:has(> head > meta[name="color-scheme"][content="dark"]) *) {
-    @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:where(:root:not(:has(> head > meta[name="color-scheme"][content="light"])), :root:not(:has(> head > meta[name="color-scheme"][content="light"])) *) {
-      @slot;
-    }
-  }
+/* IBM Plex Sans Arabic — self-hosted UI webfont (OFL-1.1, public/fonts/ibm-plex-sans-arabic/OFL.txt).
+   `local()` first so visitors with the family installed download nothing; `swap` keeps text visible. */
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: local('IBM Plex Sans Arabic'), local('IBMPlexSansArabic'),
+    url('/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: 'IBM Plex Sans Arabic', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: local('IBM Plex Sans Arabic Medium'), local('IBMPlexSansArabic-Medium'),
+    url('/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: local('IBM Plex Sans Arabic SemiBold'), local('IBMPlexSansArabic-SemiBold'),
+    url('/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: local('IBM Plex Sans Arabic Bold'), local('IBMPlexSansArabic-Bold'),
+    url('/fonts/ibm-plex-sans-arabic/ibm-plex-sans-arabic-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Metric-matched local fallback so font swap causes no vertical layout shift. */
+@font-face {
+  font-family: 'IBM Plex Sans Arabic Fallback';
+  src: local('Segoe UI'), local('Tahoma'), local('Noto Sans Arabic'), local('Geeza Pro'),
+    local('DejaVu Sans'), local('Arial');
+  ascent-override: 108.5%;
+  descent-override: 41.5%;
+  line-gap-override: 0%;
+}
+
+@custom-variant dark (&:where([data-scheme="dark"], [data-scheme="dark"] *));
+
+@theme {
+  --font-sans: var(--site-font, 'IBM Plex Sans Arabic', 'IBM Plex Sans Arabic Fallback', sans-serif);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
 }
 
 :root {
-  color-scheme: light dark;
-  accent-color: var(--primary);
-  scrollbar-color: var(--muted-foreground) transparent;
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.551 0.027 264.364);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.55 0.23 27.325);
-  --border: oklch(0.923 0.003 264.542);
-  --input: oklch(0.923 0.003 264.542);
-  --ring: oklch(0.208 0.042 265.755);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-:root.dark,
-:root:has(> head > meta[name="color-scheme"][content="dark"]) {
-  color-scheme: dark;
-}
-
-:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  /* Native UI (select popups, date pickers, scrollbars, file inputs) follows the active scheme. */
   color-scheme: light;
+  accent-color: hsl(var(--primary));
+  scrollbar-color: hsl(var(--muted-foreground)) transparent;
+  --site-font: 'IBM Plex Sans Arabic', 'IBM Plex Sans Arabic Fallback', sans-serif;
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 105 15.2% 36.1%;
+  /* Reseda Green as default primary */
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 356 45.2% 45.1%;
+  /* Redwood */
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 105 15.2% 36.1%;
+  --radius: 0.5rem;
 }
 
-/* Fallback dark tokens for browsers without light-dark() support */
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.129 0.042 264.695);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.129 0.042 264.695);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.505 0.213 27.518);
-  --border: oklch(0.279 0.041 260.031);
-  --input: oklch(0.279 0.041 260.031);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+[data-theme="jasmine"] {
+  color-scheme: light;
+  --background: 45 60% 97%;
+  --foreground: 30 25% 12%;
+  --card: 45 50% 100%;
+  --card-foreground: 30 25% 12%;
+  --popover: 45 55% 98%;
+  --popover-foreground: 30 25% 12%;
+  --primary: 34 88% 33%;
+  /* Deep jasmine gold — WCAG AA >= 4.9:1 on light bg and white fg */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 42 35% 92%;
+  --secondary-foreground: 30 25% 15%;
+  --muted: 42 30% 93%;
+  --muted-foreground: 30 18% 42%;
+  --accent: 42 40% 90%;
+  --accent-foreground: 30 25% 15%;
+  --destructive: 356 45.2% 45.1%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 38 30% 85%;
+  --input: 38 30% 88%;
+  --ring: 38 85% 45%;
+  --radius: 0.5rem;
 }
 
-@supports (color: light-dark(white, black)) {
-  :root,
-  .dark {
-    --background: light-dark(oklch(1 0 0), oklch(0.129 0.042 264.695));
-    --foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.985 0 0));
-    --card: light-dark(oklch(1 0 0), oklch(0.129 0.042 264.695));
-    --card-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.985 0 0));
-    --popover: light-dark(oklch(1 0 0), oklch(0.129 0.042 264.695));
-    --popover-foreground: light-dark(oklch(0.129 0.042 264.695), oklch(0.985 0 0));
-    --primary: light-dark(oklch(0.208 0.042 265.755), oklch(0.985 0 0));
-    --primary-foreground: light-dark(oklch(0.985 0 0), oklch(0.208 0.042 265.755));
-    --secondary: light-dark(oklch(0.967 0.001 286.375), oklch(0.279 0.041 260.031));
-    --secondary-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.985 0 0));
-    --muted: light-dark(oklch(0.967 0.001 286.375), oklch(0.279 0.041 260.031));
-    --muted-foreground: light-dark(oklch(0.551 0.027 264.364), oklch(0.704 0.04 256.788));
-    --accent: light-dark(oklch(0.967 0.001 286.375), oklch(0.279 0.041 260.031));
-    --accent-foreground: light-dark(oklch(0.208 0.042 265.755), oklch(0.985 0 0));
-    --destructive: light-dark(oklch(0.55 0.23 27.325), oklch(0.505 0.213 27.518));
-    --border: light-dark(oklch(0.923 0.003 264.542), oklch(0.279 0.041 260.031));
-    --input: light-dark(oklch(0.923 0.003 264.542), oklch(0.279 0.041 260.031));
-    --ring: light-dark(oklch(0.208 0.042 265.755), oklch(0.439 0 0));
-    --chart-1: light-dark(oklch(0.646 0.222 41.116), oklch(0.488 0.243 264.376));
-    --chart-2: light-dark(oklch(0.6 0.118 184.704), oklch(0.696 0.17 162.48));
-    --chart-3: light-dark(oklch(0.398 0.07 227.392), oklch(0.769 0.188 70.08));
-    --chart-4: light-dark(oklch(0.828 0.189 84.429), oklch(0.627 0.265 303.9));
-    --chart-5: light-dark(oklch(0.769 0.188 70.08), oklch(0.645 0.246 16.439));
-    --sidebar: light-dark(oklch(0.985 0 0), oklch(0.205 0 0));
-    --sidebar-foreground: light-dark(oklch(0.145 0 0), oklch(0.985 0 0));
-    --sidebar-primary: light-dark(oklch(0.205 0 0), oklch(0.488 0.243 264.376));
-    --sidebar-primary-foreground: light-dark(oklch(0.985 0 0), oklch(0.985 0 0));
-    --sidebar-accent: light-dark(oklch(0.97 0 0), oklch(0.269 0 0));
-    --sidebar-accent-foreground: light-dark(oklch(0.205 0 0), oklch(0.985 0 0));
-    --sidebar-border: light-dark(oklch(0.922 0 0), oklch(0.269 0 0));
-    --sidebar-ring: light-dark(oklch(0.708 0 0), oklch(0.439 0 0));
-  }
+/* Shared dark tokens. data-scheme is set next to data-theme by the pre-paint
+   script and lib/theme.ts, so this block and Tailwind's dark: variant never list
+   theme ids. Each dark theme's own block below overrides what it changes. */
+[data-scheme="dark"] {
+  color-scheme: dark;
+  --background: 203 13.3% 11.8%;
+  /* #1A1F22 */
+  --foreground: 0 0% 100%;
+  --card: 195 23.5% 6.7%;
+  /* Exact #0D1315 */
+  --card-foreground: 0 0% 100%;
+  --popover: 200 15% 8%;
+  --popover-foreground: 0 0% 100%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 200 15% 12%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 195 23.5% 10%;
+  --muted-foreground: 200 10% 65%;
+  --accent: 200 15% 12%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 356 45.2% 45.1%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 100% / 10%;
+  --input: 0 0% 100% / 10%;
+  --ring: 105 15.2% 36.1%;
+}
+
+[data-theme="dark"] {
+  --primary: 105 28% 56%;
+  /* Accessible Reseda Green (>= 6.4:1 on #1A1F22 and dark primary-foreground) */
+  --primary-foreground: 203 25% 8%;
+  --ring: 105 28% 56%;
+}
+
+[data-theme="dark-blue"] {
+  --background: 219 36% 9%;
+  --foreground: 210 40% 98%;
+  --card: 219 36% 6.5%;
+  --card-foreground: 210 40% 98%;
+  --popover: 219 36% 8%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 65%;
+  --primary-foreground: 219 45% 8%;
+  --secondary: 219 25% 15%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 219 25% 13%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 219 25% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 219 25% 17%;
+  --input: 219 25% 17%;
+  --ring: 217 91% 60%;
+}
+
+[data-theme="dark-purple"] {
+  --background: 270 30% 8%;
+  --foreground: 270 40% 98%;
+  --card: 270 30% 5.5%;
+  --card-foreground: 270 40% 98%;
+  --popover: 270 30% 7%;
+  --popover-foreground: 270 40% 98%;
+  --primary: 285 75% 68%;
+  --primary-foreground: 270 45% 8%;
+  --secondary: 270 20% 14%;
+  --secondary-foreground: 270 40% 98%;
+  --muted: 270 20% 12%;
+  --muted-foreground: 270 20% 65%;
+  --accent: 270 20% 16%;
+  --accent-foreground: 270 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 270 40% 98%;
+  --border: 270 20% 16%;
+  --input: 270 20% 16%;
+  --ring: 285 75% 68%;
+}
+
+[data-theme="dark-green"] {
+  --background: 135 29% 8%;
+  --foreground: 135 40% 98%;
+  --card: 135 29% 5.5%;
+  --card-foreground: 135 40% 98%;
+  --popover: 135 29% 7%;
+  --popover-foreground: 135 40% 98%;
+  --primary: 132 48% 52%;
+  --primary-foreground: 135 45% 7%;
+  --secondary: 135 20% 14%;
+  --secondary-foreground: 135 40% 98%;
+  --muted: 135 20% 12%;
+  --muted-foreground: 130 18% 65%;
+  --accent: 135 20% 16%;
+  --accent-foreground: 135 40% 98%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 135 40% 98%;
+  --border: 135 20% 16%;
+  --input: 135 20% 16%;
+  --ring: 132 48% 52%;
+}
+
+[data-theme="high-contrast"] {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 120 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 85%;
+  --accent: 0 0% 15%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 120 100% 50%;
+  --input: 120 100% 50%;
+  --ring: 120 100% 50%;
+}
+
+[data-theme="damascus-rose"] {
+  /* Rich warm rose-black — like dried rose petals */
+  --background: 345 28% 8%;
+  --foreground: 10 15% 96%;
+
+  /* Deep wine card surface */
+  --card: 345 32% 5.5%;
+  --card-foreground: 10 15% 96%;
+
+  --popover: 345 28% 7%;
+  --popover-foreground: 10 15% 96%;
+
+  /* Blooming rose — the heart of the theme */
+  --primary: 340 68% 62%;
+  --primary-foreground: 345 45% 8%;
+
+  /* Warm plum secondary */
+  --secondary: 345 22% 13%;
+  --secondary-foreground: 10 15% 95%;
+
+  --muted: 345 22% 11%;
+  /* Dusty rose muted text — warm, not cold */
+  --muted-foreground: 340 18% 62%;
+
+  --accent: 345 22% 15%;
+  --accent-foreground: 10 15% 95%;
+
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Warm rose borders with soft glow */
+  --border: 340 35% 20%;
+  --input: 340 30% 18%;
+  --ring: 340 68% 58%;
 }
 
 @layer base {
-  :where(*) {
+  * {
     @apply border-border outline-ring/50;
   }
 
+  /* Visible keyboard focus for every interactive element. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--site-font, 'IBM Plex Sans Arabic', 'IBM Plex Sans Arabic Fallback', sans-serif);
     line-height: 1.5;
     text-align: start;
   }
@@ -202,14 +325,37 @@
     overflow-wrap: break-word;
   }
 
-  button {
+  button,
+  [role="button"],
+  .button {
     cursor: pointer;
   }
 
   ::selection {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
   }
+
+  /* Directional icons follow RTL reading direction. */
+  :is(.lucide-external-link, .lucide-log-in, .lucide-log-out, .lucide-undo-2, .lucide-redo-2):dir(rtl) {
+    transform: scaleX(-1);
+  }
+}
+
+html {
+  direction: rtl;
+}
+
+html[data-font="system"],
+html[data-font="system"] body {
+  --site-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+html[data-font="ibm-plex"],
+html[data-font="ibm-plex"] body {
+  --site-font: 'IBM Plex Sans Arabic', 'IBM Plex Sans Arabic Fallback', sans-serif;
+  font-family: 'IBM Plex Sans Arabic', 'IBM Plex Sans Arabic Fallback', sans-serif !important;
 }
 
 /* CSS-only theme-aware logos (no JS flicker) */
@@ -221,32 +367,12 @@
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .logo-light {
-    display: none;
-  }
-
-  :root:not(:has(> head > meta[name="color-scheme"][content="light"])) .logo-dark {
-    display: block;
-  }
-}
-
-:root:has(> head > meta[name="color-scheme"][content="dark"]) .logo-light,
-.dark .logo-light {
+[data-scheme="dark"] .logo-light {
   display: none;
 }
 
-:root:has(> head > meta[name="color-scheme"][content="dark"]) .logo-dark,
-.dark .logo-dark {
+[data-scheme="dark"] .logo-dark {
   display: block;
-}
-
-:root:has(> head > meta[name="color-scheme"][content="light"]) .logo-light {
-  display: block;
-}
-
-:root:has(> head > meta[name="color-scheme"][content="light"]) .logo-dark {
-  display: none;
 }
 
 /* Content-visibility utilities */
@@ -296,17 +422,11 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .loading-spinner {
-    animation: loading-spinner-pulse 1.5s ease-in-out infinite;
-  }
-}
-
 /* Sonner Toast Styling */
 [data-sonner-toaster] {
-  --normal-bg: var(--popover);
-  --normal-text: var(--popover-foreground);
-  --normal-border: var(--border);
+  --normal-bg: hsl(var(--popover));
+  --normal-text: hsl(var(--popover-foreground));
+  --normal-border: hsl(var(--border));
   font-family: inherit;
   z-index: 9999;
 }
@@ -321,7 +441,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Fallback Sonner state styles */
 [data-sonner-toast][data-type="success"] {
   background: hsl(143 85% 96%);
   border-color: hsl(145 92% 91%);
@@ -346,64 +465,34 @@
   color: hsl(210 92% 45%);
 }
 
-.dark [data-sonner-toast] {
-  background: var(--popover);
-  color: var(--popover-foreground);
-  border-color: var(--border);
+[data-scheme="dark"] [data-sonner-toast] {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border-color: hsl(var(--border));
 }
 
-.dark [data-sonner-toast][data-type="success"] {
+[data-scheme="dark"] [data-sonner-toast][data-type="success"] {
   background: hsl(150 100% 6%);
   border-color: hsl(147 100% 12%);
   color: hsl(150 86% 65%);
 }
 
-.dark [data-sonner-toast][data-type="error"] {
+[data-scheme="dark"] [data-sonner-toast][data-type="error"] {
   background: hsl(358 76% 10%);
   border-color: hsl(357 89% 16%);
   color: hsl(358 100% 81%);
 }
 
-.dark [data-sonner-toast][data-type="warning"] {
+[data-scheme="dark"] [data-sonner-toast][data-type="warning"] {
   background: hsl(64 100% 6%);
   border-color: hsl(60 100% 12%);
   color: hsl(46 87% 65%);
 }
 
-.dark [data-sonner-toast][data-type="info"] {
+[data-scheme="dark"] [data-sonner-toast][data-type="info"] {
   background: hsl(215 100% 6%);
   border-color: hsl(223 100% 12%);
   color: hsl(216 87% 65%);
-}
-
-@supports (color: light-dark(white, black)) {
-  [data-sonner-toast][data-type="success"],
-  .dark [data-sonner-toast][data-type="success"] {
-    background: light-dark(hsl(143 85% 96%), hsl(150 100% 6%));
-    border-color: light-dark(hsl(145 92% 91%), hsl(147 100% 12%));
-    color: light-dark(hsl(140 100% 27%), hsl(150 86% 65%));
-  }
-
-  [data-sonner-toast][data-type="error"],
-  .dark [data-sonner-toast][data-type="error"] {
-    background: light-dark(hsl(359 100% 97%), hsl(358 76% 10%));
-    border-color: light-dark(hsl(359 100% 94%), hsl(357 89% 16%));
-    color: light-dark(hsl(360 100% 45%), hsl(358 100% 81%));
-  }
-
-  [data-sonner-toast][data-type="warning"],
-  .dark [data-sonner-toast][data-type="warning"] {
-    background: light-dark(hsl(49 100% 97%), hsl(64 100% 6%));
-    border-color: light-dark(hsl(49 91% 91%), hsl(60 100% 12%));
-    color: light-dark(hsl(31 92% 45%), hsl(46 87% 65%));
-  }
-
-  [data-sonner-toast][data-type="info"],
-  .dark [data-sonner-toast][data-type="info"] {
-    background: light-dark(hsl(208 100% 97%), hsl(215 100% 6%));
-    border-color: light-dark(hsl(221 91% 91%), hsl(223 100% 12%));
-    color: light-dark(hsl(210 92% 45%), hsl(216 87% 65%));
-  }
 }
 
 [data-sonner-toast] [data-title] {
@@ -411,29 +500,23 @@
 }
 
 [data-sonner-toast] [data-description] {
-  color: var(--muted-foreground);
+  color: hsl(var(--muted-foreground));
 }
 
 [data-sonner-toast] [data-close-button] {
-  background: var(--muted);
-  color: var(--muted-foreground);
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
   border-radius: 50%;
 }
 
 [data-sonner-toast] [data-close-button]:hover {
-  background: var(--accent);
-  color: var(--accent-foreground);
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
-/* High Contrast / Forced Colors Mode */
+/* Focus and controls in Windows High Contrast / forced-colors mode. */
 @media (forced-colors: active) {
-  :root,
-  .dark {
-    --border: CanvasText;
-    --ring: Highlight;
-  }
-
-  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  :where(a, button, input, select, textarea, summary, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="option"], [role="combobox"], [role="menuitem"], [tabindex]):focus-visible {
     outline: 2px solid Highlight;
     outline-offset: 2px;
   }
@@ -445,5 +528,23 @@
 
   [data-sonner-toast] {
     border: 1px solid CanvasText;
+  }
+}
+
+/* Motion accessibility catch-all. Tiny durations keep transitionend/animationend firing. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .loading-spinner {
+    animation: loading-spinner-pulse 1.5s ease-in-out infinite;
+    animation-duration: 1.5s !important;
+    animation-iteration-count: infinite !important;
   }
 }

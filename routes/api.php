@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ImportController;
 use App\Http\Controllers\Api\IngredientController;
 use App\Http\Controllers\Api\RecipeController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Web\SearchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,6 +25,9 @@ Route::prefix('auth')->middleware('throttle:10,1')->group(function () {
 });
 
 Route::middleware('throttle:60,1')->group(function () {
+    // Global search (command palette)
+    Route::get('search/global', [SearchController::class, 'global'])->name('api.search.global');
+
     // Recipes (public read)
     Route::get('recipes', [RecipeController::class, 'index']);
     Route::get('recipes/randomizer', [\App\Http\Controllers\Api\RandomizerController::class, 'index']);

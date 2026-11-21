@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Tag;
 use App\Models\User;
 use App\Services\ImageService;
+use App\Support\ArabicSearch;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -20,15 +21,16 @@ class RecipeController extends Controller
             ->where('status', 'approved')
             ->latest();
 
+        $search = trim((string) ($request->input('search') ?? $request->input('q', '')));
+
         // Filters
-        if ($request->filled('search')) {
-            $search = $request->search;
+        if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('description', 'like', '%' . $search . '%')
-                  ->orWhereHas('city', fn($c) => $c->where('name', 'like', '%' . $search . '%'))
-                  ->orWhereHas('tags', fn($t) => $t->where('name', 'like', '%' . $search . '%'))
-                  ->orWhereHas('ingredients', fn($i) => $i->where('name', 'like', '%' . $search . '%'));
+                ArabicSearch::whereLikeFolded($q, 'recipes.name', $search);
+                ArabicSearch::whereLikeFolded($q, 'recipes.description', $search, or: true);
+                $q->orWhereHas('city', fn ($c) => ArabicSearch::whereLikeFolded($c, 'cities.name', $search))
+                    ->orWhereHas('tags', fn ($t) => ArabicSearch::whereLikeFolded($t, 'tags.name', $search))
+                    ->orWhereHas('ingredients', fn ($i) => ArabicSearch::whereLikeFolded($i, 'ingredients.name', $search));
             });
         }
 
@@ -53,9 +55,14 @@ class RecipeController extends Controller
         $perPage = min(max((int) $request->input('per_page', 12), 10), 100);
         $recipes = $query->paginate($perPage)->withQueryString();
 
+        $filters = $request->only(['search', 'city', 'tag', 'difficulty', 'per_page']);
+        if ($search !== '' && empty($filters['search'])) {
+            $filters['search'] = $search;
+        }
+
         return Inertia::render('Recipes/Index', [
             'recipes' => $recipes->through(fn($r) => $this->formatRecipeCard($r)),
-            'filters' => $request->only(['search', 'city', 'tag', 'difficulty', 'per_page']),
+            'filters' => $filters,
             'cities' => City::select('id', 'name', 'slug')->get(),
             'tags' => Tag::select('id', 'name', 'slug')->get(),
         ]);
