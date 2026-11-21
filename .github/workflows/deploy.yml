@@ -17,8 +17,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      # TEMPORARY (until the move to Coolify): the server's CLI php.ini disables
+      # proc_open/exec for every user. Lift it for this deploy's own commands only;
+      # Composer passes the setting on to the `@php artisan` scripts it runs.
       - name: Setup PHP dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction
+        run: php -d disable_functions=mail "$(command -v composer)" install --no-dev --optimize-autoloader --no-interaction
 
       - name: Setup Node dependencies
         run: bun install --frozen-lockfile
@@ -45,6 +48,9 @@ jobs:
       - name: Execute Post-Deployment Commands
         working-directory: /home/syrian/domains/food.syrian.zone/public_html
         run: |
+          # TEMPORARY: see "Setup PHP dependencies" — artisan needs proc_open.
+          artisan() { php -d disable_functions=mail artisan "$@"; }
+
           # Ensure .env exists (assuming it's already there on the server, but good safety)
           if [ ! -f .env ]; then
               echo "::error::No .env file found in production directory!"
@@ -52,22 +58,22 @@ jobs:
           fi
 
           # Run Migrations
-          php artisan migrate --force
+          artisan migrate --force
 
           # Optimize
-          php artisan config:cache
-          php artisan route:cache
-          php artisan view:cache
-          php artisan event:cache
+          artisan config:cache
+          artisan route:cache
+          artisan view:cache
+          artisan event:cache
 
           # Storage Link (Idempotent)
-          php artisan storage:link --force
+          artisan storage:link --force
 
           # Restart Queue Workers
-          php artisan queue:restart
+          artisan queue:restart
 
           # Stop Inertia SSR Server (forces process manager to reload fresh SSR bundle)
-          php artisan inertia:stop-ssr || true
+          artisan inertia:stop-ssr || true
 
           # Fix Permissions
           # Ensure backend storage is writable
