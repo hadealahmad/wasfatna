@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue';
+import { computed, getCurrentInstance, onMounted, ref } from 'vue';
 import {
   DEFAULT_FONT,
   DEFAULT_THEME,
@@ -81,7 +81,11 @@ function setFont(nextFont: FontPreference): void {
 
 export function useTheme() {
   if (typeof window !== 'undefined') {
-    initTheme();
+    if (getCurrentInstance()) {
+      onMounted(initTheme);
+    } else {
+      initTheme();
+    }
   }
 
   return {

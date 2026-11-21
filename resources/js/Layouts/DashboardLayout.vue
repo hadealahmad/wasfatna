@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   CalendarDays,
@@ -98,9 +98,11 @@ const navItems = computed<DashboardNavItem[]>(() => [
   },
 ]);
 
+const routeFn = inject<((name: string, params?: any, absolute?: boolean) => string) | undefined>('route', undefined);
+
 function itemHref(item: DashboardNavItem): string {
   try {
-    return route(item.name);
+    return routeFn ? routeFn(item.name) : route(item.name);
   } catch {
     return item.href;
   }
@@ -109,7 +111,7 @@ function itemHref(item: DashboardNavItem): string {
 function isActive(item: DashboardNavItem): boolean {
   let targetPath = item.href;
   try {
-    targetPath = route(item.name, undefined, false);
+    targetPath = routeFn ? routeFn(item.name, undefined, false) : route(item.name, undefined, false);
   } catch {
     // Fallback when Ziggy is not present in SSR page props
   }

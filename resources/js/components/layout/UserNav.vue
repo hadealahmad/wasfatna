@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
   BookHeart,
@@ -27,9 +27,10 @@ const isAdminOrModerator = computed(
   () => user.value?.role === 'admin' || user.value?.role === 'moderator',
 );
 
+const routeFn = inject<((name: string, params?: any, absolute?: boolean) => string) | undefined>('route', undefined);
 const logoutHref = computed(() => {
   try {
-    return route('logout');
+    return routeFn ? routeFn('logout') : route('logout');
   } catch {
     return '/logout';
   }

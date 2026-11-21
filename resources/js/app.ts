@@ -2,7 +2,7 @@ import '../css/app.css';
 import 'vue-sonner/style.css';
 import './bootstrap';
 
-import { createApp, h, DefineComponent } from 'vue';
+import { createApp, createSSRApp, h, DefineComponent } from 'vue';
 import { createInertiaApp, router } from '@inertiajs/vue3';
 import { loadAnalytics, trackPageView } from './lib/analyticsConsent';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -15,7 +15,8 @@ createInertiaApp({
     title: (title) => title ? (title.includes('وصفاتنا') ? title : `${title} | ${appName}`) : `${appName} - مجتمع الطبخ السوري`,
     resolve: (name) => resolvePageComponent(`./Pages/${name}.vue`, import.meta.glob<DefineComponent>('./Pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const createVueApp = el.hasChildNodes() ? createSSRApp : createApp;
+        createVueApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .mount(el);

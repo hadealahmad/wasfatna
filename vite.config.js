@@ -16,6 +16,9 @@ export default defineConfig(({ isSsrBuild }) => ({
                     base: null,
                     includeAbsolute: false,
                 },
+                compilerOptions: {
+                    isCustomElement: (tag) => tag === 'search',
+                },
             },
         }),
         tailwindcss(),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { computed, inject, onUnmounted, ref, watch } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { DialogClose } from 'radix-vue';
 import {
@@ -45,9 +45,10 @@ const isAdminOrModerator = computed(
   () => user.value?.role === 'admin' || user.value?.role === 'moderator',
 );
 
+const routeFn = inject<((name: string, params?: any, absolute?: boolean) => string) | undefined>('route', undefined);
 const logoutHref = computed(() => {
   try {
-    return route('logout');
+    return routeFn ? routeFn('logout') : route('logout');
   } catch {
     return '/logout';
   }

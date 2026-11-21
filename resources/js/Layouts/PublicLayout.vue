@@ -23,6 +23,7 @@ const page = usePage();
 watch(
   () => page.props.flash,
   (flash: any) => {
+    if (typeof window === 'undefined') return;
     if (flash?.error) toast.error(flash.error);
     if (flash?.success) toast.success(flash.success);
   },

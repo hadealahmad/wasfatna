@@ -17,7 +17,9 @@ const page = usePage();
 const user = computed(() => (page.props.auth as any)?.user);
 const canModerate = computed(() => ['admin', 'moderator'].includes(user.value?.role));
 
-const isOwner = computed(() => user.value?.id === props.ownerId);
+// Both sides must be real ids: a guest (no user) viewing an anonymous recipe
+// (no ownerId) would otherwise match `undefined === undefined`.
+const isOwner = computed(() => user.value?.id != null && props.ownerId != null && user.value.id === props.ownerId);
 const canUnpublish = computed(() => (isOwner.value || canModerate.value) && props.status === 'approved');
 const canPublish = computed(() => canModerate.value && props.status !== 'approved');
 const showControls = computed(() => canUnpublish.value || canPublish.value || isOwner.value);
